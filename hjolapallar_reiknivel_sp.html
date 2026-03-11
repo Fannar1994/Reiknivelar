@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hjólapalla reiknivél</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap');
+
+        :root {
+            --color-border:  #ddd;
+            --color-surface: #fafafa;
+            --color-bg:      #f2f4f7;
+            --color-muted:   #666;
+            --color-dark:    #404042;
+            --color-accent:  #f5c800;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Barlow', system-ui, Arial, sans-serif; background: var(--color-bg); color: #1a1a1a; }
+
+        .header {
+            background: var(--color-dark);
+            color: #fff;
+            padding: 20px 24px;
+        }
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+        .header h1 { font-family: 'Barlow Condensed', system-ui, sans-serif; font-size: 1.8rem; font-weight: 700; }
+        .header p { font-size: 0.85rem; opacity: 0.8; margin-top: 4px; }
+        .header-brand { text-align: right; flex-shrink: 0; line-height: 1; }
+        .header-brand-byko { font-family: 'Barlow Condensed', system-ui, sans-serif; font-size: 2.6rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; display: block; }
+        .header-brand-leiga { font-family: 'Barlow Condensed', system-ui, sans-serif; font-size: 1.3rem; font-weight: 600; color: var(--color-accent); letter-spacing: 0.08em; display: block; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .card-header {
+            background: var(--color-surface);
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-body { padding: 16px 20px; }
+
+        /* Inputs */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .input-row.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .input-block { display: flex; flex-direction: column; gap: 4px; }
+        .label { font-size: 0.82rem; font-weight: 500; color: #555; }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 10px 12px;
+            border: 1.5px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--color-dark); }
+        input[readonly] { background: #f5f5f5; color: #888; }
+
+        /* Radio options */
+        .option-group { margin-bottom: 14px; }
+        .option-group-label { font-size: 0.85rem; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .radio-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .radio-option {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .radio-option.selected {
+            border-color: var(--color-dark);
+            background: rgba(64,64,66,.06);
+            font-weight: 600;
+        }
+        .radio-option input[type="radio"] { display: none; }
+        .radio-option .type-name { font-weight: 600; display: block; }
+        .radio-option .type-desc { font-size: 0.78rem; color: #666; margin-top: 2px; }
+
+        /* Toggle */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--color-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-row.active {
+            border-color: var(--color-dark);
+            background: rgba(64,64,66,.06);
+        }
+        .toggle-row input[type="checkbox"] {
+            width: 18px; height: 18px;
+            accent-color: var(--color-dark);
+        }
+        .toggle-label { font-size: 0.9rem; }
+        .toggle-desc { font-size: 0.78rem; color: #888; }
+
+        /* Results */
+
+        .results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .results-table th {
+            background: var(--color-dark);
+            color: #fff;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .results-table td { padding: 8px; border-bottom: 1px solid #eee; }
+        .results-table tr:hover { background: var(--color-surface); }
+
+        .total-row { font-weight: bold; background: #f0f0f0 !important; }
+
+        .cost-summary {
+            text-align: center;
+            padding: 20px;
+            background: var(--color-surface);
+            border-radius: 0 0 12px 12px;
+        }
+        .cost-total { font-size: 1.8rem; font-weight: 700; color: var(--color-dark); }
+        .cost-label { font-size: 0.85rem; color: #555; margin-bottom: 4px; }
+
+        .info-box {
+            background: var(--color-surface);
+            border-left: 4px solid var(--color-accent);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 14px;
+            font-size: 0.85rem;
+            color: #333;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9rem;
+        }
+        .summary-line.highlight {
+            font-weight: 700;
+            font-size: 1rem;
+            border-top: 2px solid var(--color-dark);
+            padding-top: 10px;
+            margin-top: 6px;
+        }
+        .summary-line.sub {
+            color: #666;
+            font-size: 0.82rem;
+            padding-left: 16px;
+        }
+
+        /* Editable components table */
+        .comp-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .comp-table th {
+            background: var(--color-dark);
+            color: #fff;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .comp-table th:nth-child(3) { text-align: right; }
+        .comp-table td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        .comp-table tr:hover { background: var(--color-surface); }
+        .comp-table tr.kit-row { background: rgba(245,200,0,0.10); font-weight: 600; }
+        .comp-table tr.kit-row:hover { background: rgba(245,200,0,0.18); }
+        .comp-table tr.zero-row { color: #aaa; }
+        .comp-table .qty-input {
+            width: 60px;
+            padding: 5px 8px;
+            border: 1.5px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .comp-table .qty-input::-webkit-outer-spin-button,
+        .comp-table .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .comp-table .qty-input:focus { border-color: var(--color-dark); outline: none; }
+        .recalc-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-accent);
+            color: var(--color-dark);
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: transform 0.15s;
+        }
+        .recalc-btn:hover { transform: scale(1.01); }
+        .recalc-btn:active { transform: scale(0.99); }
+
+        @media (max-width: 600px) {
+            .input-row { grid-template-columns: 1fr; }
+            .input-row.three-col { grid-template-columns: 1fr; }
+            .radio-options { flex-direction: column; }
+        }
+    
+        /* === SharePoint Compatibility === */
+        #s4-ribbonrow, #suiteBar, #suiteBarDelta,
+        .ms-core-navigation, #sideNavBox,
+        .ms-breadcrumb-box, .ms-commandBar,
+        .noindex { }
+        @media print {
+            #s4-ribbonrow, #suiteBar, #suiteBarDelta,
+            .ms-core-navigation, #sideNavBox,
+            .ms-breadcrumb-box, .ms-commandBar,
+            .noindex { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-inner">
+            <div>
+                <h1>Hjólapalla reiknivél</h1>
+                <p>Útreikningur á íhlutum og leiguverði hjólapalla</p>
+            </div>
+            <div class="header-brand">
+                <span class="header-brand-byko">BYKO</span>
+                <span class="header-brand-leiga">Leiga</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- SCAFFOLD TYPE -->
+        <div class="card">
+            <div class="card-header"><span>Tegund hjólapalls</span></div>
+            <div class="card-body">
+                <div class="option-group">
+                    <div class="radio-options">
+                        <label class="radio-option selected" onclick="selectScaffoldType('narrow')">
+                            <input type="radio" name="scaffold-type" value="narrow" checked>
+                            <span class="type-name">Hjólapallur mjór</span>
+                            <span class="type-desc">0,75m breidd</span>
+                        </label>
+                        <label class="radio-option" onclick="selectScaffoldType('wide')">
+                            <input type="radio" name="scaffold-type" value="wide">
+                            <span class="type-name">Hjólapallur breiður</span>
+                            <span class="type-desc">1,35m breidd</span>
+                        </label>
+                        <label class="radio-option" onclick="selectScaffoldType('quickly')">
+                            <input type="radio" name="scaffold-type" value="quickly">
+                            <span class="type-name">Quickly pallur</span>
+                            <span class="type-desc">2,0/4,0 mtr. standhæð/vinnuhæð</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HEIGHT -->
+        <div class="card" id="height-card">
+            <div class="card-header"><span>Hæð</span></div>
+            <div class="card-body">
+                <div class="input-block">
+                    <label class="label">Veldu standhæð / vinnuhæð</label>
+                    <select id="height-select" onchange="updateHeightInfo()">
+                        <option value="2.5">Standhæð/vinnuhæð 2,5 / 4,5 mtr.</option>
+                        <option value="3.5">Standhæð/vinnuhæð 3,5 / 5,5 mtr.</option>
+                        <option value="4.5">Standhæð/vinnuhæð 4,5 / 6,5 mtr.</option>
+                        <option value="5.5">Standhæð/vinnuhæð 5,5 / 7,5 mtr.</option>
+                        <option value="6.5">Standhæð/vinnuhæð 6,5 / 8,5 mtr.</option>
+                        <option value="7.5">Standhæð/vinnuhæð 7,5 / 9,5 mtr.</option>
+                        <option value="8.5">Standhæð/vinnuhæð 8,5 / 10,5 mtr.</option>
+                        <option value="9.5">Standhæð/vinnuhæð 9,5 / 11,5 mtr.</option>
+                        <option value="10.5">Standhæð/vinnuhæð 10,5 / 12,5 mtr.</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUPPORT LEGS -->
+        <div class="card" id="support-card">
+            <div class="card-header"><span>Viðbætur</span></div>
+            <div class="card-body">
+                <div class="toggle-row" id="support-toggle" onclick="toggleSupportLegs()">
+                    <input type="checkbox" id="support-check">
+                    <div>
+                        <div class="toggle-label">Stuðningsfætur</div>
+                        <div class="toggle-desc">2 stk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RENTAL PERIOD -->
+        <div class="card">
+            <div class="card-header"><span>Leigutími</span></div>
+            <div class="card-body">
+                <div class="input-row">
+                    <div class="input-block">
+                        <label class="label">Upphafsdagur</label>
+                        <input type="date" id="start-date">
+                    </div>
+                    <div class="input-block">
+                        <label class="label">Lokadagur</label>
+                        <input type="date" id="end-date">
+                    </div>
+                </div>
+                <div class="input-block">
+                    <label class="label">Leigutímabil (dagar) — breyttu dagsetningum <em>eða</em> sláðu inn fjölda daga</label>
+                    <input type="number" id="rental-days" min="1" placeholder="t.d. 8">
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="results">
+
+            <!-- SCAFFOLD DESCRIPTION -->
+            <div class="card" style="margin-top: 16px;">
+                <div class="card-header"><span id="scaffold-desc-header">Hjólapallur</span></div>
+                <div class="card-body">
+                    <div class="info-box" id="scaffold-desc-box"></div>
+                </div>
+            </div>
+
+            <!-- EDITABLE COMPONENTS TABLE -->
+            <div class="card">
+                <div class="card-header">
+                    <span>Efnislisti — breyttu magni og endurreiknaðu</span>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <table class="comp-table">
+                        <thead>
+                            <tr>
+                                <th>Leigunr.</th>
+                                <th>Lýsing</th>
+                                <th style="text-align:center">Magn</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comp-body"></tbody>
+                    </table>
+                </div>
+                <div style="padding: 12px 20px;">
+                    <button class="recalc-btn" onclick="recalculate()">Endurreikna leiguverð</button>
+                </div>
+            </div>
+
+            <!-- COST SUMMARY -->
+            <div class="card">
+                <div class="cost-summary">
+                    <div class="cost-label">Samtals leiguverð</div>
+                    <div class="cost-total" id="total-rental">0 kr</div>
+                    <div style="margin-top:18px;">
+                        <div class="cost-label">Trygging (ef ekki í reikningsviðskiptum):</div>
+                        <div class="cost-total" id="total-deposit" style="font-size:1.4rem;">0 kr</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================================
+        // CONFIGURATION DATA (from configuration.ts)
+        // =====================================================================
+
+        // Pricing tables
+        const NARROW_PRICING = {
+            '2.5':  { '24h': 4717,  extra: 2359,  week: 11794,  deposit: 10000 },
+            '3.5':  { '24h': 5942,  extra: 2971,  week: 14855,  deposit: 12000 },
+            '4.5':  { '24h': 7620,  extra: 3810,  week: 19051,  deposit: 15000 },
+            '5.5':  { '24h': 8845,  extra: 4423,  week: 22113,  deposit: 16500 },
+            '6.5':  { '24h': 10524, extra: 5262,  week: 26309,  deposit: 19500 },
+            '7.5':  { '24h': 11748, extra: 5874,  week: 29371,  deposit: 21000 },
+            '8.5':  { '24h': 13427, extra: 6713,  week: 33566,  deposit: 24000 },
+            '9.5':  { '24h': 15649, extra: 7825,  week: 39123,  deposit: 25000 },
+            '10.5': { '24h': 16647, extra: 8324,  week: 41618,  deposit: 28000 },
+        };
+
+        const WIDE_PRICING = {
+            '2.5':  { '24h': 5443,  extra: 2722,  week: 13608,  deposit: 12000 },
+            '3.5':  { '24h': 6713,  extra: 3357,  week: 16783,  deposit: 14000 },
+            '4.5':  { '24h': 9253,  extra: 4627,  week: 23134,  deposit: 17000 },
+            '5.5':  { '24h': 10524, extra: 5262,  week: 26309,  deposit: 19000 },
+            '6.5':  { '24h': 12157, extra: 6079,  week: 30391,  deposit: 22000 },
+            '7.5':  { '24h': 13427, extra: 6714,  week: 33566,  deposit: 24000 },
+            '8.5':  { '24h': 15060, extra: 7530,  week: 37649,  deposit: 27000 },
+            '9.5':  { '24h': 17237, extra: 8619,  week: 43092,  deposit: 28000 },
+            '10.5': { '24h': 22499, extra: 11250, week: 56247,  deposit: 31000 },
+        };
+
+        const QUICKLY_PRICING = { '24h': 4082, extra: 2041, week: 10206, deposit: 10000 };
+
+        const SUPPORT_LEGS_PRICING = { '24h': 453, extra: 227, week: 1134, deposit: 0 };
+
+        // Component product definitions with quantity matrices by height + weekly rental price per unit
+        // Narrow scaffold (0.75m) — B-series frames
+        const SCAFFOLD_PRODUCTS = [
+            {
+                itemno: '01-PAL-HP01-106', name: 'Álrammar B1 2,1m', weekPrice: 1588,
+                quantities: { '2.5':2, '3.5':4, '4.5':4, '5.5':6, '6.5':6, '7.5':8, '8.5':8, '9.5':10, '10.5':10 }
+            },
+            {
+                itemno: '01-PAL-HP01-107', name: 'Álrammar B5 1,05m', weekPrice: 851,
+                quantities: { '2.5':2, '3.5':0, '4.5':2, '5.5':0, '6.5':2, '7.5':0, '8.5':2, '9.5':0, '10.5':2 }
+            },
+            {
+                itemno: '01-PAL-HP01-118', name: 'Gólfborð P25', weekPrice: 1474,
+                quantities: { '2.5':0, '3.5':0, '4.5':0, '5.5':0, '6.5':0, '7.5':0, '8.5':0, '9.5':0, '10.5':0 }
+            },
+            {
+                itemno: '01-PAL-HP01-117', name: 'Gólfborð M/Opi PB25', weekPrice: 1701,
+                quantities: { '2.5':1, '3.5':1, '4.5':2, '5.5':2, '6.5':3, '7.5':3, '8.5':4, '9.5':5, '10.5':5 }
+            },
+            {
+                itemno: '01-PAL-HP01-108', name: 'Handrið H25', weekPrice: 397,
+                quantities: { '2.5':4, '3.5':4, '4.5':6, '5.5':6, '6.5':8, '7.5':8, '8.5':10, '9.5':12, '10.5':14 }
+            },
+            {
+                itemno: '01-PAL-HP01-109', name: 'Skástífur D25', weekPrice: 397,
+                quantities: { '2.5':4, '3.5':8, '4.5':8, '5.5':12, '6.5':12, '7.5':16, '8.5':16, '9.5':20, '10.5':20 }
+            },
+            {
+                itemno: '01-PAL-HP01-112', name: 'Stillanl.fætur f/hjól', weekPrice: 0,
+                quantities: { '2.5':4, '3.5':4, '4.5':4, '5.5':4, '6.5':4, '7.5':4, '8.5':4, '9.5':4, '10.5':4 }
+            },
+            {
+                itemno: '01-PAL-HP01-111', name: 'Hjól 200mm', weekPrice: 510,
+                quantities: { '2.5':4, '3.5':4, '4.5':4, '5.5':4, '6.5':4, '7.5':4, '8.5':4, '9.5':4, '10.5':4 }
+            },
+            {
+                itemno: '01-PAL-HP01-115', name: 'Álstífur Stillanlegar', weekPrice: 1134,
+                quantities: { '2.5':0, '3.5':0, '4.5':2, '5.5':2, '6.5':2, '7.5':2, '8.5':2, '9.5':2, '10.5':2 }
+            },
+        ];
+
+        // Wide scaffold (1.35m) — F-series frames + separate component list
+        const WIDE_SCAFFOLD_PRODUCTS = [
+            {
+                itemno: '01-PAL-HP01-102', name: 'Álrammar F1 2,1m', weekPrice: 1701,
+                quantities: { '2.5':2, '3.5':4, '4.5':4, '5.5':6, '6.5':6, '7.5':8, '8.5':8, '9.5':10, '10.5':10 }
+            },
+            {
+                itemno: '01-PAL-HP01-103', name: 'Álrammar F5 1,05m', weekPrice: 907,
+                quantities: { '2.5':2, '3.5':0, '4.5':2, '5.5':0, '6.5':2, '7.5':0, '8.5':2, '9.5':0, '10.5':12 }
+            },
+            {
+                itemno: '01-PAL-HP01-118', name: 'Gólfborð P25', weekPrice: 1474,
+                quantities: { '2.5':1, '3.5':1, '4.5':2, '5.5':2, '6.5':3, '7.5':3, '8.5':4, '9.5':5, '10.5':6 }
+            },
+            {
+                itemno: '01-PAL-HP01-117', name: 'Gólfborð M/Opi PB25', weekPrice: 1701,
+                quantities: { '2.5':1, '3.5':1, '4.5':1, '5.5':1, '6.5':1, '7.5':1, '8.5':1, '9.5':1, '10.5':1 }
+            },
+            {
+                itemno: '01-PAL-HP01-108', name: 'Handrið H25', weekPrice: 397,
+                quantities: { '2.5':4, '3.5':4, '4.5':6, '5.5':6, '6.5':8, '7.5':8, '8.5':10, '9.5':12, '10.5':14 }
+            },
+            {
+                itemno: '01-PAL-HP01-109', name: 'Skástífur D25', weekPrice: 397,
+                quantities: { '2.5':4, '3.5':8, '4.5':8, '5.5':12, '6.5':12, '7.5':16, '8.5':16, '9.5':20, '10.5':20 }
+            },
+            {
+                itemno: '01-PAL-HP01-112', name: 'Stillanl.fætur f/hjól', weekPrice: 0,
+                quantities: { '2.5':4, '3.5':4, '4.5':4, '5.5':4, '6.5':4, '7.5':4, '8.5':4, '9.5':4, '10.5':4 }
+            },
+            {
+                itemno: '01-PAL-HP01-111', name: 'Hjól 200mm', weekPrice: 510,
+                quantities: { '2.5':4, '3.5':4, '4.5':4, '5.5':4, '6.5':4, '7.5':4, '8.5':4, '9.5':4, '10.5':4 }
+            },
+            {
+                itemno: '01-PAL-HP01-115', name: 'Stuðningsfætur stillanlegar', weekPrice: 1134,
+                quantities: { '2.5':0, '3.5':0, '4.5':2, '5.5':2, '6.5':2, '7.5':2, '8.5':2, '9.5':2, '10.5':2 }
+            },
+        ];
+
+        const SUPPORT_LEG_PRODUCT = { itemno: '01-PAL-HP01-116', name: 'Stuðn.stoðir án hjóla', weekPrice: 1134, fixedQty: 2 };
+
+        // Quickly components (fixed configuration)
+        const QUICKLY_COMPONENTS = [
+            { itemno: '01-PAL-HP01-127', name: 'Quickly Grunneining 4 mtr.', weekPrice: 4252, fixedQty: 1 },
+            { itemno: '01-PAL-HP01-126', name: 'Gólfborð M/Opi PB20',        weekPrice: 1417, fixedQty: 1 },
+            { itemno: '01-PAL-HP01-124', name: 'Handrið H20',                 weekPrice: 397,  fixedQty: 2 },
+            { itemno: '01-PAL-HP01-107', name: 'Álrammar B5 1,05m',           weekPrice: 851,  fixedQty: 2 },
+        ];
+
+        // =====================================================================
+        // STATE
+        // =====================================================================
+        let scaffoldType = 'narrow';
+        let includeSupportLegs = false;
+
+        // =====================================================================
+        // UI SELECTION FUNCTIONS
+        // =====================================================================
+        function selectScaffoldType(type) {
+            scaffoldType = type;
+            document.querySelectorAll('[name="scaffold-type"]').forEach(r => {
+                r.closest('.radio-option').classList.toggle('selected', r.value === type);
+            });
+            // Show/hide height and support legs for Quickly
+            document.getElementById('height-card').style.display = (type === 'quickly') ? 'none' : '';
+            document.getElementById('support-card').style.display = (type === 'quickly') ? 'none' : '';
+            calculate();
+        }
+
+        function toggleSupportLegs() {
+            const check = document.getElementById('support-check');
+            check.checked = !check.checked;
+            includeSupportLegs = check.checked;
+            document.getElementById('support-toggle').classList.toggle('active', check.checked);
+            calculate();
+        }
+
+        function updateHeightInfo() {
+            calculate();
+        }
+
+        // =====================================================================
+        // DATE FUNCTIONS
+        // =====================================================================
+        function calculateDaysBetween(startDate, endDate) {
+            const start = new Date(startDate + 'T12:00:00');
+            const end = new Date(endDate + 'T12:00:00');
+            const timeDiff = end.getTime() - start.getTime();
+            return Math.max(1, Math.round(timeDiff / (1000 * 60 * 60 * 24)) + 1);
+        }
+
+        function initializeDates() {
+            const today = new Date();
+            const end = new Date(today);
+            end.setDate(today.getDate() + 7);
+            document.getElementById('start-date').value = today.toISOString().split('T')[0];
+            document.getElementById('end-date').value = end.toISOString().split('T')[0];
+            updateRentalDays();
+        }
+
+        function updateRentalDays() {
+            const s = document.getElementById('start-date').value;
+            const e = document.getElementById('end-date').value;
+            if (!s || !e) return 1;
+            const days = calculateDaysBetween(s, e);
+            document.getElementById('rental-days').value = days;
+            return days;
+        }
+
+        function updateEndDateFromDays() {
+            const s = document.getElementById('start-date').value;
+            const days = parseInt(document.getElementById('rental-days').value, 10);
+            if (!s || isNaN(days) || days < 1) return;
+            const start = new Date(s + 'T12:00:00');
+            start.setDate(start.getDate() + days - 1);
+            document.getElementById('end-date').value = start.toISOString().split('T')[0];
+        }
+
+        // =====================================================================
+        // RENTAL PRICE CALCULATION (from calculator.ts)
+        // =====================================================================
+        function getRentalPrice(days, pricing) {
+            if (days === 1) {
+                return pricing['24h'];
+            } else if (days >= 2 && days <= 6) {
+                return pricing['24h'] + pricing.extra * (days - 1);
+            } else {
+                // 7+ days: full weeks × week rate + extra days × 24h rate
+                const fullWeeks = Math.floor(days / 7);
+                const extraDays = days % 7;
+                return pricing.week * fullWeeks + pricing['24h'] * extraDays;
+            }
+        }
+
+        function getPricingDescription(days) {
+            if (days === 1) {
+                return '24 klst. verð';
+            } else if (days >= 2 && days <= 6) {
+                return `24 klst. + ${days - 1} viðbótardagar`;
+            } else {
+                const fullWeeks = Math.floor(days / 7);
+                const extraDays = days % 7;
+                if (extraDays === 0) {
+                    return fullWeeks === 1 ? 'viku verð' : `${fullWeeks} vikur verð`;
+                } else {
+                    if (fullWeeks === 1) {
+                        return `viku verð + ${extraDays} dagur`;
+                    } else {
+                        return `${fullWeeks} vikur verð + ${extraDays} dagur`;
+                    }
+                }
+            }
+        }
+
+        // =====================================================================
+        // FORMATTING
+        // =====================================================================
+        function fmt(n) {
+            const parts = n.toFixed(2).split('.');
+            const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return intPart + ',' + parts[1];
+        }
+        function fmtInt(n) {
+            return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // =====================================================================
+        // CALCULATE — renders editable component table
+        // =====================================================================
+        let currentProducts = [];  // tracks which product array is active
+        let currentPricing = null; // tracks the selected kit pricing
+
+        function calculate() {
+            const days = updateRentalDays();
+            const height = document.getElementById('height-select').value;
+            const isQuickly = scaffoldType === 'quickly';
+
+            // Determine scaffold description
+            let scaffoldDescription;
+            if (isQuickly) {
+                currentPricing = QUICKLY_PRICING;
+                scaffoldDescription = 'Quickly hjólapallur (2,0m standhæð / 4,0m vinnuhæð)';
+            } else if (scaffoldType === 'narrow') {
+                currentPricing = NARROW_PRICING[height];
+                const workH = (parseFloat(height) + 2).toFixed(1);
+                scaffoldDescription = `Hjólapallur mjór 0,75m (${height}m standhæð / ${workH}m vinnuhæð)`;
+            } else {
+                currentPricing = WIDE_PRICING[height];
+                const workH = (parseFloat(height) + 2).toFixed(1);
+                scaffoldDescription = `Hjólapallur breiður 1,35m (${height}m standhæð / ${workH}m vinnuhæð)`;
+            }
+
+            // Render scaffold description
+            document.getElementById('scaffold-desc-header').textContent = scaffoldDescription;
+            document.getElementById('scaffold-desc-box').innerHTML = `
+                Leigutímabil: <strong>${days} ${days === 1 ? 'dagur' : 'dagar'}</strong>
+            `;
+
+            // Build the editable component table
+            const tbody = document.getElementById('comp-body');
+            tbody.innerHTML = '';
+
+            if (isQuickly) {
+                // Quickly: fixed components, still editable
+                currentProducts = QUICKLY_COMPONENTS;
+                QUICKLY_COMPONENTS.forEach((c, i) => {
+                    const kitQty = c.fixedQty || 0;
+                    const isKit = kitQty > 0;
+                    const tr = document.createElement('tr');
+                    tr.className = isKit ? 'kit-row' : 'zero-row';
+                    tr.innerHTML = `
+                        <td>${c.itemno}</td>
+                        <td>${c.name}</td>
+                        <td style="text-align:center"><input type="number" class="qty-input" data-idx="${i}" min="0" value="${kitQty}"></td>`;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                // Narrow or Wide — show ALL components, pre-fill kit quantities
+                currentProducts = scaffoldType === 'wide' ? WIDE_SCAFFOLD_PRODUCTS : SCAFFOLD_PRODUCTS;
+                currentProducts.forEach((p, i) => {
+                    const kitQty = p.quantities[height] || 0;
+                    const isKit = kitQty > 0;
+                    const tr = document.createElement('tr');
+                    tr.className = isKit ? 'kit-row' : 'zero-row';
+                    tr.innerHTML = `
+                        <td>${p.itemno}</td>
+                        <td>${p.name}</td>
+                        <td style="text-align:center"><input type="number" class="qty-input" data-idx="${i}" min="0" value="${kitQty}"></td>`;
+                    tbody.appendChild(tr);
+                });
+
+                // Always show support legs row at the bottom
+                const slp = SUPPORT_LEG_PRODUCT;
+                const slQty = includeSupportLegs ? slp.fixedQty : 0;
+                const slTr = document.createElement('tr');
+                slTr.className = slQty > 0 ? 'kit-row' : 'zero-row';
+                slTr.innerHTML = `
+                    <td>${slp.itemno}</td>
+                    <td>${slp.name}</td>
+                    <td style="text-align:center"><input type="number" class="qty-input" data-idx="support" min="0" value="${slQty}"></td>`;
+                tbody.appendChild(slTr);
+            }
+
+            // Calculate and display totals
+            recalculate();
+
+            // Show results
+            document.getElementById('results').style.display = '';
+        }
+
+        // =====================================================================
+        // RECALCULATE — reads quantities from inputs, computes rental cost
+        // =====================================================================
+        function recalculate() {
+            const days = updateRentalDays();
+            const isQuickly = scaffoldType === 'quickly';
+
+            // Sum weekly rental from each row: qty × weekPrice
+            let totalWeekly = 0;
+            document.querySelectorAll('.qty-input').forEach(input => {
+                const qty = parseInt(input.value, 10) || 0;
+                const idx = input.dataset.idx;
+                let weekPrice = 0;
+
+                if (idx === 'support') {
+                    weekPrice = SUPPORT_LEG_PRODUCT.weekPrice;
+                } else {
+                    const i = parseInt(idx, 10);
+                    weekPrice = currentProducts[i].weekPrice || 0;
+                }
+                totalWeekly += qty * weekPrice;
+            });
+
+            // Scale weekly total to rental period
+            // 1 day = 40%, 2 days = 60%, 3 days = 80%, 4-7 days = 100% of weekly rate
+            const fullWeeks = Math.floor(days / 7);
+            const remainDays = days % 7;
+            let dayFactor = 0;
+            if (remainDays === 1) dayFactor = 0.4;
+            else if (remainDays === 2) dayFactor = 0.6;
+            else if (remainDays === 3) dayFactor = 0.8;
+            else if (remainDays >= 4) dayFactor = 1.0;
+            const totalRentalCost = Math.round(totalWeekly * fullWeeks + totalWeekly * dayFactor);
+
+            const deposit = currentPricing ? currentPricing.deposit : 0;
+
+            // Update display
+            document.getElementById('total-rental').textContent = `${fmtInt(totalRentalCost)} kr`;
+            document.getElementById('total-deposit').textContent = `${fmtInt(deposit)} kr`;
+
+            // Update row highlighting based on current quantities
+            document.querySelectorAll('.qty-input').forEach(input => {
+                const qty = parseInt(input.value, 10) || 0;
+                const tr = input.closest('tr');
+                tr.className = qty > 0 ? 'kit-row' : 'zero-row';
+            });
+        }
+
+        // =====================================================================
+        // INIT
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDates();
+            document.getElementById('start-date').addEventListener('change', () => { updateRentalDays(); calculate(); });
+            document.getElementById('end-date').addEventListener('change', () => { updateRentalDays(); calculate(); });
+            document.getElementById('rental-days').addEventListener('input', () => { updateEndDateFromDays(); calculate(); });
+            calculate();
+        });
+    </script>
+</body>
+</html>
