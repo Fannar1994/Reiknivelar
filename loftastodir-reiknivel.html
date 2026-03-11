@@ -318,6 +318,36 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   .filter-bar { flex-direction: column; }
   .filter-group.grow { width: 100%; }
 }
+
+/* ===== NAV BAR ===== */
+.nav-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 10px 28px;
+    background: #353537;
+    border-bottom: 2px solid var(--color-accent);
+    margin-bottom: 16px;
+}
+.nav-bar a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: .5px; text-transform: uppercase;
+    text-decoration: none;
+    padding: 7px 16px;
+    border-radius: var(--radius-md);
+    transition: background .2s, color .2s;
+}
+.nav-bar a.active {
+    background: var(--color-accent);
+    color: var(--color-dark);
+}
+.nav-bar a:not(.active) {
+    color: rgba(255,255,255,.7);
+}
+.nav-bar a:not(.active):hover {
+    background: rgba(255,255,255,.1);
+    color: #fff;
+}
+@media print { .nav-bar { display: none !important; } }
 </style>
 </head>
 <body>
@@ -344,6 +374,11 @@ body.pdf-hide-sig .print-signature { display: none !important; }
       <button class="btn-lb" onclick="document.getElementById('lbModal').classList.add('lb-open')">📖 Leiðbeiningar</button>
     </div>
   </div>
+  <nav class="nav-bar">
+      <a href="girdingar-reiknivel.html">Girðingar</a>
+      <a href="vinnupalla-reiknivel.html">Vinnupallar</a>
+      <a href="loftastodir-reiknivel.html" class="active">Loftastoðir</a>
+  </nav>
 
   <!-- ===== INFO ===== -->
   <div class="card">
