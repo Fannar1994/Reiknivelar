@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
-<title>Vinnupalla reiknivél</title>
+<title>Vinnupalla reiknivél – BYKO Leiga</title>
 <style>
   /* ── Variables ───────────────────────────────── */
   :root {
@@ -231,6 +231,55 @@
     color: #4338ca;
     white-space: nowrap;
     line-height: 1.3;
+  }
+
+  /* ── Length Toggle ─────────────────────────────── */
+  .length-toggle {
+    display: inline-flex;
+    background: #e8eaed;
+    border-radius: 20px;
+    padding: 2px;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  .length-toggle button {
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border: none;
+    border-radius: 18px;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .length-toggle button.active {
+    background: #404042;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .length-toggle button:not(.active):hover {
+    color: #404042;
+    background: transparent;
+  }
+  .length-hint {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+    font-style: italic;
+  }
+  .facade-length-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+  }
+  .facade-length-col .length-hint {
+    position: absolute;
+    top: 100%;
+    left: 0;
   }
 
   /* ── Form Elements ───────────────────────────── */
@@ -1363,6 +1412,7 @@
         📖 Leiðbeiningar
       </button>
     </div>
+    <img class="calc-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMjAgODAiPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjNDA0MDQyIi8+PHRleHQgeD0iMTEwIiB5PSI0NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLEltcGFjdCxIZWx2ZXRpY2Esc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0MiIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iI2ZmZmZmZiIgbGV0dGVyLXNwYWNpbmc9IjQiPkJZS088L3RleHQ+PHRleHQgeD0iMTEwIiB5PSI3MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZjVjODAwIiBsZXR0ZXItc3BhY2luZz0iMyI+TGVpZ2E8L3RleHQ+PC9zdmc+" alt="BYKO Leiga">
   </div>
 
   <!-- Print-only header -->
@@ -1370,8 +1420,9 @@
     <div class="calc-header">
     <div class="calc-header-left">
       <h2>Leigutilboð á vinnupalla</h2>
-      <div class="calc-header-sub">Villalta vinnupallakerfi</div>
+      <div class="calc-header-sub">BYKO Leiga &nbsp;·&nbsp; Villalta vinnupallakerfi</div>
     </div>
+    <img class="calc-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMjAgODAiPjxyZWN0IHdpZHRoPSIyMjAiIGhlaWdodD0iODAiIHJ4PSI4IiBmaWxsPSIjNDA0MDQyIi8+PHRleHQgeD0iMTEwIiB5PSI0NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLEltcGFjdCxIZWx2ZXRpY2Esc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0MiIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iI2ZmZmZmZiIgbGV0dGVyLXNwYWNpbmc9IjQiPkJZS088L3RleHQ+PHRleHQgeD0iMTEwIiB5PSI3MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZjVjODAwIiBsZXR0ZXItc3BhY2luZz0iMyI+TGVpZ2E8L3RleHQ+PC9zdmc+" alt="BYKO Leiga">
   </div>
     <div class="print-meta" id="printMeta"></div>
   </div>
@@ -1860,6 +1911,72 @@ function formatNum(value, decimals) {
 
 // ── HTML template functions ───────────────────────────────────────────────────
 
+var UNIT_LENGTH = 1.8;
+
+/** Switch between Lengd (m) and Einingar mode for a facade length input */
+function switchLengthMode(btn, mode) {
+  var toggle = btn.parentElement;
+  var col = toggle.parentElement;
+  var input = col.querySelector('.facade-length');
+  var hint = col.querySelector('.length-hint');
+
+  toggle.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  var val = parseFloat((input.value || '').replace(',', '.')) || 0;
+  var oldMode = input.dataset.mode || 'lengd';
+
+  if (mode === 'einingar' && oldMode === 'lengd') {
+    var units = Math.ceil(val / UNIT_LENGTH) || 0;
+    input.value = units || '';
+    input.dataset.mode = 'einingar';
+    input.inputMode = 'numeric';
+    input.pattern = '[0-9]*';
+    hint.textContent = units ? '= ' + (units * UNIT_LENGTH).toFixed(1).replace('.', ',') + ' m' : '';
+  } else if (mode === 'lengd' && oldMode === 'einingar') {
+    var meters = val * UNIT_LENGTH;
+    input.value = meters ? meters.toFixed(1).replace('.', ',') : '';
+    input.dataset.mode = 'lengd';
+    input.inputMode = 'decimal';
+    input.pattern = '[0-9]*[.,]?[0-9]*';
+    hint.textContent = meters ? '= ' + Math.ceil(meters / UNIT_LENGTH) + ' ein.' : '';
+  }
+
+  recalcAll();
+}
+
+/** Update the length hint below the input */
+function updateLengthHint(input) {
+  var col = input.closest('.facade-length-col');
+  if (!col) return;
+  var hint = col.querySelector('.length-hint');
+  if (!hint) return;
+  var val = parseFloat((input.value || '').replace(',', '.')) || 0;
+  var mode = input.dataset.mode || 'lengd';
+
+  if (!val) { hint.textContent = ''; return; }
+
+  if (mode === 'einingar') {
+    hint.textContent = '= ' + (val * UNIT_LENGTH).toFixed(1).replace('.', ',') + ' m';
+  } else {
+    var units = val / UNIT_LENGTH;
+    var rounded = Math.ceil(units);
+    if (Math.abs(units - rounded) < 0.01) {
+      hint.textContent = '= ' + rounded + ' ein.';
+    } else {
+      hint.textContent = '\u2248 ' + units.toFixed(1).replace('.', ',') + ' ein. (\u2192 ' + rounded + ')';
+    }
+  }
+}
+
+/** Get the actual length in meters from a facade-length input (regardless of mode) */
+function getFacadeLengthMeters(input) {
+  var val = parseFloat((input.value || '').replace(',', '.')) || 0;
+  var mode = input.dataset.mode || 'lengd';
+  if (mode === 'einingar') return val * UNIT_LENGTH;
+  return val;
+}
+
 /** Build the extras table body rows for all items. */
 function createExtrasRowsHTML() {
   return ALL_ITEMS.map(function(item) {
@@ -1913,9 +2030,14 @@ function createFacadeHTML(id) {
       '<input type="text" class="facade-name-input" value="Hlið #' + id + '" placeholder="Nafn hliðar">',
     '</div>',
     '<div class="facade-grid">',
-      '<label>Lengd hliðar (m)',
-        '<input type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" class="facade-length" placeholder="0">',
-      '</label>',
+      '<div class="facade-length-col">',
+        '<div class="length-toggle">',
+          '<button type="button" class="ltog-lengd active" onclick="switchLengthMode(this,\'lengd\')">Lengd (m)</button>',
+          '<button type="button" class="ltog-einingar" onclick="switchLengthMode(this,\'einingar\')">Einingar</button>',
+        '</div>',
+        '<input type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" class="facade-length" placeholder="0" data-mode="lengd">',
+        '<div class="length-hint"></div>',
+      '</div>',
       '<label>Fjöldi hæða 2,0m',
         '<input type="number" min="0" class="facade-levels2m">',
       '</label>',
@@ -2247,7 +2369,7 @@ function recalcAll() {
 
   document.querySelectorAll('.facade').forEach(function(facadeEl) {
     var facadeId  = +facadeEl.dataset.id;
-    var length    = parseInput(facadeEl.querySelector('.facade-length'));
+    var length    = getFacadeLengthMeters(facadeEl.querySelector('.facade-length'));
     var levels2m  = parseInput(facadeEl.querySelector('.facade-levels2m'));
     var levels07m = parseInput(facadeEl.querySelector('.facade-levels07m'));
     var endcaps   = parseInput(facadeEl.querySelector('.facade-endcaps'));
@@ -2327,6 +2449,11 @@ function addFacade() {
   // Main dimension inputs
   facadeEl.querySelectorAll('.facade-length, .facade-levels2m, .facade-levels07m, .facade-endcaps')
     .forEach(function(input) { input.addEventListener('input', recalcAll); });
+
+  // Length hint update
+  facadeEl.querySelector('.facade-length').addEventListener('input', function() {
+    updateLengthHint(this);
+  });
 
   // Height helper
   var heightInput  = facadeEl.querySelector('.height-target-input');
@@ -2427,7 +2554,7 @@ function addFacade() {
   facadeEl.querySelector('.legs-100-input').addEventListener('input', function(e) {
     var facadeIndex = Array.from(document.querySelectorAll('#facades article.facade')).indexOf(facadeEl);
     var legsTotal = calculateFacadeMaterials(
-      parseInput(facadeEl.querySelector('.facade-length')),
+      getFacadeLengthMeters(facadeEl.querySelector('.facade-length')),
       parseInput(facadeEl.querySelector('.facade-levels2m')),
       parseInput(facadeEl.querySelector('.facade-levels07m')),
       parseInput(facadeEl.querySelector('.facade-endcaps')),
@@ -2671,7 +2798,8 @@ document.getElementById('excelBtn').addEventListener('click', function() {
     var wallName = nameInput ? nameInput.value.trim() : ('Hlið #' + (idx + 1));
 
     var lengthInput = facadeEl.querySelector('.facade-length');
-    var length = lengthInput ? (parseFloat(lengthInput.value) || 0) : 0;
+    var length = lengthInput ? getFacadeLengthMeters(lengthInput) : 0;
+    var einingar = Math.ceil(length / UNIT_LENGTH) || 0;
     var lev2Input = facadeEl.querySelector('.facade-levels2m');
     var lev2 = lev2Input ? (parseInt(lev2Input.value) || 0) : 0;
     var lev07Input = facadeEl.querySelector('.facade-levels07m');
@@ -2679,9 +2807,10 @@ document.getElementById('excelBtn').addEventListener('click', function() {
     var endsInput = facadeEl.querySelector('.facade-endcaps');
     var ends = endsInput ? (parseInt(endsInput.value) || 0) : 0;
 
+    var lengthDisplay = length ? (length % 1 === 0 ? length : length.toFixed(1).replace('.', ',')) + ' m (' + einingar + ' ein.)' : '0 m';
     var wallRows = [
       [wallName],
-      ['Lengd (m)', length],
+      ['Lengd (m)', lengthDisplay],
       ['Hæðir 2,0m', lev2],
       ['Hæðir 0,7m', lev07],
       ['Endalokur', ends],
@@ -2895,15 +3024,17 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
         var nameInput = facadeEl.querySelector('.facade-name-input');
         var label  = nameInput ? nameInput.value.trim() : ('Hlið #' + (idx + 1));
         var lengthInput = facadeEl.querySelector('.facade-length');
-        var length = lengthInput ? (parseFloat(lengthInput.value) || 0) : 0;
+        var length = lengthInput ? getFacadeLengthMeters(lengthInput) : 0;
+        var einingar = Math.ceil(length / UNIT_LENGTH) || 0;
         var lev2Input = facadeEl.querySelector('.facade-levels2m');
         var lev2   = lev2Input ? (parseInt(lev2Input.value) || 0) : 0;
         var lev07Input = facadeEl.querySelector('.facade-levels07m');
         var lev07  = lev07Input ? (parseInt(lev07Input.value) || 0) : 0;
         var endsInput = facadeEl.querySelector('.facade-endcaps');
         var ends   = endsInput ? (parseInt(endsInput.value) || 0) : 0;
+        var lengthStr = length ? (length % 1 === 0 ? length : length.toFixed(1).replace('.', ',')) + ' m (' + einingar + ' ein.)' : '0 m';
         var tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + label + '</td><td>' + length + ' m</td><td>' + lev2 + '</td><td>' + lev07 + '</td><td>' + ends + '</td>';
+        tr.innerHTML = '<td>' + label + '</td><td>' + lengthStr + '</td><td>' + lev2 + '</td><td>' + lev07 + '</td><td>' + ends + '</td>';
         tbody.appendChild(tr);
       });
       // Show/hide HLIÐAR box based on selection
@@ -2925,7 +3056,9 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
         
         // Get wall dimensions
         var lengthInput = facadeEl.querySelector('.facade-length');
-        var length = lengthInput ? (parseFloat(lengthInput.value) || 0) : 0;
+        var length = lengthInput ? getFacadeLengthMeters(lengthInput) : 0;
+        var einingar = Math.ceil(length / UNIT_LENGTH) || 0;
+        var lengthDisplay = length ? (length % 1 === 0 ? length : length.toFixed(1).replace('.', ',')) + ' m (' + einingar + ' ein.)' : '0 m';
         var lev2Input = facadeEl.querySelector('.facade-levels2m');
         var lev2 = lev2Input ? (parseInt(lev2Input.value) || 0) : 0;
         var lev07Input = facadeEl.querySelector('.facade-levels07m');
@@ -2946,7 +3079,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
         headerDiv.style.cssText = 'margin-bottom:10px; padding:10px 14px; border:1px solid #e2e8f0; border-radius:4px;';
         headerDiv.innerHTML = '<div style="font-size:16px; font-weight:700; margin-bottom:8px;">' + wallName + '</div>' +
           '<table style="font-size:12px; border-collapse:collapse;">' +
-          '<tr><td style="padding:2px 12px 2px 0; color:#64748b;">Lengd:</td><td style="font-weight:600;">' + length + ' m</td></tr>' +
+          '<tr><td style="padding:2px 12px 2px 0; color:#64748b;">Lengd:</td><td style="font-weight:600;">' + lengthDisplay + '</td></tr>' +
           '<tr><td style="padding:2px 12px 2px 0; color:#64748b;">Hæðir 2,0m:</td><td style="font-weight:600;">' + lev2 + '</td></tr>' +
           '<tr><td style="padding:2px 12px 2px 0; color:#64748b;">Hæðir 0,7m:</td><td style="font-weight:600;">' + lev07 + '</td></tr>' +
           '<tr><td style="padding:2px 12px 2px 0; color:#64748b;">Endalokur:</td><td style="font-weight:600;">' + ends + '</td></tr>' +
@@ -3283,7 +3416,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 <table>
 <tr><th>Reitur í reiknivélinni</th><th>Hvað á að slá inn</th></tr>
 <tr><td>Nafn hliðar</td><td>Heiti hliðar, t.d. &bdquo;Norðurhlið&ldquo; &ndash; gagnlegt þegar fleiri hliðar eru skráðar.</td></tr>
-<tr><td>Lengd hliðar (m)</td><td>Lengd veggjarins í metrum (frá viðskiptavini)</td></tr>
+<tr><td>Lengd (m) / Einingar</td><td>Hægt er að velja á milli metra og eininga (1 eining = 1,8 m). Smelltu á hnappinn til að skipta. Reiknivélin umreiknar sjálfkrafa.</td></tr>
 <tr><td>Fjöldi hæða 2,0 m</td><td>Fjöldi hæða &ndash; sjá töflu í Skrefi 1</td></tr>
 <tr><td>Fjöldi hæða 0,7 m</td><td>Venjulega skal skilja eftir 0 (sjá skýringu hér að neðan)</td></tr>
 <tr><td>Fjöldi endalokana</td><td>Skal skilja eftir 2 (endalokanir á báðum endum). Ef verkið nær yfir fleiri en eina hlið skal athuga hvort hliðarnar tengist &ndash; sameiginleg horn geta krafist breytinga á þessari tölu.</td></tr>
@@ -3316,7 +3449,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 <p><strong>Hvað á að slá inn:</strong></p>
 <table>
 <tr><th>Reitur</th><th>Gildi</th></tr>
-<tr><td>Lengd hliðar (m)</td><td>8</td></tr>
+<tr><td>Lengd (m) / Einingar</td><td>8 m (eða 5 einingar í einingaham)</td></tr>
 <tr><td>Fjöldi hæða 2,0 m</td><td>2 (því 2 × 2 m = 4 m ✓)</td></tr>
 <tr><td>Fjöldi hæða 0,7 m</td><td>0</td></tr>
 <tr><td>Fjöldi endalokana</td><td>2</td></tr>
