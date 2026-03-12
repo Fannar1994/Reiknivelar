@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reiknivélar – BYKO Leiga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --byko: #404042;
+      --byko-yellow: #f5c800;
+      --color-bg: #f2f4f7;
+      --color-surface: #fff;
+      --color-muted: #666;
+      --radius-md: 8px;
+      --radius-lg: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', system-ui, Arial, sans-serif;
+      background: var(--color-bg);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .wrapper {
+      max-width: 800px;
+      margin: auto;
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 28px;
+      background: var(--byko);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 6px; height: 100%;
+      background: var(--byko-yellow);
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .header-text { position: relative; z-index: 1; }
+    .header-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--byko-yellow);
+      margin-bottom: 4px;
+    }
+    .header h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: .5px;
+      line-height: 1;
+    }
+    .header-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,.45);
+      margin-top: 5px;
+      letter-spacing: .5px;
+    }
+    .content { padding: 28px; }
+    .intro {
+      font-size: 15px;
+      color: var(--color-muted);
+      margin-bottom: 24px;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow .15s, border-color .15s;
+    }
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      border-color: var(--byko-yellow);
+    }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--byko);
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--color-muted);
+      flex: 1;
+    }
+    .card-arrow {
+      margin-top: 14px;
+      font-size: 20px;
+      color: var(--byko-yellow);
+      font-weight: 700;
+      align-self: flex-end;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <div class="header-text">
+        <div class="header-eyebrow">BYKO Leiga</div>
+        <h1>Reiknivélar</h1>
+        <div class="header-sub">Veldu reiknivél hér að neðan</div>
+      </div>
+    </div>
+    <div class="content">
+      <p class="intro">Hér finnur þú allar reiknivélar BYKO Leigu á einum stað.</p>
+      <div class="card-grid">
+        <a href="vinnupalla-reiknivel.html" class="card">
+          <div class="card-title">Vinnupalla reiknivél</div>
+          <div class="card-desc">Reiknaðu þörf fyrir vinnupalla.</div>
+          <div class="card-arrow">→</div>
+        </a>
+        <a href="motareiknivel-byko-v11.html" class="card">
+          <div class="card-title">Steypumótareiknivél</div>
+          <div class="card-desc">Reiknaðu magn steypu og mótaefnis.</div>
+          <div class="card-arrow">→</div>
+        </a>
+        <a href="loftastodir.html" class="card">
+          <div class="card-title">Loftastoðir</div>
+          <div class="card-desc">Reiknaðu þörf fyrir loftastoðir.</div>
+          <div class="card-arrow">→</div>
+        </a>
+        <a href="Girdingar_reiknivel.html" class="card">
+          <div class="card-title">Iðnaðargirðinga reiknivél</div>
+          <div class="card-desc">Reiknaðu magn girðingarefnis.</div>
+          <div class="card-arrow">→</div>
+        </a>
+        <a href="hjolapallar_reiknivel_sp.html" class="card">
+          <div class="card-title">Hjólapalla reiknivél</div>
+          <div class="card-desc">Reiknaðu þörf fyrir hjólapalla.</div>
+          <div class="card-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
