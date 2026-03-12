@@ -6,11 +6,11 @@ A collection of Icelandic construction/rental calculators published via GitHub P
 
 ## Calculators
 
-- [Iðnaðargirðinga reiknivél](Girdingar_reiknivel.html) – Industrial fence calculator
+- [Girðinga reiknivél](Girdingar_reiknivel.html) – Industrial fence calculator
 - [Hjólapalla reiknivél](hjolapallar_reiknivel_sp.html) – Pallet racking calculator
-- [Loftastoðir](loftastodir.html) – Ceiling post calculator (BYKO Leiga)
-- [Steypumótareiknivél](motareiknivel-byko-v11.html) – Concrete form calculator (BYKO Leiga)
-- [Vinnupalla reiknivél](vinnupalla-reiknivel.html) – Work platform calculator (BYKO Leiga)
+- [Loftastoðir](loftastodir.html) – Ceiling post calculator
+- [Steypumótareiknivél](motareiknivel-byko-v11.html) – Concrete form calculator
+- [Vinnupalla reiknivél](vinnupalla-reiknivel.html) – Work platform calculator
 
 ## Publishing (GitHub Pages)
 
