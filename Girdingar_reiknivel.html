@@ -121,8 +121,9 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .discount-badge{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#e74c3c;padding:2px 8px;border-radius:50px;margin-left:6px;vertical-align:middle}
 .discount-badge.green{background:#27ae60}
 
-/* PDF print block (hidden on screen) */
-.pdf-print-block{display:none}
+/* PDF print block (hidden off-screen for html2canvas) */
+.pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;font-family:'Barlow',system-ui,Arial,sans-serif}
+.pdf-print-block.pdf-rendering{opacity:1}
 
 @media(max-width:500px){.fence-tabs{grid-template-columns:1fr}.days-discount-row{grid-template-columns:1fr}.acc-grid{grid-template-columns:1fr}.result-total .rt-value{font-size:26px}.client-grid{grid-template-columns:1fr}.export-row{flex-direction:column}}
 </style>
@@ -715,12 +716,13 @@ function exportPDF() {
   if (data.useSpariv) html += '<div style="margin-bottom:12px;color:#a07c00;font-weight:700;">Spariverð virkt</div>';
 
   // Materials table
-  html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin:12px 0;">';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:12px 0;table-layout:fixed;">';
+  html += '<colgroup><col style="width:14%"><col style="width:18%"><col style="width:28%"><col style="width:8%"><col style="width:16%"><col style="width:16%"></colgroup>';
   html += '<thead><tr style="background:#404042;color:#fff;">';
-  html += '<th style="padding:8px;text-align:left;">Sölunr.</th><th style="padding:8px;text-align:left;">Leigunr.</th><th style="padding:8px;text-align:left;">Vara</th><th style="padding:8px;text-align:right;">Magn</th><th style="padding:8px;text-align:right;">Einingaverð</th><th style="padding:8px;text-align:right;">Leiga</th>';
+  html += '<th style="padding:6px;text-align:left;">Sölunr.</th><th style="padding:6px;text-align:left;">Leigunr.</th><th style="padding:6px;text-align:left;">Vara</th><th style="padding:6px;text-align:right;">Magn</th><th style="padding:6px;text-align:right;">Einingaverð</th><th style="padding:6px;text-align:right;">Leiga</th>';
   html += '</tr></thead><tbody>';
   data.items.forEach(it => {
-    html += '<tr style="border-bottom:1px solid #eee;"><td style="padding:6px 8px;">' + it.saleNo + '</td><td style="padding:6px 8px;">' + it.rentalNo + '</td><td style="padding:6px 8px;">' + it.desc + '</td><td style="padding:6px 8px;text-align:right;">' + it.qty + '</td><td style="padding:6px 8px;text-align:right;">' + fmtNum(it.unitPrice) + ' kr</td><td style="padding:6px 8px;text-align:right;">' + fmtNum(it.cost) + ' kr</td></tr>';
+    html += '<tr style="border-bottom:1px solid #eee;"><td style="padding:4px 6px;">' + it.saleNo + '</td><td style="padding:4px 6px;">' + it.rentalNo + '</td><td style="padding:4px 6px;">' + it.desc + '</td><td style="padding:4px 6px;text-align:right;">' + it.qty + '</td><td style="padding:4px 6px;text-align:right;">' + fmtNum(it.unitPrice) + ' kr</td><td style="padding:4px 6px;text-align:right;">' + fmtNum(it.cost) + ' kr</td></tr>';
   });
   html += '</tbody></table>';
 
@@ -732,9 +734,9 @@ function exportPDF() {
 
   document.getElementById('pdf-content').innerHTML = html;
 
-  // Show and generate
+  // Show off-screen and generate after layout
   const pdfBlock = document.getElementById('pdfBlock');
-  pdfBlock.style.display = 'block';
+  pdfBlock.classList.add('pdf-rendering');
 
   const name = document.getElementById('clientName').value || 'Tilbod';
   const dateStr = document.getElementById('clientDate').value || new Date().toISOString().split('T')[0];
@@ -744,15 +746,21 @@ function exportPDF() {
     margin: [6, 8, 6, 8],
     filename: fileName,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  html2pdf().set(opt).from(pdfBlock).save().then(() => {
-    pdfBlock.style.display = 'none';
-  }).catch(() => {
-    pdfBlock.style.display = 'none';
+  // Allow browser to lay out the block before capturing
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      html2pdf().set(opt).from(pdfBlock).save().then(() => {
+        pdfBlock.classList.remove('pdf-rendering');
+      }).catch(err => {
+        console.error('html2pdf error:', err);
+        pdfBlock.classList.remove('pdf-rendering');
+      });
+    });
   });
 }
 
