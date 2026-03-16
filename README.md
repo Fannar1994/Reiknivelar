@@ -13,6 +13,7 @@ A collection of Icelandic construction/rental calculators for **BYKO Leiga**, pu
 | [Loftastoðir](loftastodir.html) | `loftastodir.html` | Ceiling post calculator |
 | [Steypumótareiknivél](motareiknivel-byko-v11.html) | `motareiknivel-byko-v11.html` | Concrete form calculator |
 | [Vinnupalla reiknivél](vinnupalla-reiknivel.html) | `vinnupalla-reiknivel.html` | Work platform calculator |
+| [Vinnupalla reiknivél (ný útgáfa)](vinnupalla-reiknivel_new.html) | `vinnupalla-reiknivel_new.html` | Work platform calculator (new version) |
 
 ## Tech Stack
 
