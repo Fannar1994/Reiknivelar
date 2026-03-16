@@ -179,6 +179,15 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       </div>
     </div>
 
+    <!-- THICKNESS (standard + 2.0m only) -->
+    <div id="thicknessSection">
+      <div class="section-label">Þykkt girðingar</div>
+      <div class="option-tabs" id="thicknessTabs">
+        <button class="option-tab active" onclick="selectThickness('1.7',this)">1,7 mm</button>
+        <button class="option-tab" onclick="selectThickness('1.1',this)">1,1 mm</button>
+      </div>
+    </div>
+
     <!-- STONE TYPE (standard + plastic) -->
     <div id="stoneSection">
       <div class="section-label">Tegund steina</div>
@@ -275,6 +284,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 // =====================================================================
 let currentFenceType = 'standard';
 let currentHeight = '2.0';
+let currentThickness = '1.7';
 let currentStoneType = 'concrete';
 const MIN_DAYS = 10;
 
@@ -386,6 +396,13 @@ function selectHeight(h, btn) {
   calculate();
 }
 
+function selectThickness(t, btn) {
+  currentThickness = t;
+  btn.closest('.option-tabs').querySelectorAll('.option-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  calculate();
+}
+
 function selectStoneType(s, btn) {
   currentStoneType = s;
   btn.closest('.option-tabs').querySelectorAll('.option-tab').forEach(b => b.classList.remove('active'));
@@ -405,6 +422,7 @@ function updateVisibility() {
   const ft = currentFenceType;
   const show = (id, v) => { document.getElementById(id).style.display = v ? '' : 'none'; };
   show('heightSection', ft === 'standard');
+  show('thicknessSection', ft === 'standard' && currentHeight === '2.0');
   show('stoneSection', ft === 'standard' || ft === 'plastic');
   show('layoutNote', ft === 'standard');
   if (ft === 'warning') {
@@ -502,7 +520,7 @@ function calculate() {
 
   if (ft === 'standard') {
     fenceLength = 3.5;
-    fenceKey = currentHeight === '1.2' ? 'fence-3500x1200x1.1' : 'fence-3500x2000x1.1';
+    fenceKey = currentHeight === '1.2' ? 'fence-3500x1200x1.1' : ('fence-3500x2000x' + currentThickness);
     stoneKey = currentStoneType === 'pvc' ? 'stone-pvc' : 'stone-concrete';
     panelCount = Math.ceil(inputVal / fenceLength);
     stoneCount = panelCount + 1;

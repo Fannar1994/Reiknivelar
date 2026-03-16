@@ -6,6 +6,8 @@
 <title>Loftastoðir</title>
 <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRE06sOSE0an3grB0RZMHJ5m9v7pYAdnRczQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap');
 
@@ -428,6 +430,9 @@ body.pdf-hide-sig .print-signature { display: none !important; }
         <label>Heimilisfang / Verkefni
           <input type="text" id="clientAddress" placeholder="t.d. Laugavegur 1, Reykjavík">
         </label>
+        <label>Úttektaraðili
+          <input type="text" id="clientUttektar" placeholder="t.d. Gunnar Gunnarsson">
+        </label>
       </div>
     </div>
   </div>
@@ -574,7 +579,8 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 
     <div class="action-row" style="margin-bottom:20px">
       <button class="btn-accent" onclick="saveQuote()">💾 Vista tilboð</button>
-      <button class="btn-print" onclick="openPdfDialog()">🖨 Búa til PDF / Prenta</button>
+      <button class="btn-print" onclick="exportPDF()">⬇ Búa til PDF</button>
+      <button class="btn-print" onclick="exportExcel()" style="background:#217346;border-color:#217346">📊 Excel</button>
     </div>
 
   </div>
@@ -584,6 +590,35 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 <!-- ===== PRINT-ONLY CLIENT BLOCK ===== -->
 <div id="print-client-block" style="display:none">
   <div id="print-client-info"></div>
+</div>
+
+<!-- ===== PDF BLOCK (hidden, used by html2pdf) ===== -->
+<div id="pdfBlock" style="display:none;font-family:'Barlow',sans-serif;color:#1a1a1a;padding:20px;">
+  <div style="background:#404042;padding:18px 24px;border-radius:8px;margin-bottom:16px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;width:5px;height:100%;background:#f5c800;"></div>
+    <div style="font-size:11px;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:#f5c800;margin-bottom:4px;">BYKO Leiga</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;color:#fff;" id="pdf-title">Loftastoðir — Tilboð</div>
+  </div>
+  <div style="display:flex;gap:24px;margin-bottom:16px;font-size:13px;">
+    <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;padding:12px;">
+      <div style="font-weight:700;margin-bottom:6px;font-size:14px;">Viðskiptavinur</div>
+      <div><span style="color:#666;">Nafn:</span> <span id="pdf-c-name">–</span></div>
+      <div><span style="color:#666;">Fyrirtæki:</span> <span id="pdf-c-company">–</span></div>
+      <div><span style="color:#666;">Kennitala:</span> <span id="pdf-c-kt">–</span></div>
+      <div><span style="color:#666;">Úttektaraðili:</span> <span id="pdf-c-uttektar">–</span></div>
+      <div><span style="color:#666;">Dagsetning:</span> <span id="pdf-c-date">–</span></div>
+    </div>
+    <div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;padding:12px;">
+      <div style="font-weight:700;margin-bottom:6px;font-size:14px;">Leigutímabil</div>
+      <div id="pdf-rental-info"></div>
+    </div>
+  </div>
+  <div id="pdf-content"></div>
+  <div style="margin-top:40px;display:flex;gap:32px;">
+    <div style="flex:1;"><div style="font-size:11px;color:#666;margin-bottom:24px;font-weight:600;text-transform:uppercase;">Dagsetning / Staður</div><div style="border-bottom:1px solid #333;margin-bottom:6px;"></div></div>
+    <div style="flex:1;"><div style="font-size:11px;color:#666;margin-bottom:24px;font-weight:600;text-transform:uppercase;">Undirskrift viðskiptavinar</div><div style="border-bottom:1px solid #333;margin-bottom:6px;"></div><div style="font-size:11px;color:#666;" id="pdf-sig-name"></div></div>
+    <div style="flex:1;"><div style="font-size:11px;color:#666;margin-bottom:24px;font-weight:600;text-transform:uppercase;">Undirskrift BYKO Leiga</div><div style="border-bottom:1px solid #333;margin-bottom:6px;"></div></div>
+  </div>
 </div>
 
 <!-- ===== PDF OPTIONS DIALOG ===== -->
@@ -1053,6 +1088,7 @@ function saveQuote() {
     clientPhone:     document.getElementById('clientPhone').value,
     clientEmail:     document.getElementById('clientEmail').value,
     clientAddress:   document.getElementById('clientAddress').value,
+    clientUttektar:  document.getElementById('clientUttektar').value,
     clientDate:      document.getElementById('clientDate').value,
     discount:        document.getElementById('discount-input').value,
     ls: LOFTASTODIR.map(function(_, i)  { return parseInt(document.getElementById('ls-qty-' + i).value) || 0; }),
@@ -1079,6 +1115,7 @@ function restoreQuote() {
     if (d.clientPhone)     document.getElementById('clientPhone').value      = d.clientPhone;
     if (d.clientEmail)     document.getElementById('clientEmail').value      = d.clientEmail;
     if (d.clientAddress)   document.getElementById('clientAddress').value    = d.clientAddress;
+    if (d.clientUttektar)  document.getElementById('clientUttektar').value   = d.clientUttektar;
     if (d.clientDate)      document.getElementById('clientDate').value       = d.clientDate;
     if (d.discount)        document.getElementById('discount-input').value   = d.discount;
     (d.ls || []).forEach(function(qty, i) { var el = document.getElementById('ls-qty-' + i); if (el) el.value = qty; });
@@ -1115,50 +1152,195 @@ function showToast(msg) {
 }
 
 // =====================================================================
-// PDF DIALOG
+// EXCEL EXPORT
 // =====================================================================
-function openPdfDialog() {
-  document.getElementById('pdf-overlay').classList.add('visible');
+function exportExcel() {
+  var days = getRentalDays();
+  var name     = (document.getElementById('clientName').value || '').trim() || '–';
+  var company  = (document.getElementById('clientCompany').value || '').trim() || '–';
+  var kt       = (document.getElementById('clientKennitala').value || '').trim() || '–';
+  var phone    = (document.getElementById('clientPhone').value || '').trim() || '–';
+  var email    = (document.getElementById('clientEmail').value || '').trim() || '–';
+  var address  = (document.getElementById('clientAddress').value || '').trim() || '–';
+  var uttektar = (document.getElementById('clientUttektar').value || '').trim() || '–';
+  var cdate    = document.getElementById('clientDate').value || '–';
+  var project  = (document.getElementById('project-name').value || '').trim() || 'Loftastoðir';
+  var discPct  = parseFloat(document.getElementById('discount-input').value) || 0;
+
+  // Sheet 1 — Upplýsingar
+  var infoData = [
+    ['Tilboð — ' + project],
+    [],
+    ['Viðskiptavinur'],
+    ['Nafn', name],
+    ['Fyrirtæki', company],
+    ['Kennitala', kt],
+    ['Símanúmer', phone],
+    ['Netfang', email],
+    ['Heimilisfang / Verkefni', address],
+    ['Úttektaraðili', uttektar],
+    ['Dagsetning tilboðs', cdate],
+    [],
+    ['Leigutímabil'],
+    ['Upphafsdagur', document.getElementById('start-date').value],
+    ['Lokadagur', document.getElementById('end-date').value],
+    ['Fjöldi daga', days],
+    ['Afsláttur (%)', discPct]
+  ];
+  var wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+  wsInfo['!cols'] = [{wch:25},{wch:35}];
+
+  // Sheet 2 — Efnislisti
+  var itemHeader = ['Leigunr.', 'Sölunr.', 'Lýsing', 'Magn', 'Leiguverð', 'Söluverð'];
+  var itemRows = [itemHeader];
+  var totalRental = 0, totalSale = 0;
+
+  function addItems(arr, prefix) {
+    arr.forEach(function(p, i) {
+      var qty = parseInt(document.getElementById(prefix + '-qty-' + i).value) || 0;
+      if (qty > 0) {
+        var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
+        var sale = p.salePrice ? p.salePrice * qty : 0;
+        itemRows.push([p.id, p.articleNumber, p.name, qty, cost, sale]);
+        totalRental += cost;
+        totalSale += sale;
+      }
+    });
+  }
+  addItems(LOFTASTODIR, 'ls');
+  addItems(MOTABITAR, 'mb');
+  addItems(AUKAHLUTIR, 'ak');
+  addItems(ID_PRODUCTS, 'id');
+
+  itemRows.push([]);
+  itemRows.push(['', '', 'Samtals leiguverð', '', totalRental, '']);
+  itemRows.push(['', '', 'Samtals söluverð', '', '', totalSale]);
+  if (discPct > 0) {
+    itemRows.push(['', '', 'Leiguverð m/ afslætti (' + discPct + '%)', '', Math.round(totalRental * (1 - discPct / 100)), '']);
+  }
+
+  var wsItems = XLSX.utils.aoa_to_sheet(itemRows);
+  wsItems['!cols'] = [{wch:20},{wch:14},{wch:40},{wch:8},{wch:14},{wch:14}];
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsInfo, 'Upplýsingar');
+  XLSX.utils.book_append_sheet(wb, wsItems, 'Efnislisti');
+  XLSX.writeFile(wb, 'Loftastodir_tilbod.xlsx');
 }
 
-function closePdfDialog() {
-  document.getElementById('pdf-overlay').classList.remove('visible');
-}
+// =====================================================================
+// PDF EXPORT (html2pdf)
+// =====================================================================
+function exportPDF() {
+  if (typeof html2pdf === 'undefined') { alert('html2pdf library not loaded'); return; }
 
-function doPrint() {
-  // Populate print-only client block
-  var name    = document.getElementById('clientName').value;
-  var company = document.getElementById('clientCompany').value;
-  var kt      = document.getElementById('clientKennitala').value;
-  var phone   = document.getElementById('clientPhone').value;
-  var email   = document.getElementById('clientEmail').value;
-  var address = document.getElementById('clientAddress').value;
-  var cdate   = document.getElementById('clientDate').value;
+  var days = getRentalDays();
+  var name     = (document.getElementById('clientName').value || '').trim() || '–';
+  var company  = (document.getElementById('clientCompany').value || '').trim() || '–';
+  var kt       = (document.getElementById('clientKennitala').value || '').trim() || '–';
+  var uttektar = (document.getElementById('clientUttektar').value || '').trim() || '–';
+  var cdate    = document.getElementById('clientDate').value || '–';
+  var project  = (document.getElementById('project-name').value || '').trim() || 'Loftastoðir';
+  var discPct  = parseFloat(document.getElementById('discount-input').value) || 0;
 
-  var lines = [];
-  if (name)    lines.push('<strong>Nafn:</strong> ' + name);
-  if (company) lines.push('<strong>Fyrirtæki:</strong> ' + company);
-  if (kt)      lines.push('<strong>Kennitala:</strong> ' + kt);
-  if (phone)   lines.push('<strong>Sími:</strong> ' + phone);
-  if (email)   lines.push('<strong>Netfang:</strong> ' + email);
-  if (address) lines.push('<strong>Heimilisfang / Verkefni:</strong> ' + address);
-  if (cdate)   lines.push('<strong>Dagsetning tilboðs:</strong> ' + new Date(cdate).toLocaleDateString('is-IS'));
-  document.getElementById('print-client-info').innerHTML = lines.join('<br>');
+  // Fill PDF template
+  document.getElementById('pdf-title').textContent = project + ' — Tilboð';
+  document.getElementById('pdf-c-name').textContent = name;
+  document.getElementById('pdf-c-company').textContent = company;
+  document.getElementById('pdf-c-kt').textContent = kt;
+  document.getElementById('pdf-c-uttektar').textContent = uttektar;
+  document.getElementById('pdf-c-date').textContent = cdate;
+  document.getElementById('pdf-sig-name').textContent = name !== '–' ? name : '';
 
-  // Signature name
-  document.getElementById('print-sig-name').textContent = name || '';
+  var weeks = Math.ceil(days / 7);
+  var dayLabel = days < 7 ? days + ' dagar (dagverð)' : days + ' dagar (' + weeks + ' vikur — vikuverð)';
+  var rentalHtml = '<div>Upphafsdagur: ' + document.getElementById('start-date').value + '</div>';
+  rentalHtml += '<div>Lokadagur: ' + document.getElementById('end-date').value + '</div>';
+  rentalHtml += '<div>Tímabil: ' + dayLabel + '</div>';
+  if (discPct > 0) rentalHtml += '<div style="color:#a07c00;font-weight:700;">Afsláttur: ' + discPct + '%</div>';
+  document.getElementById('pdf-rental-info').innerHTML = rentalHtml;
 
-  // PDF option toggles
-  var showSale   = document.getElementById('pdf-check-sale').checked;
-  var showWeight = document.getElementById('pdf-check-weight').checked;
-  var showSig    = document.getElementById('pdf-check-sig').checked;
+  // Build items table
+  var items = [];
+  var totalRental = 0, totalSale = 0, totalWeight = 0;
 
-  document.body.classList.toggle('pdf-hide-sale',   !showSale);
-  document.body.classList.toggle('pdf-hide-weight', !showWeight);
-  document.body.classList.toggle('pdf-hide-sig',    !showSig);
+  function collectItems(arr, prefix) {
+    arr.forEach(function(p, i) {
+      var qty = parseInt(document.getElementById(prefix + '-qty-' + i).value) || 0;
+      if (qty > 0) {
+        var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
+        var sale = p.salePrice ? p.salePrice * qty : 0;
+        items.push({ id: p.id, articleNumber: p.articleNumber, name: p.name, qty: qty, cost: cost, sale: sale, weight: p.weight_kg ? p.weight_kg * qty : 0 });
+        totalRental += cost;
+        totalSale += sale;
+        if (p.weight_kg) totalWeight += p.weight_kg * qty;
+      }
+    });
+  }
+  collectItems(LOFTASTODIR, 'ls');
+  collectItems(MOTABITAR, 'mb');
+  collectItems(AUKAHLUTIR, 'ak');
+  collectItems(ID_PRODUCTS, 'id');
 
-  closePdfDialog();
-  setTimeout(function() { window.print(); }, 150);
+  if (items.length === 0) { alert('Engar vörur valdar.'); return; }
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;margin:0 0 16px;">';
+  html += '<thead><tr style="background:#404042;color:#fff;">';
+  html += '<th style="padding:8px;text-align:left;">Leigunr.</th>';
+  html += '<th style="padding:8px;text-align:left;">Sölunr.</th>';
+  html += '<th style="padding:8px;text-align:left;">Lýsing</th>';
+  html += '<th style="padding:8px;text-align:right;">Magn</th>';
+  html += '<th style="padding:8px;text-align:right;">Leiguverð</th>';
+  html += '<th style="padding:8px;text-align:right;">Söluverð</th>';
+  html += '</tr></thead><tbody>';
+  items.forEach(function(it) {
+    html += '<tr style="border-bottom:1px solid #eee;">';
+    html += '<td style="padding:6px 8px;">' + it.id + '</td>';
+    html += '<td style="padding:6px 8px;">' + it.articleNumber + '</td>';
+    html += '<td style="padding:6px 8px;">' + it.name + '</td>';
+    html += '<td style="padding:6px 8px;text-align:right;">' + fmtInt(it.qty) + ' stk</td>';
+    html += '<td style="padding:6px 8px;text-align:right;">' + fmtInt(it.cost) + ' kr</td>';
+    html += '<td style="padding:6px 8px;text-align:right;">' + (it.sale > 0 ? fmtInt(it.sale) + ' kr' : '—') + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  // Totals
+  html += '<div style="padding:12px;background:#f8f9fa;border-radius:8px;">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>Heildarþyngd</span><span>' + fmtDec(totalWeight) + ' kg</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;"><span>Samtals leiguverð</span><span>' + fmtInt(totalRental) + ' kr</span></div>';
+  if (totalSale > 0) {
+    html += '<div style="display:flex;justify-content:space-between;font-size:14px;margin-top:4px;color:#a07c00;font-weight:600;"><span>Samtals söluverð</span><span>' + fmtInt(totalSale) + ' kr</span></div>';
+  }
+  if (discPct > 0) {
+    var discounted = Math.round(totalRental * (1 - discPct / 100));
+    html += '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;margin-top:8px;color:#217346;"><span>Leiguverð m/ afslætti (' + discPct + '%)</span><span>' + fmtInt(discounted) + ' kr</span></div>';
+  }
+  html += '</div>';
+
+  document.getElementById('pdf-content').innerHTML = html;
+
+  var pdfBlock = document.getElementById('pdfBlock');
+  pdfBlock.style.display = 'block';
+
+  var clientName = name !== '–' ? name : 'Tilbod';
+  var dateStr = document.getElementById('clientDate').value || new Date().toISOString().split('T')[0];
+  var fileName = 'Loftastodir-' + clientName.replace(/[^a-zA-Z0-9áéíóúýþæöðÁÉÍÓÚÝÞÆÖÐ ]/g, '').replace(/ /g, '_') + '-' + dateStr + '.pdf';
+
+  var opt = {
+    margin: [6, 8, 6, 8],
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
+  };
+
+  html2pdf().set(opt).from(pdfBlock).save().then(function() {
+    pdfBlock.style.display = 'none';
+  }).catch(function() {
+    pdfBlock.style.display = 'none';
+  });
 }
 
 // =====================================================================
