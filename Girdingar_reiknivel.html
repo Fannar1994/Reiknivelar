@@ -73,7 +73,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .mat-table td{padding:7px 8px;border-bottom:1px solid #eee;color:#333}
 .mat-table tr:last-child td{border-bottom:none}
 .tooltip-wrap{position:relative;display:inline-flex;align-items:center;gap:5px}
-.tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#e0e0e0;color:var(--color-dark);font-size:10px;font-weight:700;cursor:pointer;margin-left:5px;flex-shrink:0}
+.tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#e0e0e0;color:var(--color-dark);font-size:10px;font-weight:700;cursor:pointer;margin-left:5px;flex-shrink:0;border:none;padding:0;font-family:inherit;line-height:1}
 .tooltip-bubble{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1e293b;color:#f8fafc;font-size:12px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:var(--radius-md);width:260px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none;text-transform:none;letter-spacing:0}
 .tooltip-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1e293b}
 .tooltip-wrap:hover .tooltip-bubble,.tooltip-wrap:focus-within .tooltip-bubble{display:block}
@@ -409,8 +409,20 @@ function updateVisibility() {
   show('layoutNote', ft === 'standard');
   if (ft === 'warning') {
     document.getElementById('lengthLabel').textContent = 'Fjöldi gátaskjalda (stk)';
+    const li = document.getElementById('lengthInput');
+    li.setAttribute('inputmode', 'numeric');
+    const v = parseVal(li.value);
+    if (v !== Math.round(v)) { li.value = Math.round(v) || 1; }
+    const btns = li.closest('.num-wrap').querySelectorAll('.num-arrows button');
+    btns[0].onclick = () => stepField('lengthInput', 1, 1);
+    btns[1].onclick = () => stepField('lengthInput', -1, 1);
   } else {
     document.getElementById('lengthLabel').textContent = 'Heildar lengd girðingar (metrar)';
+    const li = document.getElementById('lengthInput');
+    li.setAttribute('inputmode', 'decimal');
+    const btns = li.closest('.num-wrap').querySelectorAll('.num-arrows button');
+    btns[0].onclick = () => stepField('lengthInput', 1, 0.5);
+    btns[1].onclick = () => stepField('lengthInput', -1, 0.5);
   }
   show('accGate', ft === 'standard' || ft === 'plastic');
   show('accWheels', ft === 'standard');
@@ -543,7 +555,7 @@ function calculate() {
   if (signQty > 0 && (ft === 'standard' || ft === 'plastic')) addItem('warning-sign', signQty);
 
   const discountPct = getDiscountPercent(effectiveDays);
-  const TIP = '<span class="tooltip-wrap"><span class="tooltip-icon">i</span><span class="tooltip-bubble">Verð er áætlað og byggt á gildandi verðskrá. Endanlegt verð kann að breytast.</span></span>';
+  const TIP = '<span class="tooltip-wrap"><button type="button" class="tooltip-icon" aria-label="Upplýsingar um verð">i</button><span class="tooltip-bubble" role="tooltip">Verð er áætlað og byggt á gildandi verðskrá. Endanlegt verð kann að breytast.</span></span>';
 
   let html = '<div class="result-box">';
   if (minWarning) html += '<div class="result-warning">\u26a0 Lágmarksleigutími miðar við ' + MIN_DAYS + ' daga.</div>';
