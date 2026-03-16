@@ -36,7 +36,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .section-label:first-child{margin-top:0}
 
 /* System tabs */
-.sys-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.sys-tabs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px}
 .sys-tab{padding:12px 8px;border:2px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-family:'Barlow',sans-serif;font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all .2s;color:var(--color-muted);line-height:1.3}
 .sys-tab .tab-brand{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;display:block;opacity:.5;margin-bottom:1px}
 .sys-tab.active .tab-brand{opacity:.7}
@@ -114,6 +114,33 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .tooltip-wrap:hover .tooltip-bubble,.tooltip-wrap:focus-within .tooltip-bubble{display:block}
 
 
+
+/* ID-15 Tower Calculator */
+.id15-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:14px 0}
+.id15-card{border:2px solid var(--color-border);border-radius:var(--radius-md);padding:14px;cursor:pointer;transition:all .2s;background:var(--color-surface);text-align:center}
+.id15-card:hover{border-color:var(--byko);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.id15-card.selected{border-color:var(--byko);background:rgba(64,64,66,.06)}
+.id15-card-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#333;margin-bottom:4px}
+.id15-card-sub{font-size:12px;color:var(--color-muted);line-height:1.4}
+.id15-qty-row{display:flex;align-items:center;gap:12px;margin:14px 0}
+.id15-qty-btn{width:36px;height:36px;border:2px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.id15-qty-btn:hover{border-color:var(--byko);color:var(--byko)}
+.id15-qty-val{font-size:20px;font-weight:700;min-width:40px;text-align:center}
+.id15-mat-table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+.id15-mat-table th{text-align:left;padding:8px;border-bottom:2px solid var(--color-border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--color-muted)}
+.id15-mat-table th.r{text-align:right}
+.id15-mat-table td{padding:7px 8px;border-bottom:1px solid #eee;color:#333}
+.id15-mat-table td.r{text-align:right}
+.id15-order-item{border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--color-surface)}
+.id15-order-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.id15-order-title{font-weight:700;font-size:14px}
+.id15-order-meta{font-size:12px;color:var(--color-muted)}
+.id15-order-detail{margin-top:10px;display:none}
+.id15-order-detail.open{display:block}
+.id15-summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #eee}
+.id15-summary-row.total{font-weight:700;font-size:16px;border-bottom:2px solid var(--byko);color:var(--byko)}
+.id15-section-title{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--color-muted);margin:18px 0 10px}
+.id15-hidden{display:none}
 
 @media(max-width:700px){
   .client-grid,.input-grid{grid-template-columns:1fr}
@@ -193,6 +220,9 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       <label>Heimilisfang / Verkefni
         <input type="text" id="clientAddress" placeholder="t.d. Laugavegur 1, Reykjavík">
       </label>
+      <label>Úttektaraðili
+        <input type="text" id="clientUttektar" placeholder="t.d. Nafn úttektaraðila">
+      </label>
     </div>
   </div>
 
@@ -214,6 +244,11 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       <button class="sys-tab" onclick="switchMode('C',this)">
         <span class="tab-name">Bitamót / Loftamót</span>
         <span class="tab-sub">Alufort</span>
+      </button>
+      <button class="sys-tab" onclick="switchMode('D',this)">
+        <span class="tab-brand">Hünnebeck</span>
+        <span class="tab-name">Turnareiknivél</span>
+        <span class="tab-sub">ID-15</span>
       </button>
     </div>
 
@@ -295,6 +330,69 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       <div class="check-row">
         <input type="checkbox" id="c-use-id" checked>
         <label for="c-use-id">Nota ID-ramma (ístað f stakra loftastoða)</label>
+      </div>
+    </div>
+
+    <!-- MODE D: ID-15 TOWER -->
+    <div id="pane-D" class="mode-pane">
+      <div class="mode-section-title">ID-15 Turnareiknivél</div>
+
+      <!-- Step 1: Height input -->
+      <div class="id15-section-title">Skref 1: Veldu hæð</div>
+      <div class="input-grid">
+        <div class="input-block">
+          <div class="label">Hæð (m) — 1,42 til 20,10</div>
+          <input type="text" id="id15-heightInput" inputmode="decimal" placeholder="t.d. 5,5" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Step 2: Option cards -->
+      <div id="id15-options-wrap" class="id15-hidden">
+        <div class="id15-section-title">Skref 2: Veldu samsetning</div>
+        <div id="id15-options" class="id15-options"></div>
+      </div>
+
+      <!-- Step 3: Quantity + materials -->
+      <div id="id15-qty-wrap" class="id15-hidden">
+        <div class="id15-section-title">Skref 3: Magn og efni</div>
+        <div class="id15-qty-row">
+          <span style="font-weight:600;">Fjöldi turna:</span>
+          <button class="id15-qty-btn" onclick="id15_changeQty(-1)">−</button>
+          <span class="id15-qty-val" id="id15-qty">1</span>
+          <button class="id15-qty-btn" onclick="id15_changeQty(1)">+</button>
+        </div>
+        <div class="id15-qty-row">
+          <span style="font-weight:600;">Fylgihlutagrind:</span>
+          <button class="id15-qty-btn" onclick="id15_changeFylgi(-1)">−</button>
+          <span class="id15-qty-val" id="id15-fylgi-qty">0</span>
+          <button class="id15-qty-btn" onclick="id15_changeFylgi(1)">+</button>
+        </div>
+        <table class="id15-mat-table" id="id15-mat-table">
+          <thead>
+            <tr>
+              <th>Hluti</th>
+              <th class="r">Per turn</th>
+              <th class="r">Samtals</th>
+              <th class="r">Þyngd/stk</th>
+              <th class="r">Heildarþyngd</th>
+              <th class="r">Verð/stk/dag</th>
+              <th class="r">Verð/dag</th>
+            </tr>
+          </thead>
+          <tbody id="id15-mat-body"></tbody>
+        </table>
+        <button class="btn-calc" onclick="id15_addToOrder()" style="margin-top:10px;">Bæta við pöntun</button>
+      </div>
+
+      <!-- Order section -->
+      <div id="id15-order-wrap" class="id15-hidden">
+        <div class="id15-section-title">Pöntun</div>
+        <div id="id15-order-items"></div>
+        <div id="id15-order-summary" style="margin-top:14px;"></div>
+        <div style="margin-top:12px;display:flex;gap:10px;">
+          <button class="btn-calc" onclick="id15_resetForNew()" style="background:var(--color-muted);">+ Bæta við annarri hæð</button>
+          <button class="btn-calc" onclick="id15_resetCalculator()" style="background:#e74c3c;">Hreinsa pöntun</button>
+        </div>
       </div>
     </div>
 
@@ -1181,6 +1279,7 @@ function generatePDF() {
     var phone     = (document.getElementById('clientPhone').value || '').trim() || '\u2013';
     var email     = (document.getElementById('clientEmail').value || '').trim() || '\u2013';
     var address   = (document.getElementById('clientAddress').value || '').trim() || '\u2013';
+    var uttektar  = (document.getElementById('clientUttektar').value || '').trim() || '\u2013';
     var today     = new Date();
     var dateStr   = today.getDate() + '.' + (today.getMonth() + 1) + '.' + today.getFullYear();
 
@@ -1190,6 +1289,7 @@ function generatePDF() {
     document.getElementById('pdf-c-phone').textContent     = phone;
     document.getElementById('pdf-c-email').textContent     = email;
     document.getElementById('pdf-c-address').textContent   = address;
+    document.getElementById('pdf-c-uttektar').textContent  = uttektar;
     document.getElementById('pdf-c-date').textContent      = dateStr;
     document.getElementById('pdf-c-days').textContent      = days + ' dagar';
 
@@ -1301,6 +1401,7 @@ function exportToExcel() {
     var phone     = (document.getElementById('clientPhone').value || '').trim() || '–';
     var email     = (document.getElementById('clientEmail').value || '').trim() || '–';
     var address   = (document.getElementById('clientAddress').value || '').trim() || '–';
+    var uttektar  = (document.getElementById('clientUttektar').value || '').trim() || '–';
     var today     = new Date();
     var dateStr   = today.getDate() + '.' + (today.getMonth() + 1) + '.' + today.getFullYear();
 
@@ -1322,6 +1423,7 @@ function exportToExcel() {
         ['Sími', phone],
         ['Netfang', email],
         ['Heimilisfang', address],
+        ['Úttektaraðili', uttektar],
         [],
         ['Dagsetning', dateStr],
         ['Tegund', modeLabel],
@@ -1363,6 +1465,326 @@ function exportToExcel() {
 }
 
 
+
+// =============================================================================
+// ID-15 TOWER CALCULATOR
+// =============================================================================
+const ID15_COMBO = [
+  [1.42,1.75,4,4,0,2,2,2,0,0,135.96],[1.75,2.08,4,4,2,0,2,2,0,0,141.9],[1.84,2.17,4,4,2,0,3,2,0,0,157.57],[1.93,2.26,4,4,2,0,4,2,0,0,173.24],
+  [2.42,2.75,4,4,0,4,2,4,1,1,185.74],[2.75,3.08,4,4,2,2,2,4,1,1,191.68],[3.09,3.42,4,4,4,0,2,4,1,1,197.62],
+  [3.42,3.75,4,4,0,6,2,6,2,2,235.52],[3.75,4.08,4,4,2,4,2,6,2,2,241.46],[4.09,4.42,4,4,4,2,2,6,2,2,247.4],[4.42,4.75,4,4,6,0,2,6,2,2,253.34],
+  [4.75,5.08,4,4,2,6,2,8,3,3,291.24],[5.09,5.42,4,4,4,4,2,8,3,3,297.18],[5.42,5.75,4,4,6,2,2,8,3,3,303.12],[5.76,6.09,4,4,8,0,2,8,3,3,309.06],
+  [6.09,6.42,4,4,4,6,2,10,4,4,346.96],[6.42,6.75,4,4,6,4,2,10,4,4,352.9],[6.76,7.09,4,4,8,2,2,10,4,4,358.84],[7.09,7.42,4,4,10,0,2,10,4,4,364.78],
+  [7.42,7.75,4,4,6,6,2,12,5,5,402.68],[7.76,8.09,4,4,8,4,2,12,5,5,408.62],[8.09,8.42,4,4,10,2,2,12,5,5,414.56],[8.43,8.76,4,4,12,0,2,12,5,5,420.5],
+  [8.76,9.09,4,4,8,6,2,14,6,6,458.4],[9.09,9.42,4,4,10,4,2,14,6,6,464.34],[9.43,9.76,4,4,12,2,2,14,6,6,470.28],[9.76,10.09,4,4,14,0,2,14,6,6,476.22],
+  [10.09,10.42,4,4,10,6,2,16,7,7,514.12],[10.43,10.76,4,4,12,4,2,16,7,7,520.06],[10.76,11.09,4,4,14,2,2,16,7,7,526.0],[11.1,11.43,4,4,16,0,2,16,7,7,531.94],
+  [11.43,11.76,4,4,12,6,2,18,8,8,569.84],[11.76,12.09,4,4,14,4,2,18,8,8,575.78],[12.1,12.43,4,4,16,2,2,18,8,8,581.72],[12.43,12.76,4,4,18,0,2,18,8,8,587.66],
+  [12.76,13.09,4,4,14,6,2,20,9,9,625.56],[13.1,13.43,4,4,16,4,2,20,9,9,631.5],[13.43,13.76,4,4,18,2,2,20,9,9,637.44],[13.77,14.1,4,4,20,0,2,20,9,9,643.38],
+  [14.1,14.43,4,4,16,6,2,22,10,10,681.28],[14.43,14.76,4,4,18,4,2,22,10,10,687.22],[14.77,15.1,4,4,20,2,2,22,10,10,693.16],[15.1,15.43,4,4,22,0,2,22,10,10,699.1],
+  [15.43,15.76,4,4,18,6,2,24,11,11,737.0],[15.77,16.1,4,4,20,4,2,24,11,11,742.94],[16.1,16.43,4,4,22,2,2,24,11,11,748.88],[16.44,16.77,4,4,24,0,2,24,11,11,754.82],
+  [16.77,17.1,4,4,20,6,2,26,12,12,792.72],[17.1,17.43,4,4,22,4,2,26,12,12,798.66],[17.44,17.77,4,4,24,2,2,26,12,12,804.6],[17.77,18.1,4,4,26,0,2,26,12,12,810.54],
+  [18.1,18.43,4,4,22,6,2,28,13,13,848.44],[18.44,18.76,4,4,24,4,2,28,13,13,854.38],[18.77,19.1,4,4,26,2,2,28,13,13,860.32],[19.11,19.44,4,4,28,0,2,28,13,13,866.26],
+  [19.44,19.77,4,4,24,6,2,30,14,14,904.16],[19.77,20.1,4,4,26,4,2,30,14,14,910.1]
+];
+
+const ID15_PARTS = {
+  head_jack:  ['ID - Gafflar 38/52', 8.56, 20],
+  base_jack:  ['ID - Lappir 38/52', 8.34, 20],
+  frame133:   ['ID - Rammar 133', 18.85, 46],
+  frame100:   ['ID - Rammar 100', 15.88, 42],
+  end_frame10:['ID - Endarammar 10', 15.67, 49],
+  diagonal:   ['ID - Skástífur', 2.63, 6],
+  fylgihluta: ['Fylgihlutagrind', 80, 100]
+};
+
+let id15_options = [];
+let id15_selectedIdx = -1;
+let id15_qty = 1;
+let id15_fylgiQty = 0;
+let id15_order = [];
+
+function id15_findTowers() {
+  var raw = document.getElementById('id15-heightInput').value.replace(',', '.');
+  var h = parseFloat(raw);
+  if (isNaN(h) || h < 1.0 || h > 21.0) {
+    document.getElementById('id15-options-wrap').classList.add('id15-hidden');
+    document.getElementById('id15-qty-wrap').classList.add('id15-hidden');
+    return;
+  }
+
+  // Find exact matches and nearby
+  var matches = [];
+  for (var i = 0; i < ID15_COMBO.length; i++) {
+    var c = ID15_COMBO[i];
+    if (h >= c[0] && h <= c[1]) {
+      matches.push({ idx: i, combo: c, type: 'exact' });
+    }
+  }
+
+  // If no exact, find closest
+  if (matches.length === 0) {
+    var sorted = ID15_COMBO.map(function(c, idx) {
+      var mid = (c[0] + c[1]) / 2;
+      return { idx: idx, combo: c, dist: Math.abs(h - mid) };
+    }).sort(function(a, b) { return a.dist - b.dist; });
+    for (var j = 0; j < Math.min(3, sorted.length); j++) {
+      matches.push({ idx: sorted[j].idx, combo: sorted[j].combo, type: j === 0 ? 'best' : 'nearby' });
+    }
+  }
+
+  // Label cards
+  if (matches.length >= 3) {
+    matches[0].label = 'Lægri';
+    matches[1].label = 'Besti valkostur';
+    matches[2].label = 'Hærri';
+  } else if (matches.length === 2) {
+    matches[0].label = 'Valkostur 1';
+    matches[1].label = 'Valkostur 2';
+  } else if (matches.length === 1) {
+    matches[0].label = 'Besti valkostur';
+  }
+
+  id15_options = matches;
+  id15_selectedIdx = -1;
+
+  var html = '';
+  matches.forEach(function(m, mi) {
+    var c = m.combo;
+    html += '<div class="id15-card" onclick="id15_selectOption(' + mi + ')" id="id15-card-' + mi + '">';
+    html += '<div class="id15-card-title">' + m.label + '</div>';
+    html += '<div class="id15-card-sub">';
+    html += 'Hæð: ' + c[0].toFixed(2).replace('.', ',') + ' – ' + c[1].toFixed(2).replace('.', ',') + ' m<br>';
+    html += 'Þyngd: ' + c[10].toFixed(1).replace('.', ',') + ' kg';
+    html += '</div></div>';
+  });
+
+  document.getElementById('id15-options').innerHTML = html;
+  document.getElementById('id15-options-wrap').classList.remove('id15-hidden');
+  document.getElementById('id15-qty-wrap').classList.add('id15-hidden');
+}
+
+function id15_selectOption(idx) {
+  id15_selectedIdx = idx;
+  document.querySelectorAll('.id15-card').forEach(function(c) { c.classList.remove('selected'); });
+  document.getElementById('id15-card-' + idx).classList.add('selected');
+  id15_qty = 1;
+  id15_fylgiQty = 0;
+  document.getElementById('id15-qty').textContent = '1';
+  document.getElementById('id15-fylgi-qty').textContent = '0';
+  id15_updateMaterials();
+  document.getElementById('id15-qty-wrap').classList.remove('id15-hidden');
+}
+
+function id15_changeQty(delta) {
+  id15_qty = Math.max(1, id15_qty + delta);
+  document.getElementById('id15-qty').textContent = id15_qty;
+  id15_updateMaterials();
+}
+
+function id15_changeFylgi(delta) {
+  id15_fylgiQty = Math.max(0, id15_fylgiQty + delta);
+  document.getElementById('id15-fylgi-qty').textContent = id15_fylgiQty;
+  id15_updateMaterials();
+}
+
+function id15_getItemParts(c) {
+  return {
+    head_jack:   c[2],
+    base_jack:   c[3],
+    frame133:    c[4],
+    frame100:    c[5],
+    end_frame10: c[6],
+    diagonal:    c[7]
+  };
+}
+
+function id15_updateMaterials() {
+  if (id15_selectedIdx < 0) return;
+  var c = id15_options[id15_selectedIdx].combo;
+  var parts = id15_getItemParts(c);
+  var tbody = document.getElementById('id15-mat-body');
+  var html = '';
+  var keys = ['head_jack', 'base_jack', 'frame133', 'frame100', 'end_frame10', 'diagonal'];
+
+  keys.forEach(function(key) {
+    var perTower = parts[key];
+    if (perTower <= 0) return;
+    var info = ID15_PARTS[key];
+    var total = perTower * id15_qty;
+    var wPc = info[1];
+    var totalW = wPc * total;
+    var pricePcDay = info[2];
+    var priceDay = pricePcDay * total;
+    html += '<tr>';
+    html += '<td>' + info[0] + '</td>';
+    html += '<td class="r">' + perTower + '</td>';
+    html += '<td class="r">' + total + '</td>';
+    html += '<td class="r">' + wPc.toFixed(1).replace('.', ',') + ' kg</td>';
+    html += '<td class="r">' + totalW.toFixed(1).replace('.', ',') + ' kg</td>';
+    html += '<td class="r">' + fmtInt(pricePcDay) + ' kr</td>';
+    html += '<td class="r">' + fmtInt(priceDay) + ' kr</td>';
+    html += '</tr>';
+  });
+
+  // Fylgihlutagrind
+  if (id15_fylgiQty > 0) {
+    var fInfo = ID15_PARTS.fylgihluta;
+    var fTotal = id15_fylgiQty;
+    var fW = fInfo[1] * fTotal;
+    var fPrice = fInfo[2] * fTotal;
+    html += '<tr>';
+    html += '<td>' + fInfo[0] + '</td>';
+    html += '<td class="r">–</td>';
+    html += '<td class="r">' + fTotal + '</td>';
+    html += '<td class="r">' + fInfo[1].toFixed(1).replace('.', ',') + ' kg</td>';
+    html += '<td class="r">' + fW.toFixed(1).replace('.', ',') + ' kg</td>';
+    html += '<td class="r">' + fmtInt(fInfo[2]) + ' kr</td>';
+    html += '<td class="r">' + fmtInt(fPrice) + ' kr</td>';
+    html += '</tr>';
+  }
+
+  tbody.innerHTML = html;
+}
+
+function id15_addToOrder() {
+  if (id15_selectedIdx < 0) return;
+  var c = id15_options[id15_selectedIdx].combo;
+  var parts = id15_getItemParts(c);
+  id15_order.push({
+    combo: c,
+    parts: parts,
+    qty: id15_qty,
+    fylgiQty: id15_fylgiQty,
+    label: c[0].toFixed(2).replace('.', ',') + ' – ' + c[1].toFixed(2).replace('.', ',') + ' m'
+  });
+  id15_renderOrder();
+  document.getElementById('id15-order-wrap').classList.remove('id15-hidden');
+  id15_resetForNew();
+}
+
+function id15_removeOrderItem(idx) {
+  id15_order.splice(idx, 1);
+  if (id15_order.length === 0) {
+    document.getElementById('id15-order-wrap').classList.add('id15-hidden');
+  }
+  id15_renderOrder();
+}
+
+function id15_toggleDetail(idx) {
+  var el = document.getElementById('id15-detail-' + idx);
+  if (el) el.classList.toggle('open');
+}
+
+function id15_renderOrder() {
+  var days = getRentalDays();
+  var discount = parseFloat(document.getElementById('discountInput').value) || 0;
+
+  var itemsHtml = '';
+  var grandTotal = 0;
+  var grandWeight = 0;
+  var allParts = {};
+
+  id15_order.forEach(function(order, oi) {
+    var dayTotal = 0;
+    var orderWeight = 0;
+    var keys = ['head_jack', 'base_jack', 'frame133', 'frame100', 'end_frame10', 'diagonal'];
+
+    keys.forEach(function(key) {
+      var perTower = order.parts[key];
+      if (perTower <= 0) return;
+      var info = ID15_PARTS[key];
+      var total = perTower * order.qty;
+      dayTotal += info[2] * total;
+      orderWeight += info[1] * total;
+      allParts[key] = (allParts[key] || 0) + total;
+    });
+
+    // Fylgihlutagrind
+    if (order.fylgiQty > 0) {
+      var fInfo = ID15_PARTS.fylgihluta;
+      dayTotal += fInfo[2] * order.fylgiQty;
+      orderWeight += fInfo[1] * order.fylgiQty;
+      allParts['fylgihluta'] = (allParts['fylgihluta'] || 0) + order.fylgiQty;
+    }
+
+    var rentalCostVal = dayTotal * days;
+    grandTotal += rentalCostVal;
+    grandWeight += orderWeight;
+
+    // Detail table
+    var detailHtml = '<table class="id15-mat-table"><thead><tr><th>Hluti</th><th class="r">Magn</th><th class="r">Verð/dag</th></tr></thead><tbody>';
+    keys.forEach(function(key) {
+      var perTower = order.parts[key];
+      if (perTower <= 0) return;
+      var info = ID15_PARTS[key];
+      var total = perTower * order.qty;
+      detailHtml += '<tr><td>' + info[0] + '</td><td class="r">' + total + '</td><td class="r">' + fmtInt(info[2] * total) + ' kr</td></tr>';
+    });
+    if (order.fylgiQty > 0) {
+      var fInfo2 = ID15_PARTS.fylgihluta;
+      detailHtml += '<tr><td>' + fInfo2[0] + '</td><td class="r">' + order.fylgiQty + '</td><td class="r">' + fmtInt(fInfo2[2] * order.fylgiQty) + ' kr</td></tr>';
+    }
+    detailHtml += '</tbody></table>';
+
+    itemsHtml += '<div class="id15-order-item">';
+    itemsHtml += '<div class="id15-order-header" onclick="id15_toggleDetail(' + oi + ')">';
+    itemsHtml += '<div><span class="id15-order-title">Turn ' + (oi + 1) + ': ' + order.label + '</span>';
+    itemsHtml += ' <span class="id15-order-meta">×' + order.qty + ' · ' + fmtInt(Math.round(dayTotal)) + ' kr/dag</span></div>';
+    itemsHtml += '<button onclick="event.stopPropagation();id15_removeOrderItem(' + oi + ')" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:16px;">✕</button>';
+    itemsHtml += '</div>';
+    itemsHtml += '<div class="id15-order-detail" id="id15-detail-' + oi + '">' + detailHtml + '</div>';
+    itemsHtml += '</div>';
+  });
+
+  document.getElementById('id15-order-items').innerHTML = itemsHtml;
+
+  // Summary
+  var discounted = discount > 0 ? grandTotal * (1 - discount / 100) : grandTotal;
+  var summaryHtml = '';
+  summaryHtml += '<div class="id15-summary-row"><span>Heildarþyngd</span><span>' + grandWeight.toFixed(1).replace('.', ',') + ' kg</span></div>';
+  summaryHtml += '<div class="id15-summary-row"><span>Leigutími</span><span>' + days + ' dagar</span></div>';
+  summaryHtml += '<div class="id15-summary-row"><span>Leiguverð (fyrir afslátt)</span><span>' + fmtInt(Math.round(grandTotal)) + ' kr</span></div>';
+  if (discount > 0) {
+    summaryHtml += '<div class="id15-summary-row"><span>Afsláttur</span><span>' + discount + '%</span></div>';
+  }
+  summaryHtml += '<div class="id15-summary-row total"><span>Samtals leiguverð</span><span>' + fmtInt(Math.round(discounted)) + ' kr</span></div>';
+
+  // Combined materials table
+  summaryHtml += '<div class="id15-section-title" style="margin-top:16px;">Samanlagður efnislisti</div>';
+  summaryHtml += '<table class="id15-mat-table"><thead><tr><th>Hluti</th><th class="r">Magn</th><th class="r">Þyngd</th><th class="r">Verð/dag</th></tr></thead><tbody>';
+  var allKeys = ['head_jack', 'base_jack', 'frame133', 'frame100', 'end_frame10', 'diagonal', 'fylgihluta'];
+  allKeys.forEach(function(key) {
+    var total = allParts[key] || 0;
+    if (total <= 0) return;
+    var info = ID15_PARTS[key];
+    summaryHtml += '<tr><td>' + info[0] + '</td><td class="r">' + total + '</td>';
+    summaryHtml += '<td class="r">' + (info[1] * total).toFixed(1).replace('.', ',') + ' kg</td>';
+    summaryHtml += '<td class="r">' + fmtInt(info[2] * total) + ' kr</td></tr>';
+  });
+  summaryHtml += '</tbody></table>';
+
+  document.getElementById('id15-order-summary').innerHTML = summaryHtml;
+}
+
+function id15_resetForNew() {
+  id15_selectedIdx = -1;
+  id15_qty = 1;
+  id15_fylgiQty = 0;
+  id15_options = [];
+  document.getElementById('id15-heightInput').value = '';
+  document.getElementById('id15-options-wrap').classList.add('id15-hidden');
+  document.getElementById('id15-qty-wrap').classList.add('id15-hidden');
+  document.getElementById('id15-heightInput').focus();
+}
+
+function id15_resetCalculator() {
+  id15_order = [];
+  document.getElementById('id15-order-wrap').classList.add('id15-hidden');
+  document.getElementById('id15-order-items').innerHTML = '';
+  document.getElementById('id15-order-summary').innerHTML = '';
+  id15_resetForNew();
+}
+
 // =============================================================================
 // INIT
 // =============================================================================
@@ -1371,6 +1793,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startDate').addEventListener('change', updateRentalDays);
     document.getElementById('endDate').addEventListener('change', updateRentalDays);
     document.getElementById('rentalDays').addEventListener('input', updateEndDateFromDays);
+
+    // ID-15 height input debounce
+    var id15Timer = null;
+    var id15Input = document.getElementById('id15-heightInput');
+    if (id15Input) {
+      id15Input.addEventListener('input', function() {
+        clearTimeout(id15Timer);
+        id15Timer = setTimeout(id15_findTowers, 350);
+      });
+    }
 });
 </script>
 
@@ -1399,6 +1831,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="cl">Sími</span><span class="cv" id="pdf-c-phone">–</span>
         <span class="cl">Netfang</span><span class="cv" id="pdf-c-email">–</span>
         <span class="cl">Heimilisfang</span><span class="cv" id="pdf-c-address">–</span>
+        <span class="cl">Úttektaraðili</span><span class="cv" id="pdf-c-uttektar">–</span>
         <span class="cl">Dagsetning</span><span class="cv" id="pdf-c-date">–</span>
         <span class="cl">Leigutími</span><span class="cv" id="pdf-c-days">–</span>
       </div>
