@@ -801,12 +801,14 @@
                 scaffoldDescription = 'Quickly hjólapallur (2,0m standhæð / 4,0m vinnuhæð)';
             } else if (scaffoldType === 'narrow') {
                 currentPricing = NARROW_PRICING[height];
-                const workH = (parseFloat(height) + 2).toFixed(1);
-                scaffoldDescription = `Hjólapallur mjór 0,75m (${height}m standhæð / ${workH}m vinnuhæð)`;
+                const workH = (parseFloat(height) + 2).toFixed(1).replace('.', ',');
+                const heightDisplay = height.replace('.', ',');
+                scaffoldDescription = `Hjólapallur mjór 0,75m (${heightDisplay}m standhæð / ${workH}m vinnuhæð)`;
             } else {
                 currentPricing = WIDE_PRICING[height];
-                const workH = (parseFloat(height) + 2).toFixed(1);
-                scaffoldDescription = `Hjólapallur breiður 1,35m (${height}m standhæð / ${workH}m vinnuhæð)`;
+                const workH = (parseFloat(height) + 2).toFixed(1).replace('.', ',');
+                const heightDisplay = height.replace('.', ',');
+                scaffoldDescription = `Hjólapallur breiður 1,35m (${heightDisplay}m standhæð / ${workH}m vinnuhæð)`;
             }
 
             // Render scaffold description

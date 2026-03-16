@@ -899,7 +899,7 @@ function calculateModeA() {
         const p = panels.find(x => x.id === id);
         layoutParts.push(`${count * 2}\u00d7 ${p.desc.split('(')[0].trim()} (${p.w}cm)`);
     }
-    const layoutText = `Veggkerfi: ${system === 'rasto' ? 'RASTO (3 m)' : 'TAKKO (1,2 m)'}\nVegglengd: ${(wallLength/100).toFixed(1)} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1)} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
+    const layoutText = `Veggkerfi: ${system === 'rasto' ? 'RASTO (3 m)' : 'TAKKO (1,2 m)'}\nVegglengd: ${(wallLength/100).toFixed(1).replace('.', ',')} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1).replace('.', ',')} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
 
     const visual = buildWallVisual(used, panels, netLength);
     return { boq, layoutText, visual, modeLabel: system === 'rasto' ? 'RASTO (3 m)' : 'TAKKO (1,2 m)' };
@@ -998,10 +998,10 @@ function calculateModeB() {
         const p = KM01.find(x => x.id === id);
         layoutParts.push(`${count * 2}\u00d7 ${p.desc.split('(')[0].trim()} (${p.w}cm)`);
     }
-    const layoutText = `Veggkerfi: MANTO (${(height/100).toFixed(1)} m h\u00e6\u00f0)\nVegglengd: ${(wallLength/100).toFixed(1)} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1)} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
+    const layoutText = `Veggkerfi: MANTO (${(height/100).toFixed(1).replace('.', ',')} m h\u00e6\u00f0)\nVegglengd: ${(wallLength/100).toFixed(1).replace('.', ',')} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1).replace('.', ',')} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
 
     const visual = buildWallVisual(used, KM01, netLength);
-    return { boq, layoutText, visual, modeLabel: `MANTO (${(height/100).toFixed(1)} m)` };
+    return { boq, layoutText, visual, modeLabel: `MANTO (${(height/100).toFixed(1).replace('.', ',')} m)` };
 }
 
 
@@ -1090,7 +1090,7 @@ function calculateModeC() {
     if (washer) boq.push({ id: washer.id, desc: washer.desc, qty: screws, stock: washer.qty, dayRate: washer.dayRate, weekRate: washer.weekRate, cat: 'Festingar' });
 
     const slabArea = (slabL * slabW) / 10000;
-    const layoutText = `Loftam\u00f3t: ALUFORT\nLoftflatarm\u00e1l: ${(slabL/100).toFixed(1)} \u00d7 ${(slabW/100).toFixed(1)} m = ${slabArea.toFixed(1)} m\u00b2\nLofth\u00e6\u00f0: ${(slabH/100).toFixed(1)} m \u00b7 Steypu\u00feykkt: ${(concreteT/100).toFixed(2)} m\nSto\u00f0abil: ${(spacingL/100).toFixed(1)} \u00d7 ${(spacingW/100).toFixed(1)} m\n\n=== Sto\u00f0agrind ===\nSto\u00f0ir \u00e1 lengd: ${propsL} \u00b7 Sto\u00f0ir \u00e1 breidd: ${propsW}\nSamtals sto\u00f0ir/Drop-Heads: ${totalProps} stk\n${useID ? 'ID-Rammar nota\u00f0ir (shoring towers)' : `Loftasto\u00f0ir: ${selectedProp ? selectedProp.desc : 'VANTAR'}`}\n\n=== Loftaflekar ===\n${Array.from(panelCounts.entries()).map(([id, c]) => { const p = LM02.find(x => x.id === id); return `${c}\u00d7 ${p ? p.desc : id}`; }).join('\n')}\nSamtals flekar: ${totalPanels} stk`;
+    const layoutText = `Loftam\u00f3t: ALUFORT\nLoftflatarm\u00e1l: ${(slabL/100).toFixed(1).replace('.', ',')} \u00d7 ${(slabW/100).toFixed(1).replace('.', ',')} m = ${slabArea.toFixed(1).replace('.', ',')} m\u00b2\nLofth\u00e6\u00f0: ${(slabH/100).toFixed(1).replace('.', ',')} m \u00b7 Steypu\u00feykkt: ${(concreteT/100).toFixed(2).replace('.', ',')} m\nSto\u00f0abil: ${(spacingL/100).toFixed(1).replace('.', ',')} \u00d7 ${(spacingW/100).toFixed(1).replace('.', ',')} m\n\n=== Sto\u00f0agrind ===\nSto\u00f0ir \u00e1 lengd: ${propsL} \u00b7 Sto\u00f0ir \u00e1 breidd: ${propsW}\nSamtals sto\u00f0ir/Drop-Heads: ${totalProps} stk\n${useID ? 'ID-Rammar nota\u00f0ir (shoring towers)' : `Loftasto\u00f0ir: ${selectedProp ? selectedProp.desc : 'VANTAR'}`}\n\n=== Loftaflekar ===\n${Array.from(panelCounts.entries()).map(([id, c]) => { const p = LM02.find(x => x.id === id); return `${c}\u00d7 ${p ? p.desc : id}`; }).join('\n')}\nSamtals flekar: ${totalPanels} stk`;
 
     return { boq, layoutText, visual: '', modeLabel: 'ALUFORT Loft' };
 }
