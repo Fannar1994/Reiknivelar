@@ -57,7 +57,7 @@ Each calculator is a **self-contained HTML file** with inline `<style>` and `<sc
 - Product/item catalogues are defined as arrays of objects with `id`, `name`, `unit`, `price` properties
 - Calculation functions should be pure where possible (input → output, no side effects)
 - DOM manipulation uses `document.getElementById()` and `document.querySelector()`
-- Number formatting: use `.toLocaleString('de-DE')` for Icelandic-style number formatting (dot thousands separator)
+- Number formatting: use the shared regex-based helpers (`fmtInt`, `fmtNum`) for Icelandic-style number formatting (dot thousands separator); do not mix in `.toLocaleString(...)`
 
 ### Design Language
 
@@ -79,6 +79,6 @@ Each calculator is a **self-contained HTML file** with inline `<style>` and `<sc
 
 - Do NOT extract CSS/JS into separate files – the inline pattern is intentional
 - Do NOT add npm/node dependencies – this is a zero-build static site
-- Preserve number formatting consistency (`toLocaleString('de-DE')`)
+- Preserve number formatting consistency – always use the shared `fmtInt` / `fmtNum` helpers for user-visible numbers (avoid mixing in `.toLocaleString(...)`)
 - When adding new calculators, also add a card to `index.html` and update `README.md`
 - CDN scripts (html2pdf, XLSX) must use specific pinned versions, not `latest`
