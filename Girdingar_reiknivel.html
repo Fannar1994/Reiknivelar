@@ -759,20 +759,58 @@ function exportExcel() {
   XLSX.utils.book_append_sheet(wb, ws1, 'Upplýsingar');
 
   // Sheet 2: Efnislisti
-  const matHeader = ['Sölunr.', 'Leigunr.', 'Vara', 'Magn', 'Einingaverð', data.useSpariv ? 'Grunnverð' : '', 'Leiga'];
-  const matRows = [matHeader];
-  data.items.forEach(it => {
-    const row = [it.saleNo, it.rentalNo, it.desc, it.qty, it.unitPrice];
-    if (data.useSpariv) row.push(it.grunnPrice);
-    else row.push('');
-    row.push(it.cost);
-    matRows.push(row);
-  });
-  matRows.push([]);
-  matRows.push(['', '', '', '', '', 'Heildarleiga:', data.totalRental]);
-  matRows.push(['', '', '', '', '', 'Samtals söluverð:', data.totalSale]);
+  let matHeader;
+  const matRows = [];
+
+  if (data.useSpariv) {
+    // Include "Grunnverð" column when spariverð is used
+    matHeader = ['Sölunr.', 'Leigunr.', 'Vara', 'Magn', 'Einingaverð', 'Grunnverð', 'Leiga'];
+    matRows.push(matHeader);
+
+    data.items.forEach(it => {
+      const row = [it.saleNo, it.rentalNo, it.desc, it.qty, it.unitPrice, it.grunnPrice, it.cost];
+      matRows.push(row);
+    });
+
+    matRows.push([]);
+    matRows.push(['', '', '', '', '', 'Heildarleiga:', data.totalRental]);
+    matRows.push(['', '', '', '', '', 'Samtals söluverð:', data.totalSale]);
+  } else {
+    // Omit "Grunnverð" column entirely when spariverð is not used
+    matHeader = ['Sölunr.', 'Leigunr.', 'Vara', 'Magn', 'Einingaverð', 'Leiga'];
+    matRows.push(matHeader);
+
+    data.items.forEach(it => {
+      const row = [it.saleNo, it.rentalNo, it.desc, it.qty, it.unitPrice, it.cost];
+      matRows.push(row);
+    });
+
+    matRows.push([]);
+    matRows.push(['', '', '', '', 'Heildarleiga:', data.totalRental]);
+    matRows.push(['', '', '', '', 'Samtals söluverð:', data.totalSale]);
+  }
+
   const ws2 = XLSX.utils.aoa_to_sheet(matRows);
-  ws2['!cols'] = [{ wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+  if (data.useSpariv) {
+    ws2['!cols'] = [
+      { wch: 12 }, // Sölunr.
+      { wch: 18 }, // Leigunr.
+      { wch: 30 }, // Vara
+      { wch: 8 },  // Magn
+      { wch: 14 }, // Einingaverð
+      { wch: 14 }, // Grunnverð
+      { wch: 14 }  // Leiga
+    ];
+  } else {
+    ws2['!cols'] = [
+      { wch: 12 }, // Sölunr.
+      { wch: 18 }, // Leigunr.
+      { wch: 30 }, // Vara
+      { wch: 8 },  // Magn
+      { wch: 14 }, // Einingaverð
+      { wch: 14 }  // Leiga
+    ];
+  }
   XLSX.utils.book_append_sheet(wb, ws2, 'Efnislisti');
 
   const name = document.getElementById('clientName').value || 'Tilbod';
