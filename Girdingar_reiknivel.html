@@ -73,7 +73,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .mat-table td{padding:7px 8px;border-bottom:1px solid #eee;color:#333}
 .mat-table tr:last-child td{border-bottom:none}
 .tooltip-wrap{position:relative;display:inline-flex;align-items:center;gap:5px}
-.tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#e0e0e0;color:var(--color-dark);font-size:10px;font-weight:700;cursor:pointer;margin-left:5px;flex-shrink:0}
+.tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#e0e0e0;color:var(--color-dark);font-size:10px;font-weight:700;cursor:pointer;margin-left:5px;flex-shrink:0;border:none;padding:0;font-family:inherit;line-height:1}
 .tooltip-bubble{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1e293b;color:#f8fafc;font-size:12px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:var(--radius-md);width:260px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none;text-transform:none;letter-spacing:0}
 .tooltip-bubble::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1e293b}
 .tooltip-wrap:hover .tooltip-bubble,.tooltip-wrap:focus-within .tooltip-bubble{display:block}
@@ -178,6 +178,15 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       </div>
     </div>
 
+    <!-- THICKNESS (standard 2m only) -->
+    <div id="thicknessSection" style="display:none">
+      <div class="section-label">Þykkt girðingar</div>
+      <div class="option-tabs" id="thicknessTabs">
+        <button class="option-tab active" onclick="selectThickness('1.7',this)">1,7 mm</button>
+        <button class="option-tab" onclick="selectThickness('1.1',this)">1,1 mm</button>
+      </div>
+    </div>
+
     <!-- STONE TYPE (standard + plastic) -->
     <div id="stoneSection">
       <div class="section-label">Tegund steina</div>
@@ -274,6 +283,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 // =====================================================================
 let currentFenceType = 'standard';
 let currentHeight = '2.0';
+let currentThickness = '1.7';
 let currentStoneType = 'concrete';
 const MIN_DAYS = 10;
 
@@ -385,6 +395,13 @@ function selectHeight(h, btn) {
   calculate();
 }
 
+function selectThickness(t, btn) {
+  currentThickness = t;
+  btn.closest('.option-tabs').querySelectorAll('.option-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  calculate();
+}
+
 function selectStoneType(s, btn) {
   currentStoneType = s;
   btn.closest('.option-tabs').querySelectorAll('.option-tab').forEach(b => b.classList.remove('active'));
@@ -404,12 +421,24 @@ function updateVisibility() {
   const ft = currentFenceType;
   const show = (id, v) => { document.getElementById(id).style.display = v ? '' : 'none'; };
   show('heightSection', ft === 'standard');
+  show('thicknessSection', ft === 'standard' && currentHeight === '2.0');
   show('stoneSection', ft === 'standard' || ft === 'plastic');
   show('layoutNote', ft === 'standard');
   if (ft === 'warning') {
     document.getElementById('lengthLabel').textContent = 'Fjöldi gátaskjalda (stk)';
+    document.getElementById('lengthInput').setAttribute('inputmode', 'numeric');
+    const el = document.getElementById('lengthInput');
+    const v = parseFloat(el.value.replace(',', '.'));
+    if (v && v % 1 !== 0) el.value = Math.round(v);
+    const btns = document.querySelectorAll('#lengthSection .num-arrows button');
+    btns[0].setAttribute('onclick', "stepField('lengthInput',1,1)");
+    btns[1].setAttribute('onclick', "stepField('lengthInput',-1,1)");
   } else {
     document.getElementById('lengthLabel').textContent = 'Heildar lengd girðingar (metrar)';
+    document.getElementById('lengthInput').setAttribute('inputmode', 'decimal');
+    const btns = document.querySelectorAll('#lengthSection .num-arrows button');
+    btns[0].setAttribute('onclick', "stepField('lengthInput',1,0.5)");
+    btns[1].setAttribute('onclick', "stepField('lengthInput',-1,0.5)");
   }
   show('accGate', ft === 'standard' || ft === 'plastic');
   show('accWheels', ft === 'standard');
@@ -489,7 +518,7 @@ function calculate() {
 
   if (ft === 'standard') {
     fenceLength = 3.5;
-    fenceKey = currentHeight === '1.2' ? 'fence-3500x1200x1.1' : 'fence-3500x2000x1.1';
+    fenceKey = currentHeight === '1.2' ? 'fence-3500x1200x1.1' : ('fence-3500x2000x' + currentThickness);
     stoneKey = currentStoneType === 'pvc' ? 'stone-pvc' : 'stone-concrete';
     panelCount = Math.ceil(inputVal / fenceLength);
     stoneCount = panelCount + 1;
@@ -542,7 +571,7 @@ function calculate() {
   if (signQty > 0 && (ft === 'standard' || ft === 'plastic')) addItem('warning-sign', signQty);
 
   const discountPct = getDiscountPercent(effectiveDays);
-  const TIP = '<span class="tooltip-wrap"><span class="tooltip-icon">i</span><span class="tooltip-bubble">Verð er áætlað og byggt á gildandi verðskrá. Endanlegt verð kann að breytast.</span></span>';
+  const TIP = '<span class="tooltip-wrap"><button class="tooltip-icon" type="button" aria-describedby="tip-bubble">i</button><span class="tooltip-bubble" role="tooltip" id="tip-bubble">Verð er áætlað og byggt á gildandi verðskrá. Endanlegt verð kann að breytast.</span></span>';
 
   let html = '<div class="result-box">';
   if (minWarning) html += '<div class="result-warning">\u26a0 Lágmarksleigutími miðar við ' + MIN_DAYS + ' daga.</div>';
