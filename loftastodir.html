@@ -236,6 +236,11 @@ tbody tr:hover { background: var(--color-surface); }
 .cost-line.total .val { color: var(--color-dark); }
 .cost-line.sale-total { font-size: 13px; color: var(--color-muted); }
 
+/* ===== CALCULATE BUTTON ===== */
+.btn-calc { width: 100%; padding: 14px; background: var(--color-dark); color: #fff; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px; cursor: pointer; transition: transform .1s, box-shadow .2s; margin-top: 16px; text-transform: uppercase; }
+.btn-calc:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(64,64,66,.3); }
+.btn-calc:active { transform: translateY(0); }
+
 /* ===== PRINT BUTTON ===== */
 .btn-print { width: 100%; padding: 14px; background: var(--color-dark); color: #fff; border: none; border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; position: relative; overflow: hidden; transition: background .2s; margin-top: 0; }
 .btn-print::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--color-accent); }
@@ -493,6 +498,8 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   </div>
   <div class="product-grid" id="id-grid"></div>
 
+  <button class="btn-calc" onclick="calculate(false)">Reikna efnislista</button>
+
   <!-- ===== RESULTS (auto-shown) ===== -->
   <div id="results">
 
@@ -588,7 +595,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 </div><!-- /container -->
 
 <!-- ===== PDF EXPORT BLOCK (hidden, used by html2pdf) ===== -->
-<div id="pdfBlock" style="display:none;font-family:'Barlow',sans-serif;color:#1e293b;max-width:800px;padding:12px;">
+<div id="pdfBlock" style="position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:800px;font-family:'Barlow',sans-serif;color:#1e293b;max-width:800px;padding:12px;">
 
   <!-- Branded header -->
   <div style="display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px;">
@@ -1295,7 +1302,7 @@ function exportPDF() {
 
   // Generate PDF
   var pdfBlock = document.getElementById('pdfBlock');
-  pdfBlock.style.display = 'block';
+  pdfBlock.style.opacity = '1';
 
   var opt = {
     margin:      [6, 8, 6, 8],
@@ -1306,12 +1313,17 @@ function exportPDF() {
     pagebreak:   { mode: ['css', 'legacy'] }
   };
 
-  html2pdf().set(opt).from(pdfBlock).save().then(function() {
-    pdfBlock.style.display = 'none';
-  }).catch(function(err) {
-    console.error('html2pdf error:', err);
-    alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-    pdfBlock.style.display = 'none';
+  // Allow browser to lay out the block before capturing
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      html2pdf().set(opt).from(pdfBlock).save().then(function() {
+        pdfBlock.style.opacity = '0';
+      }).catch(function(err) {
+        console.error('html2pdf error:', err);
+        alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
+        pdfBlock.style.opacity = '0';
+      });
+    });
   });
 }
 

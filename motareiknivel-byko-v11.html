@@ -148,7 +148,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
   .sys-tab .tab-name{font-size:15px}
 }
 @media print{body{background:#fff;padding:0}.calc-header{background:#2b2b2b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #pdf-print-block{display:block!important;max-width:100%!important;width:100%!important}
+  #pdf-print-block{position:static!important;left:auto!important;opacity:1!important;max-width:100%!important;width:100%!important}
   #pdf-print-block .pdf-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #pdf-print-block .pdf-hdr div[style*="background:#404042"]{background:#404042!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pdf-sum-box.accent{background:#404042!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -156,7 +156,8 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 }
 
 /* ── PDF print block ─────────────────────────────── */
-#pdf-print-block{display:none;width:100%;max-width:100%;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#222;padding:12px 20px}
+#pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#222;padding:12px 20px}
+#pdf-print-block.pdf-rendering{opacity:1}
 .pdf-hdr{display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px}
 .pdf-top-row{display:flex;gap:8px;margin-bottom:8px;width:100%}
 .pdf-box{border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;box-sizing:border-box}
@@ -898,7 +899,7 @@ function calculateModeA() {
         const p = panels.find(x => x.id === id);
         layoutParts.push(`${count * 2}\u00d7 ${p.desc.split('(')[0].trim()} (${p.w}cm)`);
     }
-    const layoutText = `Veggkerfi: ${system === 'rasto' ? 'RASTO (3 m)' : 'TAKKO (1,2 m)'}\nVegglengd: ${(wallLength/100).toFixed(1)} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1)} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
+    const layoutText = `Veggkerfi: ${system === 'rasto' ? 'RASTO (3 m)' : 'TAKKO (1,2 m)'}\nVegglengd: ${(wallLength/100).toFixed(1).replace('.', ',')} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1).replace('.', ',')} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
 
     const visual = buildWallVisual(used, panels, netLength);
     return { boq, layoutText, visual, modeLabel: system === 'rasto' ? 'RASTO (3 m)' : 'TAKKO (1,2 m)' };
@@ -997,10 +998,10 @@ function calculateModeB() {
         const p = KM01.find(x => x.id === id);
         layoutParts.push(`${count * 2}\u00d7 ${p.desc.split('(')[0].trim()} (${p.w}cm)`);
     }
-    const layoutText = `Veggkerfi: MANTO (${(height/100).toFixed(1)} m h\u00e6\u00f0)\nVegglengd: ${(wallLength/100).toFixed(1)} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1)} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
+    const layoutText = `Veggkerfi: MANTO (${(height/100).toFixed(1).replace('.', ',')} m h\u00e6\u00f0)\nVegglengd: ${(wallLength/100).toFixed(1).replace('.', ',')} m \u00b7 Nett\u00f3lengd: ${(netLength/100).toFixed(1).replace('.', ',')} m\nHorn: ${insideCorners} innhorn, ${outsideCorners} \u00fathorn\n\n=== B\u00e1\u00f0ar hli\u00f0ar ===\n${layoutParts.join('\n')}\n${gap > 0 ? `Bil: ${gap} cm (ekki \u00feaki\u00f0)` : 'Full\u00feaki\u00f0 \u2713'}\n\nM\u00f3tar\u00e6r (gegnum): ${tieRods} stk\nM\u00f3tateinar: ${tieRods} stk\nSk\u00e1st\u00edfur: ${braces} stk`;
 
     const visual = buildWallVisual(used, KM01, netLength);
-    return { boq, layoutText, visual, modeLabel: `MANTO (${(height/100).toFixed(1)} m)` };
+    return { boq, layoutText, visual, modeLabel: `MANTO (${(height/100).toFixed(1).replace('.', ',')} m)` };
 }
 
 
@@ -1089,7 +1090,7 @@ function calculateModeC() {
     if (washer) boq.push({ id: washer.id, desc: washer.desc, qty: screws, stock: washer.qty, dayRate: washer.dayRate, weekRate: washer.weekRate, cat: 'Festingar' });
 
     const slabArea = (slabL * slabW) / 10000;
-    const layoutText = `Loftam\u00f3t: ALUFORT\nLoftflatarm\u00e1l: ${(slabL/100).toFixed(1)} \u00d7 ${(slabW/100).toFixed(1)} m = ${slabArea.toFixed(1)} m\u00b2\nLofth\u00e6\u00f0: ${(slabH/100).toFixed(1)} m \u00b7 Steypu\u00feykkt: ${(concreteT/100).toFixed(2)} m\nSto\u00f0abil: ${(spacingL/100).toFixed(1)} \u00d7 ${(spacingW/100).toFixed(1)} m\n\n=== Sto\u00f0agrind ===\nSto\u00f0ir \u00e1 lengd: ${propsL} \u00b7 Sto\u00f0ir \u00e1 breidd: ${propsW}\nSamtals sto\u00f0ir/Drop-Heads: ${totalProps} stk\n${useID ? 'ID-Rammar nota\u00f0ir (shoring towers)' : `Loftasto\u00f0ir: ${selectedProp ? selectedProp.desc : 'VANTAR'}`}\n\n=== Loftaflekar ===\n${Array.from(panelCounts.entries()).map(([id, c]) => { const p = LM02.find(x => x.id === id); return `${c}\u00d7 ${p ? p.desc : id}`; }).join('\n')}\nSamtals flekar: ${totalPanels} stk`;
+    const layoutText = `Loftam\u00f3t: ALUFORT\nLoftflatarm\u00e1l: ${(slabL/100).toFixed(1).replace('.', ',')} \u00d7 ${(slabW/100).toFixed(1).replace('.', ',')} m = ${slabArea.toFixed(1).replace('.', ',')} m\u00b2\nLofth\u00e6\u00f0: ${(slabH/100).toFixed(1).replace('.', ',')} m \u00b7 Steypu\u00feykkt: ${(concreteT/100).toFixed(2).replace('.', ',')} m\nSto\u00f0abil: ${(spacingL/100).toFixed(1).replace('.', ',')} \u00d7 ${(spacingW/100).toFixed(1).replace('.', ',')} m\n\n=== Sto\u00f0agrind ===\nSto\u00f0ir \u00e1 lengd: ${propsL} \u00b7 Sto\u00f0ir \u00e1 breidd: ${propsW}\nSamtals sto\u00f0ir/Drop-Heads: ${totalProps} stk\n${useID ? 'ID-Rammar nota\u00f0ir (shoring towers)' : `Loftasto\u00f0ir: ${selectedProp ? selectedProp.desc : 'VANTAR'}`}\n\n=== Loftaflekar ===\n${Array.from(panelCounts.entries()).map(([id, c]) => { const p = LM02.find(x => x.id === id); return `${c}\u00d7 ${p ? p.desc : id}`; }).join('\n')}\nSamtals flekar: ${totalPanels} stk`;
 
     return { boq, layoutText, visual: '', modeLabel: 'ALUFORT Loft' };
 }
@@ -1354,7 +1355,7 @@ function generatePDF() {
 
     // ── Show block, generate, hide ──
     var pdfBlock = document.getElementById('pdf-print-block');
-    pdfBlock.style.display = 'block';
+    pdfBlock.classList.add('pdf-rendering');
 
     var opt = {
         margin:      [6, 8, 6, 8],
@@ -1365,12 +1366,17 @@ function generatePDF() {
         pagebreak:   { mode: ['css', 'legacy'], avoid: '.pdf-box' }
     };
 
-    html2pdf().set(opt).from(pdfBlock).save().then(function() {
-        pdfBlock.style.display = 'none';
-    }).catch(function(err) {
-        console.error('html2pdf error:', err);
-        alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-        pdfBlock.style.display = 'none';
+    // Allow browser to lay out the block before capturing
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        html2pdf().set(opt).from(pdfBlock).save().then(function() {
+            pdfBlock.classList.remove('pdf-rendering');
+        }).catch(function(err) {
+            console.error('html2pdf error:', err);
+            alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
+            pdfBlock.classList.remove('pdf-rendering');
+        });
+      });
     });
 }
 

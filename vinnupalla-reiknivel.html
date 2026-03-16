@@ -1111,7 +1111,7 @@
   @media print {
     body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .calculator { box-shadow: none !important; padding: 0 !important; }
-    #pdf-print-block { display: block !important; max-width: 100% !important; width: 100% !important; }
+    #pdf-print-block { position: static !important; left: auto !important; opacity: 1 !important; max-width: 100% !important; width: 100% !important; }
     #pdf-print-block .pdf-hdr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     #pdf-print-block .pdf-hdr div[style*="background:#1e293b"] { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .pdf-hdr-right { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1134,17 +1134,22 @@
     .pdf-mat-table td:first-child { overflow: visible !important; white-space: normal !important; }
   }
 
-  /* PDF print block - hidden on screen */
+  /* PDF print block - positioned off-screen for html2canvas */
   #pdf-print-block {
-    display: none;
-    width: 100%;
-    max-width: 100%;
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+    width: 700px;
+    max-width: 700px;
     box-sizing: border-box;
     font-family: 'Segoe UI', system-ui, sans-serif;
     font-size: 13px;
     color: #1e293b;
     padding: 12px 20px;
   }
+  #pdf-print-block.pdf-rendering { opacity: 1; }
   /* PDF header */
   .pdf-hdr {
     display: flex;
@@ -3205,7 +3210,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 
   // Show the pdf-print-block for html2pdf to capture
   var pdfBlock = document.getElementById('pdf-print-block');
-  pdfBlock.style.display = 'block';
+  pdfBlock.classList.add('pdf-rendering');
 
   // html2pdf options
   var opt = {
@@ -3220,12 +3225,12 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
   // Guard: check that html2pdf loaded
   if (typeof html2pdf === 'undefined') {
     alert('Villa: html2pdf.js tókst ekki að hlaðast. Athugaðu nettengingu og endurhladdu síðuna.');
-    pdfBlock.style.display = 'none';
+    pdfBlock.classList.remove('pdf-rendering');
     return;
   }
 
   function pdfCleanup() {
-    pdfBlock.style.display = 'none';
+    pdfBlock.classList.remove('pdf-rendering');
     document.querySelectorAll('#facades article.facade').forEach(function(facadeEl) {
       var summaryPanel = facadeEl.querySelector('.facade-summary-panel');
       if (summaryPanel) {
@@ -3240,12 +3245,17 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     if (globalSummary) globalSummary.classList.remove('print-force-hide');
   }
 
-  html2pdf().set(opt).from(pdfBlock).save().then(function() {
-    pdfCleanup();
-  }).catch(function(err) {
-    console.error('html2pdf error:', err);
-    alert('Villa við PDF gerð: ' + err.message);
-    pdfCleanup();
+  // Allow browser to lay out the block before capturing
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      html2pdf().set(opt).from(pdfBlock).save().then(function() {
+        pdfCleanup();
+      }).catch(function(err) {
+        console.error('html2pdf error:', err);
+        alert('Villa við PDF gerð: ' + err.message);
+        pdfCleanup();
+      });
+    });
   });
 });</script>
 
