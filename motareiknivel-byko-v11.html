@@ -1506,7 +1506,7 @@ let id15_order = [];
 function id15_findTowers() {
   var raw = document.getElementById('id15-heightInput').value.replace(',', '.');
   var h = parseFloat(raw);
-  if (isNaN(h) || h < 1.0 || h > 21.0) {
+  if (isNaN(h) || h < 1.42 || h > 20.10) {
     document.getElementById('id15-options-wrap').classList.add('id15-hidden');
     document.getElementById('id15-qty-wrap').classList.add('id15-hidden');
     return;

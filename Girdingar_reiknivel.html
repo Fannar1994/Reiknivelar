@@ -430,15 +430,15 @@ function updateVisibility() {
     const el = document.getElementById('lengthInput');
     const v = parseFloat(el.value.replace(',', '.'));
     if (v && v % 1 !== 0) el.value = Math.round(v);
-    document.querySelectorAll('#lengthSection .num-arrows button').forEach(b => {
-      b.setAttribute('onclick', b.getAttribute('onclick').replace(/stepField\('lengthInput',([\-1]+),[\d.]+\)/, "stepField('lengthInput',$1,1)"));
-    });
+    const btns = document.querySelectorAll('#lengthSection .num-arrows button');
+    btns[0].setAttribute('onclick', "stepField('lengthInput',1,1)");
+    btns[1].setAttribute('onclick', "stepField('lengthInput',-1,1)");
   } else {
     document.getElementById('lengthLabel').textContent = 'Heildar lengd girðingar (metrar)';
     document.getElementById('lengthInput').setAttribute('inputmode', 'decimal');
-    document.querySelectorAll('#lengthSection .num-arrows button').forEach(b => {
-      b.setAttribute('onclick', b.getAttribute('onclick').replace(/stepField\('lengthInput',([\-1]+),[\d.]+\)/, "stepField('lengthInput',$1,0.5)"));
-    });
+    const btns = document.querySelectorAll('#lengthSection .num-arrows button');
+    btns[0].setAttribute('onclick', "stepField('lengthInput',1,0.5)");
+    btns[1].setAttribute('onclick', "stepField('lengthInput',-1,0.5)");
   }
   show('accGate', ft === 'standard' || ft === 'plastic');
   show('accWheels', ft === 'standard');
@@ -571,7 +571,7 @@ function calculate() {
   if (signQty > 0 && (ft === 'standard' || ft === 'plastic')) addItem('warning-sign', signQty);
 
   const discountPct = getDiscountPercent(effectiveDays);
-  const TIP = '<span class="tooltip-wrap"><button class="tooltip-icon" type="button" aria-label="Upplýsingar">i</button><span class="tooltip-bubble" role="tooltip">Verð er áætlað og byggt á gildandi verðskrá. Endanlegt verð kann að breytast.</span></span>';
+  const TIP = '<span class="tooltip-wrap"><button class="tooltip-icon" type="button" aria-describedby="tip-bubble">i</button><span class="tooltip-bubble" role="tooltip" id="tip-bubble">Verð er áætlað og byggt á gildandi verðskrá. Endanlegt verð kann að breytast.</span></span>';
 
   let html = '<div class="result-box">';
   if (minWarning) html += '<div class="result-warning">\u26a0 Lágmarksleigutími miðar við ' + MIN_DAYS + ' daga.</div>';
