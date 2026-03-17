@@ -6,8 +6,6 @@
     <title>Hjólapalla reiknivél</title>
     <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap');
 
@@ -302,16 +300,21 @@
         .export-btn.excel-btn:hover { background: #1a5c38; }
 
         /* PDF print block */
-        .pdf-print-block {
+        #pdf-print-block {
             position: fixed;
             left: -9999px;
             top: 0;
             opacity: 0;
             pointer-events: none;
             width: 700px;
+            max-width: 700px;
+            box-sizing: border-box;
             font-family: 'Barlow', system-ui, Arial, sans-serif;
+            font-size: 13px;
+            color: #1e293b;
+            padding: 12px 20px;
         }
-        .pdf-print-block.pdf-rendering { opacity: 1; }
+        #pdf-print-block.pdf-rendering { opacity: 1; }
 
         @media (max-width: 500px) {
             .client-grid { grid-template-columns: 1fr; }
@@ -330,6 +333,8 @@
             .noindex { display: none !important; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
     <div class="header">
@@ -492,7 +497,7 @@
     </div>
 
     <!-- PDF TEMPLATE -->
-    <div class="pdf-print-block" id="pdfBlock">
+    <div id="pdf-print-block">
         <div style="display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px;">
             <div style="width:6px;background:#f5c800;flex-shrink:0;"></div>
             <div style="width:100%;background:#404042;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;">
@@ -1031,7 +1036,7 @@
             const fileDateStr = cdate || today.toISOString().split('T')[0];
             const fileName = 'Hjolapallar-' + safeName + '-' + fileDateStr + '.pdf';
 
-            const pdfBlock = document.getElementById('pdfBlock');
+            const pdfBlock = document.getElementById('pdf-print-block');
             pdfBlock.classList.add('pdf-rendering');
 
             const opt = {

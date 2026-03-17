@@ -6,8 +6,6 @@
 <title>Girðingareiknivél – BYKO Leiga</title>
 <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap');
 :root{--color-border:#ddd;--color-surface:#fafafa;--color-bg:#f2f4f7;--color-muted:#666;--color-dark:#404042;--color-accent:#f5c800;--radius-sm:5px;--radius-md:8px;--radius-lg:10px}
@@ -122,11 +120,13 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .discount-badge.green{background:#27ae60}
 
 /* PDF print block (hidden off-screen for html2canvas) */
-.pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;font-family:'Barlow',system-ui,Arial,sans-serif}
-.pdf-print-block.pdf-rendering{opacity:1}
+#pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Barlow',system-ui,Arial,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px}
+#pdf-print-block.pdf-rendering{opacity:1}
 
 @media(max-width:500px){.fence-tabs{grid-template-columns:1fr}.days-discount-row{grid-template-columns:1fr}.acc-grid{grid-template-columns:1fr}.result-total .rt-value{font-size:26px}.client-grid{grid-template-columns:1fr}.export-row{flex-direction:column}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 <div class="calculator">
@@ -247,7 +247,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 </div>
 
 <!-- PDF PRINT BLOCK (hidden, used for PDF generation) -->
-<div class="pdf-print-block" id="pdfBlock">
+<div id="pdf-print-block">
   <div style="font-family:'Barlow',system-ui,Arial,sans-serif;max-width:700px;margin:auto;padding:20px;">
     <div style="background:#1e293b;color:#fff;padding:20px 24px;border-radius:8px 8px 0 0;margin-bottom:0;">
       <div style="font-size:11px;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:#f5c800;margin-bottom:4px;">Byko Leiga</div>
@@ -735,7 +735,7 @@ function exportPDF() {
   document.getElementById('pdf-content').innerHTML = html;
 
   // Show off-screen and generate after layout
-  const pdfBlock = document.getElementById('pdfBlock');
+  const pdfBlock = document.getElementById('pdf-print-block');
   pdfBlock.classList.add('pdf-rendering');
 
   const name = document.getElementById('clientName').value || 'Tilbod';
