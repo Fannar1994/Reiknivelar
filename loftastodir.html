@@ -260,6 +260,14 @@ tbody tr:hover { background: var(--color-surface); }
 .tooltip-note { margin-top: 14px; padding: 10px 14px; background: #fffbe6; border-left: 3px solid var(--color-accent); border-radius: 4px; font-size: 12px; color: #555; line-height: 1.5; }
 .tooltip-warn { margin-top: 8px; font-size: 11px; color: var(--color-muted); }
 
+/* ===== EXPORT BUTTONS ===== */
+.export-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.export-btn { flex: 1; min-width: 140px; padding: 12px 18px; border: none; border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .5px; cursor: pointer; transition: all .2s; text-align: center; }
+.export-btn.pdf-btn { background: var(--color-dark); color: #fff; }
+.export-btn.pdf-btn:hover { background: #2a2a2c; }
+.export-btn.excel-btn { background: #217346; color: #fff; }
+.export-btn.excel-btn:hover { background: #1a5c38; }
+
 /* ===== TOAST ===== */
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--color-dark); color: #fff; padding: 12px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; pointer-events: none; z-index: 1100; border-left: 4px solid var(--color-accent); }
 .toast.show { opacity: 1; transform: translateY(0); }
@@ -346,7 +354,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <div class="calc-header">
     <div class="calc-header-left">
       <h2>Loftastoðir</h2>
-      <div class="calc-header-sub">Loftastoðir, mótabitar &amp; turnar — verðútreikningur</div>
+      <div class="calc-header-sub">Loftastoðir &amp; mótabitar — verðútreikningur</div>
     </div>
     <div class="calc-header-right">
       <button class="btn-lb" onclick="document.getElementById('lbModal').classList.add('lb-open')">📖 Leiðbeiningar</button>
@@ -408,9 +416,9 @@ body.pdf-hide-sig .print-signature { display: none !important; }
     </div>
   </div>
 
-  <!-- ===== CLIENT INFO ===== -->
+  <!-- ===== SAMTALS (CLIENT INFO + TOTALS) ===== -->
   <div class="card">
-    <div class="card-header">Upplýsingar um viðskiptavin</div>
+    <div class="card-header">Samtals</div>
     <div class="card-body">
       <div class="client-date-row">
         <span>Dagsetning tilboðs</span>
@@ -439,7 +447,70 @@ body.pdf-hide-sig .print-signature { display: none !important; }
           <input type="text" id="clientUttektar" placeholder="t.d. Nafn úttektaraðila">
         </label>
       </div>
+
+      <div class="cost-box" style="margin-top:18px">
+        <div class="cost-line">
+          <span>Leigutímabil</span>
+          <span class="val" id="summary-days">—</span>
+        </div>
+        <div class="cost-line">
+          <span>Fjöldi vara</span>
+          <span class="val" id="summary-items">—</span>
+        </div>
+        <div class="cost-line">
+          <span>Heildarmæli (kg)</span>
+          <span class="val" id="summary-weight">—</span>
+        </div>
+        <div class="cost-line total">
+          <span>Samtals leiguverð</span>
+          <span class="val" id="total-rental">—</span>
+        </div>
+        <div class="cost-line sale-total">
+          <span>Samtals söluverð</span>
+          <span id="total-sale">—</span>
+        </div>
+        <!-- Discount -->
+        <div class="discount-row">
+          <label for="discount-input" style="font-size:13px;color:#444;flex:1">Afsláttur (%)</label>
+          <div class="num-wrap">
+            <input type="number" id="discount-input" min="0" max="100" step="0.5" value="0">
+            <div class="num-arrows">
+              <button type="button" onclick="stepDiscount(1)">&#9650;</button>
+              <button type="button" onclick="stepDiscount(-1)">&#9660;</button>
+            </div>
+          </div>
+        </div>
+        <div class="cost-line discounted" id="discounted-row" style="display:none">
+          <span>Leiguverð með afslætti</span>
+          <span class="val" id="total-discounted">—</span>
+        </div>
+      </div>
+
+      <!-- Signature block (print only) -->
+      <div class="print-signature">
+        <div class="print-signature-row">
+          <div class="print-signature-col">
+            <div class="print-signature-label">Dagsetning / Staður</div>
+            <div class="print-signature-line"></div>
+          </div>
+          <div class="print-signature-col">
+            <div class="print-signature-label">Undirskrift viðskiptavinar</div>
+            <div class="print-signature-line"></div>
+            <div class="print-signature-name" id="print-sig-name"></div>
+          </div>
+          <div class="print-signature-col">
+            <div class="print-signature-label">Undirskrift BYKO Leiga</div>
+            <div class="print-signature-line"></div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="export-row" style="margin-bottom:20px">
+    <button class="export-btn pdf-btn" onclick="exportPDF()">⬇ Búa til PDF</button>
+    <button class="export-btn excel-btn" onclick="exportExcel()">📊 Flytja í Excel</button>
+    <button class="btn-accent" onclick="saveQuote()">💾 Vista tilboð</button>
   </div>
 
   <!-- ===== FILTER BAR (Loftastoðir) ===== -->
@@ -492,12 +563,6 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <div class="section-title">Aukahlutir</div>
   <div class="product-grid" id="aukahlutir-grid"></div>
 
-  <!-- ===== ID15 TURNAR ===== -->
-  <div class="section-title">
-    ID15 Turnar
-  </div>
-  <div class="product-grid" id="id-grid"></div>
-
   <button class="btn-calc" onclick="calculate(false)">Reikna efnislista</button>
 
   <!-- ===== RESULTS (auto-shown) ===== -->
@@ -520,74 +585,6 @@ body.pdf-hide-sig .print-signature { display: none !important; }
           <tbody id="results-body"></tbody>
         </table>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">Samtals</div>
-      <div class="card-body">
-        <div class="cost-box">
-          <div class="cost-line">
-            <span>Leigutímabil</span>
-            <span class="val" id="summary-days">—</span>
-          </div>
-          <div class="cost-line">
-            <span>Fjöldi vara</span>
-            <span class="val" id="summary-items">—</span>
-          </div>
-          <div class="cost-line">
-            <span>Heildarmæli (kg)</span>
-            <span class="val" id="summary-weight">—</span>
-          </div>
-          <div class="cost-line total">
-            <span>Samtals leiguverð</span>
-            <span class="val" id="total-rental">—</span>
-          </div>
-          <div class="cost-line sale-total">
-            <span>Samtals söluverð</span>
-            <span id="total-sale">—</span>
-          </div>
-          <!-- Discount -->
-          <div class="discount-row">
-            <label for="discount-input" style="font-size:13px;color:#444;flex:1">Afsláttur (%)</label>
-            <div class="num-wrap">
-              <input type="number" id="discount-input" min="0" max="100" step="0.5" value="0">
-              <div class="num-arrows">
-                <button type="button" onclick="stepDiscount(1)">&#9650;</button>
-                <button type="button" onclick="stepDiscount(-1)">&#9660;</button>
-              </div>
-            </div>
-          </div>
-          <div class="cost-line discounted" id="discounted-row" style="display:none">
-            <span>Leiguverð með afslætti</span>
-            <span class="val" id="total-discounted">—</span>
-          </div>
-        </div>
-
-        <!-- Signature block (print only) -->
-        <div class="print-signature">
-          <div class="print-signature-row">
-            <div class="print-signature-col">
-              <div class="print-signature-label">Dagsetning / Staður</div>
-              <div class="print-signature-line"></div>
-            </div>
-            <div class="print-signature-col">
-              <div class="print-signature-label">Undirskrift viðskiptavinar</div>
-              <div class="print-signature-line"></div>
-              <div class="print-signature-name" id="print-sig-name"></div>
-            </div>
-            <div class="print-signature-col">
-              <div class="print-signature-label">Undirskrift BYKO Leiga</div>
-              <div class="print-signature-line"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="action-row" style="margin-bottom:20px">
-      <button class="btn-accent" onclick="saveQuote()">💾 Vista tilboð</button>
-      <button class="btn-print" onclick="exportPDF()">⬇ Búa til PDF</button>
-      <button class="btn-print" onclick="exportExcel()">📊 Sækja Excel</button>
     </div>
 
   </div>
@@ -752,29 +749,6 @@ const AUKAHLUTIR = [
   { id:'01-MÓT-LM51-954', articleNumber:'FA9169154', name:'Faresin Loftastoðarekki (Galv.)',        weight_kg:null,  dayRate:106, weekRate:745, salePrice:114955 },
   { id:'01-MÓT-LM51-025', articleNumber:'97100025',  name:'Gafflar stórir',                         weight_kg:2.5,   dayRate:16,  weekRate:112, salePrice:2515   },
 ];
-
-// =====================================================================
-// PRODUCTS — ID15 Turnar
-// =====================================================================
-const ID_PRODUCTS = [
-  { id:'01-MÓT-LM81-574', articleNumber:'HID148574', name:'ID-Skástífur',                       weight_kg:2.63,  dayRate:6.0,   weekRate:42.0,    salePrice:8484,  typeKey:'brace', typeLabel:'Skástífur'  },
-  { id:'01-MÓT-LM81-552', articleNumber:'HID148552', name:'ID-Lappir 38/52',                    weight_kg:8.32,  dayRate:20.0,  weekRate:140.0,   salePrice:25084, typeKey:'base',  typeLabel:'Lappir'     },
-  { id:'01-MÓT-LM81-530', articleNumber:'HID148530', name:'ID-Hausar 38/52',                    weight_kg:8.2,   dayRate:20.0,  weekRate:140.0,   salePrice:27666, typeKey:'head',  typeLabel:'Hausar'     },
-  { id:'01-MÓT-LM81-200', articleNumber:'HID057200', name:'ID-Skástífur f/Hálfa Endaramma',     weight_kg:2.9,   dayRate:4.0,   weekRate:28.0,    salePrice:12125, typeKey:'brace', typeLabel:'Skástífur'  },
-  { id:'01-MÓT-LM81-187', articleNumber:'HID057187', name:'ID-Hálfur Endarammi',                weight_kg:4.08,  dayRate:13.0,  weekRate:91.0,    salePrice:5819,  typeKey:'frame', typeLabel:'Endarammi'  },
-  { id:'01-MÓT-LM81-173', articleNumber:'HID057173', name:'ID-Rammar 100',                      weight_kg:15.88, dayRate:42.0,  weekRate:294.0,   salePrice:61602, typeKey:'frame', typeLabel:'Rammi'      },
-  { id:'01-MÓT-LM81-163', articleNumber:'HID118163', name:'ID-Endarammar',                      weight_kg:15.67, dayRate:49.0,  weekRate:343.0,   salePrice:68980, typeKey:'frame', typeLabel:'Endarammi'  },
-  { id:'01-MÓT-LM81-162', articleNumber:'HID057162', name:'ID-Rammar 133',                      weight_kg:18.85, dayRate:46.0,  weekRate:322.0,   salePrice:61602, typeKey:'frame', typeLabel:'Rammi'      },
-  { id:'01-MÓT-LM81-009', articleNumber:'SP2791',    name:'Rekki fyrir ID rammar 100 og 133',   weight_kg:null,  dayRate:260.7, weekRate:1824.9,  salePrice:39042, typeKey:'rack',  typeLabel:'Rekki'      }
-];
-
-const ID_TYPE_INFO = {
-  frame:  'Aðalrammar og endarammar ID15 kerfisins. Stapla saman í hæð og mynda grindarvirki. Samhengi ramma gefur beygjuþol og burðargetu turnsins.',
-  brace:  'Skástífar gefa turninum þverstyrkleika og koma í veg fyrir hliðlægar hreyfingar. Nauðsynlegir í öllum þáttum samsetningar.',
-  base:   'Neðri lappir (undirstillingar) taka við lóðréttum byrðum frá ramma og dreifa þeim á undirlag. Skrúfgengdar fyrir nákvæma hæðarleiðréttingu.',
-  head:   'Efri hausar taka við byrðinni frá plötu eða dekkjum og flytja hana niður í rammakerfið. Skrúfgengdir, stillanlegar í hæð.',
-  rack:   'Geymslu- og flutningsrekki sérhannaður fyrir ID rammar 100 og 133. Verndar rammann við geymslu og flytur á öruggan hátt.'
-};
 
 // =====================================================================
 // FORMATTING
@@ -1012,36 +986,11 @@ function renderAukahlutir() {
   });
 }
 
-function renderID() {
-  var grid = document.getElementById('id-grid');
-  ID_PRODUCTS.forEach(function(p, i) {
-    var card = document.createElement('div');
-    card.className = 'p-card';
-    card.innerHTML =
-      '<div class="p-header-row">' +
-        '<div class="p-name">' + p.name + '</div>' +
-        '<button class="btn-info" type="button" onclick="showTooltip(' + i + ',\'id\')" title="Nánar">i</button>' +
-      '</div>' +
-      '<div class="p-id">' + p.id + ' · ' + p.articleNumber + '</div>' +
-      '<div class="p-specs">' +
-        (p.weight_kg ? '<div class="spec"><span class="spec-lbl">Þyngd:</span> ' + fmtDec(p.weight_kg) + ' kg</div>' : '') +
-        '<div class="spec"><span class="spec-lbl">Tegund:</span> <span class="cls cls-' + p.typeKey + '">' + p.typeLabel + '</span></div>' +
-      '</div>' +
-      '<div class="p-pricing">' +
-        '<span>Daggjald: <strong>' + p.dayRate.toFixed(1).replace('.',',') + ' kr.</strong></span>' +
-        '<span>Vikugjald: <strong>' + p.weekRate.toFixed(1).replace('.',',') + ' kr.</strong></span>' +
-      '</div>' +
-      (p.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtInt(p.salePrice) + ' kr.</strong></span></div>' : '') +
-      makeStepperQty('id', i);
-    grid.appendChild(card);
-  });
-}
-
 // =====================================================================
 // TOOLTIP MODAL
 // =====================================================================
 function showTooltip(idx, type) {
-  var p = type === 'ls' ? LOFTASTODIR[idx] : type === 'mb' ? MOTABITAR[idx] : type === 'id' ? ID_PRODUCTS[idx] : AUKAHLUTIR[idx];
+  var p = type === 'ls' ? LOFTASTODIR[idx] : type === 'mb' ? MOTABITAR[idx] : AUKAHLUTIR[idx];
   var rows = '';
   var noteHtml = '';
 
@@ -1070,17 +1019,6 @@ function showTooltip(idx, type) {
       '<tr><td>Vikugjald</td><td><strong>' + fmtInt(p.weekRate) + ' kr.</strong></td></tr>' +
       (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtInt(p.salePrice) + ' kr.</strong></td></tr>' : '');
     noteHtml = '<div class="tooltip-note">HT-20 mótabitar eru láréttir stoðbitar sem notaðir eru þvert á loftastoðirnar. Lengd velst eftir bilmáli milli stoða.</div>';
-  } else if (type === 'id') {
-    rows =
-      '<tr><td>Leigunúmer</td><td><strong>' + p.id + '</strong></td></tr>' +
-      '<tr><td>Vörunúmer</td><td><strong>' + p.articleNumber + '</strong></td></tr>' +
-      '<tr><td>Tegund</td><td><span class="cls cls-' + p.typeKey + '">' + p.typeLabel + '</span></td></tr>' +
-      (p.weight_kg ? '<tr><td>Þyngd</td><td><strong>' + fmtDec(p.weight_kg) + ' kg</strong></td></tr>' : '') +
-      '<tr><td>Daggjald</td><td><strong>' + p.dayRate.toFixed(1).replace('.',',') + ' kr.</strong></td></tr>' +
-      '<tr><td>Vikugjald</td><td><strong>' + p.weekRate.toFixed(1).replace('.',',') + ' kr.</strong></td></tr>' +
-      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtInt(p.salePrice) + ' kr.</strong></td></tr>' : '');
-    noteHtml = '<div class="tooltip-note"><strong>Um þessa vöru:</strong><br>' + (ID_TYPE_INFO[p.typeKey] || '') + '</div>' +
-      '<div class="tooltip-warn">⚠ ID15 Hunnebeck kerfi — alltaf að nota samkvæmt leiðbeiningum framleiðanda.</div>';
   } else {
     rows =
       '<tr><td>Leigunúmer</td><td><strong>' + p.id + '</strong></td></tr>' +
@@ -1128,8 +1066,7 @@ function saveQuote() {
     discount:        document.getElementById('discount-input').value,
     ls: LOFTASTODIR.map(function(_, i)  { return parseInt(document.getElementById('ls-qty-' + i).value) || 0; }),
     mb: MOTABITAR.map(function(_, i)    { return parseInt(document.getElementById('mb-qty-' + i).value) || 0; }),
-    ak: AUKAHLUTIR.map(function(_, i)   { return parseInt(document.getElementById('ak-qty-' + i).value) || 0; }),
-    id: ID_PRODUCTS.map(function(_, i)  { return parseInt(document.getElementById('id-qty-' + i).value) || 0; })
+    ak: AUKAHLUTIR.map(function(_, i)   { return parseInt(document.getElementById('ak-qty-' + i).value) || 0; })
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   showToast('Tilboð vistað ✓');
@@ -1156,7 +1093,6 @@ function restoreQuote() {
     (d.ls || []).forEach(function(qty, i) { var el = document.getElementById('ls-qty-' + i); if (el) el.value = qty; });
     (d.mb || []).forEach(function(qty, i) { var el = document.getElementById('mb-qty-' + i); if (el) el.value = qty; });
     (d.ak || []).forEach(function(qty, i) { var el = document.getElementById('ak-qty-' + i); if (el) el.value = qty; });
-    (d.id || []).forEach(function(qty, i) { var el = document.getElementById('id-qty-' + i); if (el) el.value = qty; });
     updateBadge(d.days || getRentalDays());
     dismissRestore();
     scheduleCalculate();
@@ -1249,7 +1185,6 @@ function exportPDF() {
   allItems = allItems.concat(collectItems(LOFTASTODIR, 'ls'));
   allItems = allItems.concat(collectItems(MOTABITAR, 'mb'));
   allItems = allItems.concat(collectItems(AUKAHLUTIR, 'ak'));
-  allItems = allItems.concat(collectItems(ID_PRODUCTS, 'id'));
 
   if (allItems.length === 0) {
     alert('Engir hlutir valdir. Veldu magn á a.m.k. einni vöru.');
@@ -1378,7 +1313,6 @@ function exportExcel() {
   addItems(LOFTASTODIR, 'ls');
   addItems(MOTABITAR, 'mb');
   addItems(AUKAHLUTIR, 'ak');
-  addItems(ID_PRODUCTS, 'id');
 
   if (itemRows.length <= 1) {
     alert('Engir hlutir valdir. Veldu magn á a.m.k. einni vöru.');
@@ -1414,7 +1348,6 @@ function resetAll() {
   LOFTASTODIR.forEach(function(_, i)  { document.getElementById('ls-qty-' + i).value = 0; });
   MOTABITAR.forEach(function(_, i)    { document.getElementById('mb-qty-' + i).value = 0; });
   AUKAHLUTIR.forEach(function(_, i)   { document.getElementById('ak-qty-' + i).value = 0; });
-  ID_PRODUCTS.forEach(function(_, i)  { document.getElementById('id-qty-' + i).value = 0; });
   document.getElementById('results').classList.remove('show');
   _resultsVisible = false;
 }
@@ -1456,17 +1389,6 @@ function calculate(silent) {
       items.push({ id:a.id, articleNumber:a.articleNumber, name:a.name, qty:qty, cost:cost, sale:sale, hasSale:!!a.salePrice });
       totalRental += cost; totalSale += sale; totalItems += qty;
       if (a.weight_kg) { totalWeight += a.weight_kg * qty; hasWeight = true; }
-    }
-  });
-
-  ID_PRODUCTS.forEach(function(p, i) {
-    var qty = parseInt(document.getElementById('id-qty-' + i).value) || 0;
-    if (qty > 0) {
-      var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
-      var sale = p.salePrice ? p.salePrice * qty : 0;
-      items.push({ id:p.id, articleNumber:p.articleNumber, name:p.name, qty:qty, cost:cost, sale:sale, hasSale:!!p.salePrice });
-      totalRental += cost; totalSale += sale; totalItems += qty;
-      if (p.weight_kg) { totalWeight += p.weight_kg * qty; hasWeight = true; }
     }
   });
 
@@ -1537,7 +1459,6 @@ document.addEventListener('DOMContentLoaded', function() {
   renderLoftastodir();
   renderMotabitar();
   renderAukahlutir();
-  renderID();
 
   // Date / days listeners
   document.getElementById('start-date').addEventListener('change', updateRentalDays);
@@ -1552,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('discount-input').addEventListener('input', scheduleCalculate);
 
   // Auto-calc on qty input (event delegation on each grid)
-  ['loftastodir-grid', 'motabitar-grid', 'aukahlutir-grid', 'id-grid'].forEach(function(id) {
+  ['loftastodir-grid', 'motabitar-grid', 'aukahlutir-grid'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', function(e) {
       if (e.target.classList.contains('qty-input')) scheduleCalculate();
     });
@@ -1569,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="lb-overlay" id="lbModal" onclick="if(event.target===this)this.classList.remove('lb-open')">
   <div class="lb-modal">
     <div class="lb-modal-header">
-      <h2>📖 Leiðbeiningar — Loftastoðir, mótabitar &amp; turnar</h2>
+      <h2>📖 Leiðbeiningar — Loftastoðir &amp; mótabitar</h2>
       <button class="lb-modal-close" onclick="document.getElementById('lbModal').classList.remove('lb-open')">&times;</button>
     </div>
     <div class="lb-modal-body">
@@ -1626,86 +1547,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <span class="lb-error">❌ Rugla saman þverbitum (crossbeams) og aðalbitum (main beams) í töflunum.</span><br>
         <span class="lb-error">❌ Nota spönn-töflu sem endanlegan hönnunarstaðal í stað viðmiðunar.</span><br>
         <span class="lb-error">❌ Gleyma að staðfesta burð á props eða shoring towers sem eiga að bera kerfið.</span>
-      </div>
-
-      <hr>
-
-      <!-- ============================================================ -->
-      <h2>🏗 ID15 (stoðturnar / Shoring Towers)</h2>
-
-      <h3>Áður en byrjað er — hvað þarf að vita frá viðskiptavininum</h3>
-      <ol>
-        <li><strong>Hversu stórt svæði á að styðja?</strong> — lengd × breidd</li>
-        <li><strong>Plötuþykkt eða hönnunargögn?</strong> — ef þarf burðarmat þarf viðmiðunartöflu</li>
-        <li><strong>Hver er hæðin frá gólfi upp í undirhlið formwork/beam system?</strong> — ekki „lofthæð" heldur raunhæð upp í það sem turninn á að styðja</li>
-        <li><strong>Main beams eða crossbeams ofan á?</strong> — t.d. HT20 + þverbitar</li>
-        <li><strong>Sérstakir aðstæður?</strong> — halli, þrengsli, vindálag, efnisgeymsla á mótinu o.s.frv.</li>
-      </ol>
-      <div class="lb-tip">ID15 er 1,00 × 1,00 m turnakerfi, með allt að 200 kN burð (50 kN per fót), notkunarhæðir 1,42–20,10 m. <strong>Yfir 12,76 m þarf burðarútreikning.</strong></div>
-
-      <h3>Skref 1: Rétt hæð — „turnhæð" vs „ljós hæð"</h3>
-      <div class="lb-note">
-        Í samsetningartöflunni er hæðin <strong>turnhæðin</strong>. Ljós hæð fæst sem:<br>
-        <strong>Ljós hæð = turnhæð + aðalbitakerfi + þverbitakerfi + krossviður</strong>
-      </div>
-
-      <h3>Skref 2: Velja turnhæð og samsetningu</h3>
-      <p>ID15 er byggt úr ramma 100 cm og 133,5 cm. Turninn er settur saman í 33 cm skrefum; rammar eru snúnir 90° á milli laga. Höfuð- og botnjakkar jafna hæð og mega bæta upp halla allt að 6%. Head jack stillist og ber 0,8 / 1,0 / 1,25 m eftir útfærslu.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Turnhæð (m)</th>
-            <th>Head jack</th>
-            <th>Base jack</th>
-            <th>Frame 133</th>
-            <th>Frame 100</th>
-            <th>Endarammi</th>
-            <th>Diagonal</th>
-            <th>Plank</th>
-            <th>Diag. rung</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>2,42 – 2,75</td><td>4</td><td>4</td><td>0</td><td>4</td><td>2</td><td>4</td><td>1</td><td>1</td></tr>
-          <tr><td>2,75 – 3,08</td><td>4</td><td>4</td><td>2</td><td>2</td><td>2</td><td>4</td><td>1</td><td>1</td></tr>
-          <tr><td>3,09 – 3,42</td><td>4</td><td>4</td><td>4</td><td>0</td><td>2</td><td>4</td><td>1</td><td>1</td></tr>
-          <tr><td>3,42 – 3,75</td><td>4</td><td>4</td><td>0</td><td>6</td><td>2</td><td>6</td><td>2</td><td>2</td></tr>
-          <tr><td>3,75 – 4,08</td><td>4</td><td>4</td><td>2</td><td>4</td><td>2</td><td>6</td><td>2</td><td>2</td></tr>
-          <tr><td>4,09 – 4,42</td><td>4</td><td>4</td><td>4</td><td>2</td><td>2</td><td>6</td><td>2</td><td>2</td></tr>
-        </tbody>
-      </table>
-      <div class="lb-tip">Veldu það hæðarbil sem nær viðskiptavinarhæðinni — reiknivélin/tilboðið byggir svo upp fjölda turna.</div>
-
-      <h3>Skref 3: Ákvarða fjölda turna og stífanir</h3>
-      <ul>
-        <li>Turnarnir geta þurft stífanir með stillanslám/tubum og kúplingum eftir burðarhönnun.</li>
-        <li>Sérstaklega mikilvægt að tengja stífanir við veggi/súlur o.s.frv. fyrir beint átakaflæði.</li>
-        <li>Við lyftingar/tilfærslu: notaðu <strong>jack retainer</strong> svo jakkar detta ekki út.</li>
-      </ul>
-
-      <h3>Skref 4: Ef þarf vinnupall efst (H20 console)</h3>
-      <ul>
-        <li>H20 console ber H20 eða R24 bita + 5×28 cm planka; kúplingar herðar í 50 Nm.</li>
-        <li>Hámarksbil milli turna með vinnupalli uppi er <strong>3,75 × 4,00 m</strong>.</li>
-      </ul>
-
-      <h3>Skref 5: Burður og áhrif sem þarf að taka með</h3>
-      <p>Samkvæmt handbók þarf burðarreikningur að taka tillit til:</p>
-      <ul>
-        <li>Eigin þyngd formwork-kerfis og steypu</li>
-        <li>Lágmarks byrðar frá stoðkerfinu sjálfu</li>
-        <li>Steypuþrýstings</li>
-        <li>Vind- og prófunarálags</li>
-        <li>Hreyfiálag og hreyfistuðla</li>
-      </ul>
-
-      <div class="lb-warn">
-        <strong>Algengustu mistök — ID15:</strong><br>
-        <span class="lb-error">❌ Nota „lofthæð" í stað raunhæðar upp í undirhlið formwork/beam system.</span><br>
-        <span class="lb-error">❌ Gleyma að það sem er ofan á turnum (head jack + bitar + krossviður) bætist við heildarhæð.</span><br>
-        <span class="lb-error">❌ Setja ramma ekki í 90° skiptum milli laga — það er stífleikinn.</span><br>
-        <span class="lb-error">❌ Sleppa bracing þegar kraftar krefjast þess.</span><br>
-        <span class="lb-error">❌ Keyra turn yfir 12,76 m án burðarútreiknings.</span>
       </div>
 
       <hr>
