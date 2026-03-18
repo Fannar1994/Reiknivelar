@@ -157,7 +157,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
 /* ── PDF print block ─────────────────────────────── */
 #pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px}
-#pdf-print-block.pdf-rendering{opacity:1;left:0}
+#pdf-print-block.pdf-rendering{opacity:1;left:0;z-index:9999}
 .pdf-hdr{display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px}
 .pdf-top-row{display:flex;gap:8px;margin-bottom:8px;width:100%}
 .pdf-box{border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;box-sizing:border-box}
@@ -1369,14 +1369,13 @@ function generatePDF() {
         margin:      [6, 8, 6, 8],
         filename:    pdfFilename,
         image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
         jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak:   { mode: ['css', 'legacy'], avoid: '.pdf-box' }
     };
 
-    // Allow browser to lay out the block before capturing
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
+    // Allow browser to fully paint the block before capturing
+    setTimeout(function() {
         html2pdf().set(opt).from(pdfBlock).save().then(function() {
             pdfBlock.classList.remove('pdf-rendering');
         }).catch(function(err) {
@@ -1384,8 +1383,7 @@ function generatePDF() {
             alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
             pdfBlock.classList.remove('pdf-rendering');
         });
-      });
-    });
+    }, 100);
 }
 
 
