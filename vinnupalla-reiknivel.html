@@ -1134,22 +1134,21 @@
     .pdf-mat-table td:first-child { overflow: visible !important; white-space: normal !important; }
   }
 
-  /* PDF print block - positioned off-screen for html2canvas */
+  /* PDF print block — hidden but in document flow for html2canvas */
   #pdf-print-block {
-    position: fixed;
-    left: -9999px;
-    top: 0;
-    opacity: 0;
-    pointer-events: none;
+    overflow: hidden;
+    height: 0;
     width: 700px;
     max-width: 700px;
     box-sizing: border-box;
     font-family: 'Segoe UI', system-ui, sans-serif;
     font-size: 13px;
     color: #1e293b;
-    padding: 12px 20px;
+    padding: 0 20px;
+    opacity: 0;
+    pointer-events: none;
   }
-  #pdf-print-block.pdf-rendering { opacity: 1; left: 0; z-index: 9999; }
+  #pdf-print-block.pdf-rendering { height: auto; padding: 12px 20px; opacity: 1; pointer-events: auto; }
   /* PDF header */
   .pdf-hdr {
     display: flex;
@@ -3211,13 +3210,14 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
   // Show the pdf-print-block for html2pdf to capture
   var pdfBlock = document.getElementById('pdf-print-block');
   pdfBlock.classList.add('pdf-rendering');
+  window.scrollTo(0, 0);
 
   // html2pdf options
   var opt = {
     margin:       [6, 8, 6, 8],
     filename:     pdfFilename,
     image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
   };
@@ -3254,7 +3254,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
         alert('Villa við PDF gerð: ' + err.message);
         pdfCleanup();
       });
-  }, 100);
+  }, 200);
 });</script>
 
 <!-- ═══════════════════════════════════════════════════════

@@ -119,9 +119,24 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .discount-badge{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#e74c3c;padding:2px 8px;border-radius:50px;margin-left:6px;vertical-align:middle}
 .discount-badge.green{background:#27ae60}
 
-/* PDF print block (hidden off-screen for html2canvas) */
-#pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Barlow',system-ui,Arial,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px}
-#pdf-print-block.pdf-rendering{opacity:1;left:0;z-index:9999}
+/* PDF print block — hidden but in document flow for html2canvas */
+#pdf-print-block{overflow:hidden;height:0;width:700px;max-width:700px;box-sizing:border-box;font-family:'Barlow',system-ui,Arial,sans-serif;font-size:13px;color:#1e293b;padding:0 20px;opacity:0;pointer-events:none}
+#pdf-print-block.pdf-rendering{height:auto;padding:12px 20px;opacity:1;pointer-events:auto}
+
+/* PDF dialog overlay */
+.pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
+.pdf-overlay.visible{display:flex}
+.pdf-dialog{background:#fff;border-radius:var(--radius-lg);padding:28px 32px;box-shadow:0 16px 48px rgba(0,0,0,.3);max-width:440px;width:92%}
+.pdf-dialog h3{margin:0 0 4px;font-size:17px;color:#111}
+.pdf-dialog .pdf-dialog-sub{font-size:13px;color:var(--color-muted);margin:0 0 18px}
+.pdf-check-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--radius-sm);font-size:14px;cursor:pointer;transition:background .15s}
+.pdf-check-row:hover{background:#f4f6f9}
+.pdf-check-row input[type="checkbox"]{width:16px;height:16px;accent-color:#2563eb;cursor:pointer;flex-shrink:0}
+.pdf-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.pdf-cancel-btn{padding:8px 20px;border-radius:var(--radius-md);border:1px solid #ccc;background:#f4f6f9;font-weight:600;font-size:14px;cursor:pointer}
+.pdf-cancel-btn:hover{background:#e9edf3}
+.pdf-confirm-btn{padding:8px 20px;border-radius:var(--radius-md);border:none;background:var(--color-dark);color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.pdf-confirm-btn:hover{background:#2a2a2c}
 
 @media(max-width:500px){.fence-tabs{grid-template-columns:1fr}.days-discount-row{grid-template-columns:1fr}.acc-grid{grid-template-columns:1fr}.result-total .rt-value{font-size:26px}.client-grid{grid-template-columns:1fr}.export-row{flex-direction:column}}
 </style>
@@ -243,6 +258,26 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
     <!-- RESULTS -->
     <div id="resultBox"><div class="result-empty">Fylltu inn upplýsingar til að sjá verðtilboð.</div></div>
+  </div>
+</div>
+
+<!-- PDF DIALOG OVERLAY -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-dialog">
+    <h3>Búa til PDF – valkostir</h3>
+    <p class="pdf-dialog-sub">Veldu hvað á að koma fram í tilboðinu.</p>
+    <label class="pdf-check-row">
+      <input type="checkbox" id="pdfCheckBreakdown">
+      Sundurliðun eftir tímabilum
+    </label>
+    <label class="pdf-check-row">
+      <input type="checkbox" id="pdfCheckHideZero">
+      Fela línur með magn = 0
+    </label>
+    <div class="pdf-actions">
+      <button type="button" class="pdf-cancel-btn" id="pdfCancelBtn">Hætta við</button>
+      <button type="button" class="pdf-confirm-btn" id="pdfConfirmBtn">⬇ Búa til PDF</button>
+    </div>
   </div>
 </div>
 
@@ -657,7 +692,7 @@ function calculate() {
 
   // Export buttons
   html += '<div class="export-row">';
-  html += '<button class="export-btn pdf-btn" onclick="exportPDF()">\u2B07 Búa til PDF</button>';
+  html += '<button class="export-btn pdf-btn" onclick="openPdfDialog()">\u2B07 Búa til PDF</button>';
   html += '<button class="export-btn excel-btn" onclick="exportExcel()">\uD83D\uDCCA Flytja í Excel</button>';
   html += '</div>';
 
@@ -690,12 +725,34 @@ function updateDiscountInfo(days) {
 }
 
 // =====================================================================
-// PDF EXPORT
+// PDF EXPORT (2-step dialog flow)
 // =====================================================================
-function exportPDF() {
+function openPdfDialog() {
+  const data = window._lastCalc;
+  if (!data) { alert('Reiknaðu fyrst verðtilboðið.'); return; }
+  document.getElementById('pdfOverlay').classList.add('visible');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('pdfCancelBtn').addEventListener('click', function() {
+    document.getElementById('pdfOverlay').classList.remove('visible');
+  });
+  document.getElementById('pdfOverlay').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('visible');
+  });
+  document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
+    document.getElementById('pdfOverlay').classList.remove('visible');
+    generatePDF();
+  });
+});
+
+function generatePDF() {
   if (typeof html2pdf === 'undefined') { alert('html2pdf library not loaded'); return; }
   const data = window._lastCalc;
   if (!data) return;
+
+  const hideZeroQty = document.getElementById('pdfCheckHideZero').checked;
+  const showBreakdown = document.getElementById('pdfCheckBreakdown').checked;
 
   // Fill PDF template
   document.getElementById('pdf-name').textContent = document.getElementById('clientName').value || '—';
@@ -721,7 +778,8 @@ function exportPDF() {
   html += '<thead><tr style="background:#404042;color:#fff;">';
   html += '<th style="padding:6px;text-align:left;">Sölunr.</th><th style="padding:6px;text-align:left;">Leigunr.</th><th style="padding:6px;text-align:left;">Vara</th><th style="padding:6px;text-align:right;">Magn</th><th style="padding:6px;text-align:right;">Einingaverð</th><th style="padding:6px;text-align:right;">Leiga</th>';
   html += '</tr></thead><tbody>';
-  data.items.forEach(it => {
+  data.items.forEach(function(it) {
+    if (hideZeroQty && it.qty === 0) return;
     html += '<tr style="border-bottom:1px solid #eee;"><td style="padding:4px 6px;">' + it.saleNo + '</td><td style="padding:4px 6px;">' + it.rentalNo + '</td><td style="padding:4px 6px;">' + it.desc + '</td><td style="padding:4px 6px;text-align:right;">' + it.qty + '</td><td style="padding:4px 6px;text-align:right;">' + fmtNum(it.unitPrice) + ' kr</td><td style="padding:4px 6px;text-align:right;">' + fmtNum(it.cost) + ' kr</td></tr>';
   });
   html += '</tbody></table>';
@@ -734,24 +792,24 @@ function exportPDF() {
 
   document.getElementById('pdf-content').innerHTML = html;
 
-  // Show off-screen and generate after layout
-  const pdfBlock = document.getElementById('pdf-print-block');
+  // Show block in document flow for html2canvas to capture
+  var pdfBlock = document.getElementById('pdf-print-block');
   pdfBlock.classList.add('pdf-rendering');
+  window.scrollTo(0, 0);
 
-  const name = document.getElementById('clientName').value || 'Tilbod';
-  const dateStr = document.getElementById('clientDate').value || new Date().toISOString().split('T')[0];
-  const fileName = 'Girdingar-' + name.replace(/[^a-zA-Z0-9áéíóúýþæöðÁÉÍÓÚÝÞÆÖÐ ]/g, '').replace(/ /g, '_') + '-' + dateStr + '.pdf';
+  var name = document.getElementById('clientName').value || 'Tilbod';
+  var dateStr = document.getElementById('clientDate').value || new Date().toISOString().split('T')[0];
+  var fileName = 'Girdingar-' + name.replace(/[^a-zA-Z0-9áéíóúýþæöðÁÉÍÓÚÝÞÆÖÐ ]/g, '').replace(/ /g, '_') + '-' + dateStr + '.pdf';
 
-  const opt = {
+  var opt = {
     margin: [6, 8, 6, 8],
     filename: fileName,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  // Allow browser to fully paint the block before capturing
   setTimeout(function() {
     html2pdf().set(opt).from(pdfBlock).save().then(function() {
       pdfBlock.classList.remove('pdf-rendering');

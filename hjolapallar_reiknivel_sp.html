@@ -299,22 +299,36 @@
         .export-btn.excel-btn { background: #217346; color: #fff; }
         .export-btn.excel-btn:hover { background: #1a5c38; }
 
-        /* PDF print block */
+        /* PDF print block — hidden but in document flow for html2canvas */
         #pdf-print-block {
-            position: fixed;
-            left: -9999px;
-            top: 0;
-            opacity: 0;
-            pointer-events: none;
+            overflow: hidden;
+            height: 0;
             width: 700px;
             max-width: 700px;
             box-sizing: border-box;
             font-family: 'Barlow', system-ui, Arial, sans-serif;
             font-size: 13px;
             color: #1e293b;
-            padding: 12px 20px;
+            padding: 0 20px;
+            opacity: 0;
+            pointer-events: none;
         }
-        #pdf-print-block.pdf-rendering { opacity: 1; left: 0; z-index: 9999; }
+        #pdf-print-block.pdf-rendering { height: auto; padding: 12px 20px; opacity: 1; pointer-events: auto; }
+
+        /* PDF dialog overlay */
+        .pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center; }
+        .pdf-overlay.visible { display:flex; }
+        .pdf-dialog { background:#fff; border-radius:var(--radius-lg); padding:28px 32px; box-shadow:0 16px 48px rgba(0,0,0,.3); max-width:440px; width:92%; }
+        .pdf-dialog h3 { margin:0 0 4px; font-size:17px; color:#111; }
+        .pdf-dialog .pdf-dialog-sub { font-size:13px; color:var(--color-muted); margin:0 0 18px; }
+        .pdf-check-row { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:var(--radius-sm); font-size:14px; cursor:pointer; transition:background .15s; }
+        .pdf-check-row:hover { background:#f4f6f9; }
+        .pdf-check-row input[type="checkbox"] { width:16px; height:16px; accent-color:#2563eb; cursor:pointer; flex-shrink:0; }
+        .pdf-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+        .pdf-cancel-btn { padding:8px 20px; border-radius:var(--radius-md); border:1px solid #ccc; background:#f4f6f9; font-weight:600; font-size:14px; cursor:pointer; }
+        .pdf-cancel-btn:hover { background:#e9edf3; }
+        .pdf-confirm-btn { padding:8px 20px; border-radius:var(--radius-md); border:none; background:var(--color-dark); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
+        .pdf-confirm-btn:hover { background:#2a2a2c; }
 
         @media (max-width: 500px) {
             .client-grid { grid-template-columns: 1fr; }
@@ -490,10 +504,26 @@
 
             <!-- EXPORT BUTTONS -->
             <div class="export-row">
-                <button class="export-btn pdf-btn" onclick="exportPDF()">⬇ Búa til PDF</button>
+                <button class="export-btn pdf-btn" onclick="openPdfDialog()">⬇ Búa til PDF</button>
                 <button class="export-btn excel-btn" onclick="exportExcel()">📊 Flytja í Excel</button>
             </div>
         </div>
+    </div>
+
+    <!-- PDF DIALOG OVERLAY -->
+    <div class="pdf-overlay" id="pdfOverlay">
+      <div class="pdf-dialog">
+        <h3>Búa til PDF – valkostir</h3>
+        <p class="pdf-dialog-sub">Veldu hvað á að koma fram í tilboðinu.</p>
+        <label class="pdf-check-row">
+          <input type="checkbox" id="pdfCheckHideZero">
+          Fela línur með magn = 0
+        </label>
+        <div class="pdf-actions">
+          <button type="button" class="pdf-cancel-btn" id="pdfCancelBtn">Hætta við</button>
+          <button type="button" class="pdf-confirm-btn" id="pdfConfirmBtn">⬇ Búa til PDF</button>
+        </div>
+      </div>
     </div>
 
     <!-- PDF TEMPLATE -->
@@ -967,17 +997,38 @@
         }
 
         // =====================================================================
-        // EXPORT PDF
+        // EXPORT PDF (2-step dialog flow)
         // =====================================================================
-        function exportPDF() {
+        function openPdfDialog() {
+            var items = collectExportItems();
+            if (items.length === 0) { alert('Engir hlutir valdir. Veldu magn á a.m.k. einni vöru.'); return; }
+            document.getElementById('pdfOverlay').classList.add('visible');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('pdfCancelBtn').addEventListener('click', function() {
+                document.getElementById('pdfOverlay').classList.remove('visible');
+            });
+            document.getElementById('pdfOverlay').addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('visible');
+            });
+            document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
+                document.getElementById('pdfOverlay').classList.remove('visible');
+                doGeneratePDF();
+            });
+        });
+
+        function doGeneratePDF() {
             if (typeof html2pdf === 'undefined') { alert('html2pdf library not loaded'); return; }
 
-            const name = (document.getElementById('clientName').value || '').trim() || '—';
-            const kt = (document.getElementById('clientKennitala').value || '').trim() || '—';
-            const uttektar = (document.getElementById('clientUttektar').value || '').trim() || '—';
-            const cdate = document.getElementById('clientDate').value;
-            const today = new Date();
-            const dateStr = cdate
+            var hideZeroQty = document.getElementById('pdfCheckHideZero').checked;
+
+            var name = (document.getElementById('clientName').value || '').trim() || '—';
+            var kt = (document.getElementById('clientKennitala').value || '').trim() || '—';
+            var uttektar = (document.getElementById('clientUttektar').value || '').trim() || '—';
+            var cdate = document.getElementById('clientDate').value;
+            var today = new Date();
+            var dateStr = cdate
                 ? new Date(cdate + 'T12:00:00').toLocaleDateString('is-IS')
                 : today.getDate() + '.' + (today.getMonth() + 1) + '.' + today.getFullYear();
 
@@ -988,30 +1039,26 @@
             document.getElementById('pdf-sig-name').textContent = name !== '—' ? name : '';
 
             // Rental info
-            const days = parseInt(document.getElementById('rental-days').value, 10) || 0;
-            const startD = document.getElementById('start-date').value;
-            const endD = document.getElementById('end-date').value;
-            let rentalLines = 'Leigutími: ' + days + ' dagar';
+            var days = parseInt(document.getElementById('rental-days').value, 10) || 0;
+            var startD = document.getElementById('start-date').value;
+            var endD = document.getElementById('end-date').value;
+            var rentalLines = 'Leigutími: ' + days + ' dagar';
             if (startD) rentalLines += '\nUpphafsdagur: ' + new Date(startD + 'T12:00:00').toLocaleDateString('is-IS');
             if (endD) rentalLines += '\nLokadagur: ' + new Date(endD + 'T12:00:00').toLocaleDateString('is-IS');
             document.getElementById('pdf-rental-info').innerText = rentalLines;
 
             // Collect items from the editable table
-            const items = collectExportItems();
-
-            if (items.length === 0) {
-                alert('Engir hlutir valdir. Veldu magn á a.m.k. einni vöru.');
-                return;
-            }
+            var items = collectExportItems();
 
             // Build materials table
-            let tbl = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+            var tbl = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
             tbl += '<thead><tr style="background:#f8fafc;border-bottom:2px solid #e0e0e0;">';
             tbl += '<th style="text-align:left;padding:6px;">Leigunr.</th>';
             tbl += '<th style="text-align:left;padding:6px;">Lýsing</th>';
             tbl += '<th style="text-align:right;padding:6px;">Magn</th>';
             tbl += '</tr></thead><tbody>';
-            items.forEach(it => {
+            items.forEach(function(it) {
+                if (hideZeroQty && it.qty === 0) return;
                 tbl += '<tr style="border-bottom:1px solid #f1f5f9;">';
                 tbl += '<td style="padding:5px 6px;">' + it.itemno + '</td>';
                 tbl += '<td style="padding:5px 6px;">' + it.name + '</td>';
@@ -1021,8 +1068,8 @@
             tbl += '</tbody></table>';
 
             // Totals
-            const totalRental = document.getElementById('total-rental').textContent;
-            const totalDeposit = document.getElementById('total-deposit').textContent;
+            var totalRental = document.getElementById('total-rental').textContent;
+            var totalDeposit = document.getElementById('total-deposit').textContent;
             tbl += '<div style="margin-top:10px;font-size:12px;line-height:1.8;">';
             tbl += '<strong>Samtals leiguverð:</strong> ' + totalRental + '<br>';
             tbl += '<strong>Trygging:</strong> ' + totalDeposit;
@@ -1031,31 +1078,32 @@
             document.getElementById('pdf-content').innerHTML = tbl;
 
             // Generate filename
-            const clientName = (document.getElementById('clientName').value || '').trim();
-            const safeName = sanitizeFileName(clientName);
-            const fileDateStr = cdate || today.toISOString().split('T')[0];
-            const fileName = 'Hjolapallar-' + safeName + '-' + fileDateStr + '.pdf';
+            var clientName = (document.getElementById('clientName').value || '').trim();
+            var safeName = sanitizeFileName(clientName);
+            var fileDateStr = cdate || today.toISOString().split('T')[0];
+            var fileName = 'Hjolapallar-' + safeName + '-' + fileDateStr + '.pdf';
 
-            const pdfBlock = document.getElementById('pdf-print-block');
+            var pdfBlock = document.getElementById('pdf-print-block');
             pdfBlock.classList.add('pdf-rendering');
+            window.scrollTo(0, 0);
 
-            const opt = {
+            var opt = {
                 margin: [6, 8, 6, 8],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
 
             setTimeout(function() {
-                    html2pdf().set(opt).from(pdfBlock).save().then(() => {
-                        pdfBlock.classList.remove('pdf-rendering');
-                    }).catch(err => {
-                        console.error('html2pdf error:', err);
-                        pdfBlock.classList.remove('pdf-rendering');
-                    });
-            }, 100);
+                html2pdf().set(opt).from(pdfBlock).save().then(function() {
+                    pdfBlock.classList.remove('pdf-rendering');
+                }).catch(function(err) {
+                    console.error('html2pdf error:', err);
+                    pdfBlock.classList.remove('pdf-rendering');
+                });
+            }, 200);
         }
 
         // =====================================================================
