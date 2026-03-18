@@ -1,6 +1,6 @@
-# Reiknivelar
+# Reiknivélar
 
-Reiknivelar fyrir BYKO Leiga:
+Reiknivélar fyrir BYKO Leiga:
 
 - [Girðingar reiknivél](girdingar-reiknivel.html)
 - [Vinnupalla reiknivél](vinnupalla-reiknivel.html)
