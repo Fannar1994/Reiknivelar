@@ -121,7 +121,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
 /* PDF print block (hidden off-screen for html2canvas) */
 #pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Barlow',system-ui,Arial,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px}
-#pdf-print-block.pdf-rendering{opacity:1;left:0}
+#pdf-print-block.pdf-rendering{opacity:1;left:0;z-index:9999}
 
 @media(max-width:500px){.fence-tabs{grid-template-columns:1fr}.days-discount-row{grid-template-columns:1fr}.acc-grid{grid-template-columns:1fr}.result-total .rt-value{font-size:26px}.client-grid{grid-template-columns:1fr}.export-row{flex-direction:column}}
 </style>
@@ -746,22 +746,20 @@ function exportPDF() {
     margin: [6, 8, 6, 8],
     filename: fileName,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  // Allow browser to lay out the block before capturing
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      html2pdf().set(opt).from(pdfBlock).save().then(() => {
-        pdfBlock.classList.remove('pdf-rendering');
-      }).catch(err => {
-        console.error('html2pdf error:', err);
-        pdfBlock.classList.remove('pdf-rendering');
-      });
+  // Allow browser to fully paint the block before capturing
+  setTimeout(function() {
+    html2pdf().set(opt).from(pdfBlock).save().then(function() {
+      pdfBlock.classList.remove('pdf-rendering');
+    }).catch(function(err) {
+      console.error('html2pdf error:', err);
+      pdfBlock.classList.remove('pdf-rendering');
     });
-  });
+  }, 100);
 }
 
 // =====================================================================
