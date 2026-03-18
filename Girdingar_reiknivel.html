@@ -119,9 +119,8 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .discount-badge{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#e74c3c;padding:2px 8px;border-radius:50px;margin-left:6px;vertical-align:middle}
 .discount-badge.green{background:#27ae60}
 
-/* PDF print block — fixed off-screen, brought behind content for capture */
+/* PDF print block — always off-screen; onclone makes it visible only in the html2canvas clone */
 #pdf-print-block{position:fixed;left:-9999px;top:0;width:700px;max-width:700px;box-sizing:border-box;font-family:'Barlow',system-ui,Arial,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px;opacity:0;pointer-events:none}
-#pdf-print-block.pdf-rendering{left:0;opacity:1;z-index:-1}
 
 /* PDF dialog overlay */
 .pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
@@ -805,7 +804,7 @@ function generatePDF() {
     margin: [6, 8, 6, 8],
     filename: fileName,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, onclone: function(clonedDoc) { var el = clonedDoc.getElementById('pdf-print-block'); el.style.position = 'static'; el.style.left = 'auto'; el.style.opacity = '1'; } },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };

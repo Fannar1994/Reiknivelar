@@ -347,7 +347,6 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   opacity: 0;
   pointer-events: none;
 }
-#pdf-print-block.pdf-rendering { left: 0; opacity: 1; z-index: -1; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -1270,7 +1269,7 @@ function exportPDF() {
     margin:      [6, 8, 6, 8],
     filename:    filename,
     image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, onclone: function(clonedDoc) { var el = clonedDoc.getElementById('pdf-print-block'); el.style.position = 'static'; el.style.left = 'auto'; el.style.opacity = '1'; } },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:   { mode: ['css', 'legacy'] }
   };

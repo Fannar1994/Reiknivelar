@@ -299,7 +299,7 @@
         .export-btn.excel-btn { background: #217346; color: #fff; }
         .export-btn.excel-btn:hover { background: #1a5c38; }
 
-        /* PDF print block — fixed off-screen, brought behind content for capture */
+        /* PDF print block — always off-screen; onclone makes it visible only in the html2canvas clone */
         #pdf-print-block {
             position: fixed;
             left: -9999px;
@@ -314,7 +314,6 @@
             opacity: 0;
             pointer-events: none;
         }
-        #pdf-print-block.pdf-rendering { left: 0; opacity: 1; z-index: -1; }
 
         /* PDF dialog overlay */
         .pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center; }
@@ -1092,7 +1091,7 @@
                 margin: [6, 8, 6, 8],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, onclone: function(clonedDoc) { var el = clonedDoc.getElementById('pdf-print-block'); el.style.position = 'static'; el.style.left = 'auto'; el.style.opacity = '1'; } },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
