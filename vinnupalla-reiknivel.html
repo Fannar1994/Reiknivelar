@@ -1149,7 +1149,7 @@
     color: #1e293b;
     padding: 12px 20px;
   }
-  #pdf-print-block.pdf-rendering { opacity: 1; left: 0; }
+  #pdf-print-block.pdf-rendering { opacity: 1; left: 0; z-index: 9999; }
   /* PDF header */
   .pdf-hdr {
     display: flex;
@@ -3217,7 +3217,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     margin:       [6, 8, 6, 8],
     filename:     pdfFilename,
     image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
   };
@@ -3245,9 +3245,8 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     if (globalSummary) globalSummary.classList.remove('print-force-hide');
   }
 
-  // Allow browser to lay out the block before capturing
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
+  // Allow browser to fully paint the block before capturing
+  setTimeout(function() {
       html2pdf().set(opt).from(pdfBlock).save().then(function() {
         pdfCleanup();
       }).catch(function(err) {
@@ -3255,8 +3254,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
         alert('Villa við PDF gerð: ' + err.message);
         pdfCleanup();
       });
-    });
-  });
+  }, 100);
 });</script>
 
 <!-- ═══════════════════════════════════════════════════════

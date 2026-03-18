@@ -314,7 +314,7 @@
             color: #1e293b;
             padding: 12px 20px;
         }
-        #pdf-print-block.pdf-rendering { opacity: 1; left: 0; }
+        #pdf-print-block.pdf-rendering { opacity: 1; left: 0; z-index: 9999; }
 
         @media (max-width: 500px) {
             .client-grid { grid-template-columns: 1fr; }
@@ -1043,21 +1043,19 @@
                 margin: [6, 8, 6, 8],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
 
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
+            setTimeout(function() {
                     html2pdf().set(opt).from(pdfBlock).save().then(() => {
                         pdfBlock.classList.remove('pdf-rendering');
                     }).catch(err => {
                         console.error('html2pdf error:', err);
                         pdfBlock.classList.remove('pdf-rendering');
                     });
-                });
-            });
+            }, 100);
         }
 
         // =====================================================================
