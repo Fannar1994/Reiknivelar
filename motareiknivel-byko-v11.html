@@ -726,6 +726,13 @@ function getRentalDays() {
 // TAB SWITCHING
 // =============================================================================
 let currentMode = 'B';
+let _calcTimer = null;
+
+function scheduleCalculate() {
+    if (currentMode === 'D') return;
+    clearTimeout(_calcTimer);
+    _calcTimer = setTimeout(function() { calculate(true); }, 350);
+}
 
 function switchMode(mode, btnEl) {
     currentMode = mode;
@@ -734,6 +741,7 @@ function switchMode(mode, btnEl) {
     document.querySelectorAll('.mode-pane').forEach(p => p.classList.remove('active'));
     const pane = document.getElementById('pane-' + mode);
     if (pane) pane.classList.add('active');
+    scheduleCalculate();
 }
 
 
@@ -1179,7 +1187,7 @@ function buildWallVisual(used, panels, totalWidth) {
 // =============================================================================
 let lastBoqResult = null;
 
-function calculate() {
+function calculate(silent) {
     let result;
     if (currentMode === 'A') result = calculateModeA();
     else if (currentMode === 'B') result = calculateModeB();
@@ -1230,7 +1238,7 @@ function calculate() {
 
     document.getElementById('resultBox').innerHTML = html;
 
-    setTimeout(() => document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    if (!silent) setTimeout(() => document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
 
@@ -1361,7 +1369,7 @@ function generatePDF() {
         margin:      [6, 8, 6, 8],
         filename:    pdfFilename,
         image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
+        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
         jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak:   { mode: ['css', 'legacy'], avoid: '.pdf-box' }
     };
@@ -1796,9 +1804,16 @@ function id15_resetCalculator() {
 // =============================================================================
 document.addEventListener('DOMContentLoaded', () => {
     initializeDates();
-    document.getElementById('startDate').addEventListener('change', updateRentalDays);
-    document.getElementById('endDate').addEventListener('change', updateRentalDays);
-    document.getElementById('rentalDays').addEventListener('input', updateEndDateFromDays);
+    document.getElementById('startDate').addEventListener('change', function() { updateRentalDays(); scheduleCalculate(); });
+    document.getElementById('endDate').addEventListener('change', function() { updateRentalDays(); scheduleCalculate(); });
+    document.getElementById('rentalDays').addEventListener('input', function() { updateEndDateFromDays(); scheduleCalculate(); });
+    document.getElementById('discountInput').addEventListener('input', scheduleCalculate);
+
+    // Auto-calculate on mode A/B/C inputs (event delegation)
+    ['pane-A', 'pane-B', 'pane-C'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', scheduleCalculate);
+        document.getElementById(id).addEventListener('change', scheduleCalculate);
+    });
 
     // ID-15 height input debounce
     var id15Timer = null;
@@ -1809,6 +1824,9 @@ document.addEventListener('DOMContentLoaded', () => {
         id15Timer = setTimeout(id15_findTowers, 350);
       });
     }
+
+    // Initial calculation
+    calculate(true);
 });
 </script>
 

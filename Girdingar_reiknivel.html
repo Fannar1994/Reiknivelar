@@ -746,7 +746,7 @@ function exportPDF() {
     margin: [6, 8, 6, 8],
     filename: fileName,
     image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };
