@@ -334,20 +334,19 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   .filter-group.grow { width: 100%; }
 }
 #pdf-print-block {
-  position: fixed;
-  left: -9999px;
-  top: 0;
-  opacity: 0;
-  pointer-events: none;
+  overflow: hidden;
+  height: 0;
   width: 700px;
   max-width: 700px;
   box-sizing: border-box;
   font-family: 'Barlow', system-ui, Arial, sans-serif;
   font-size: 13px;
   color: #1e293b;
-  padding: 12px 20px;
+  padding: 0 20px;
+  opacity: 0;
+  pointer-events: none;
 }
-#pdf-print-block.pdf-rendering { opacity: 1; left: 0; z-index: 9999; }
+#pdf-print-block.pdf-rendering { height: auto; padding: 12px 20px; opacity: 1; pointer-events: auto; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -1264,12 +1263,13 @@ function exportPDF() {
   // Generate PDF
   var pdfBlock = document.getElementById('pdf-print-block');
   pdfBlock.classList.add('pdf-rendering');
+  window.scrollTo(0, 0);
 
   var opt = {
     margin:      [6, 8, 6, 8],
     filename:    filename,
     image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:   { mode: ['css', 'legacy'] }
   };
@@ -1283,7 +1283,7 @@ function exportPDF() {
         alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
         pdfBlock.classList.remove('pdf-rendering');
       });
-  }, 100);
+  }, 200);
 }
 
 function exportExcel() {

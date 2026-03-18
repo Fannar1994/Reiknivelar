@@ -148,16 +148,16 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
   .sys-tab .tab-name{font-size:15px}
 }
 @media print{body{background:#fff;padding:0}.calc-header{background:#2b2b2b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #pdf-print-block{position:static!important;left:auto!important;opacity:1!important;max-width:100%!important;width:100%!important}
+  #pdf-print-block{height:auto!important;overflow:visible!important;opacity:1!important;max-width:100%!important;width:100%!important;padding:12px 20px!important}
   #pdf-print-block .pdf-hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #pdf-print-block .pdf-hdr div[style*="background:#404042"]{background:#404042!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pdf-sum-box.accent{background:#404042!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pdf-sum-box.accent .pdf-sum-val{color:#fff!important}
 }
 
-/* ── PDF print block ─────────────────────────────── */
-#pdf-print-block{position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px}
-#pdf-print-block.pdf-rendering{opacity:1;left:0;z-index:9999}
+/* ── PDF print block — hidden but in document flow for html2canvas ── */
+#pdf-print-block{overflow:hidden;height:0;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:0 20px;opacity:0;pointer-events:none}
+#pdf-print-block.pdf-rendering{height:auto;padding:12px 20px;opacity:1;pointer-events:auto}
 
 /* PDF dialog overlay */
 .pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
@@ -1399,12 +1399,13 @@ function generatePDF() {
     // ── Show block, generate, hide ──
     var pdfBlock = document.getElementById('pdf-print-block');
     pdfBlock.classList.add('pdf-rendering');
+    window.scrollTo(0, 0);
 
     var opt = {
         margin:      [6, 8, 6, 8],
         filename:    pdfFilename,
         image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
         jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak:   { mode: ['css', 'legacy'], avoid: '.pdf-box' }
     };
@@ -1418,7 +1419,7 @@ function generatePDF() {
             alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
             pdfBlock.classList.remove('pdf-rendering');
         });
-    }, 100);
+    }, 200);
 }
 
 
