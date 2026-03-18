@@ -157,7 +157,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
 /* ── PDF print block — hidden off-screen; .pdf-rendering brings it on-screen behind a cover overlay ── */
 #pdf-print-block{position:fixed;left:-9999px;top:0;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px;opacity:0;pointer-events:none}
-#pdf-print-block.pdf-rendering{position:absolute;left:0;top:0;opacity:1}
+#pdf-print-block.pdf-rendering{position:static;left:auto;opacity:1}
 #pdf-cover-overlay{display:none;position:fixed;inset:0;background:#fff;z-index:999999}
 
 /* PDF dialog overlay */
