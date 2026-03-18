@@ -1403,28 +1403,24 @@ function generatePDF() {
     overlay.style.display = 'block';
     window.scrollTo(0, 0);
 
-    // Clone into isolated 700px wrapper so html2canvas captures correct width
-    var clone = pdfBlock.cloneNode(true);
-    clone.classList.add('pdf-rendering');
-    var wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:absolute;left:0;top:0;width:700px;overflow:hidden;';
-    wrapper.appendChild(clone);
-    document.body.appendChild(wrapper);
+    // Move element on-screen with inline styles (overrides CSS rules)
+    var origStyle = pdfBlock.style.cssText;
+    pdfBlock.style.cssText = 'position:absolute;left:0;top:0;width:700px;max-width:700px;box-sizing:border-box;font-family:Barlow,system-ui,Arial,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px;opacity:1;pointer-events:none;';
 
     var opt = {
         margin:      [6, 8, 6, 8],
         filename:    pdfFilename,
         image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, width: 700 },
         jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak:   { mode: ['css', 'legacy'], avoid: '.pdf-box' }
     };
 
-    function pdfDone() { wrapper.remove(); overlay.style.display = 'none'; }
+    function pdfDone() { pdfBlock.style.cssText = origStyle; overlay.style.display = 'none'; }
 
     // Allow browser to fully paint the block before capturing
     setTimeout(function() {
-        html2pdf().set(opt).from(clone).save().then(pdfDone).catch(function(err) {
+        html2pdf().set(opt).from(pdfBlock).save().then(pdfDone).catch(function(err) {
             console.error('html2pdf error:', err);
             alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
             pdfDone();
