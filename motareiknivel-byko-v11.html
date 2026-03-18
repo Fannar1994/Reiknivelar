@@ -1376,13 +1376,13 @@ function generatePDF() {
 
     // Allow browser to fully paint the block before capturing
     setTimeout(function() {
-      html2pdf().set(opt).from(pdfBlock).save().then(function() {
-          pdfBlock.classList.remove('pdf-rendering');
-      }).catch(function(err) {
-          console.error('html2pdf error:', err);
-          alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-          pdfBlock.classList.remove('pdf-rendering');
-      });
+        html2pdf().set(opt).from(pdfBlock).save().then(function() {
+            pdfBlock.classList.remove('pdf-rendering');
+        }).catch(function(err) {
+            console.error('html2pdf error:', err);
+            alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
+            pdfBlock.classList.remove('pdf-rendering');
+        });
     }, 100);
 }
 

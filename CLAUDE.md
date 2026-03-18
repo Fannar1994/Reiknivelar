@@ -22,8 +22,12 @@
 ├── loftastodir.html                   # Ceiling post calculator
 ├── motareiknivel-byko-v11.html        # Concrete form calculator
 ├── vinnupalla-reiknivel.html          # Work platform calculator (largest, ~3500 lines)
+├── vinnupalla-reiknivel_new.html      # Work platform calculator (new version)
 ├── favicon_io/                        # Favicon assets
+├── scripts/validate.py                # HTML validation script (runs in CI)
 ├── .github/workflows/static.yml       # GitHub Pages deploy workflow
+├── .github/workflows/ci.yml           # CI validation workflow for PRs
+├── .claude/skills/                    # Claude Code skill files for AI-assisted dev
 └── .nojekyll                          # Disables Jekyll processing
 ```
 
@@ -82,3 +86,28 @@ Each calculator is a **self-contained HTML file** with inline `<style>` and `<sc
 - Preserve number formatting consistency – always use the shared `fmtInt` / `fmtNum` helpers for user-visible numbers (avoid mixing in `.toLocaleString(...)`)
 - When adding new calculators, also add a card to `index.html` and update `README.md`
 - CDN scripts (html2pdf, XLSX) must use specific pinned versions, not `latest`
+
+## Pull Request Workflow
+
+- PRs target the `main` branch
+- CI automatically runs `python3 scripts/validate.py` on every PR (`.github/workflows/ci.yml`)
+- Branch protection requires the CI check to pass before merge
+- Deployment to GitHub Pages triggers automatically on push to `main`
+
+### Claude Code / Claude Desktop App Integration
+
+This repository is configured for **Claude Code** AI-assisted development via the Claude Desktop app:
+
+- **`CLAUDE.md`** – Project conventions and coding rules (this file)
+- **`.claude/settings.json`** – Permissions for allowed commands
+- **`.claude/skills/`** – Skill files that guide Claude through common tasks:
+  - `new-calculator.md` – How to create a new calculator
+  - `update-pricing.md` – How to update product pricing
+  - `review-pull-requests.md` – How to review and manage pull requests
+
+#### Using Claude Desktop for PR Reviews
+
+1. Open Claude Desktop and connect to this repository via Claude Code
+2. Ask Claude to review open pull requests – it will check for stale PRs, validate HTML conventions, and identify needed changes
+3. Claude can incorporate changes from PRs, fix validation issues, and update `index.html`/`README.md` as needed
+4. Use the `review-pull-requests` skill for structured PR review workflow

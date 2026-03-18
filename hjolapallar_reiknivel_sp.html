@@ -1049,12 +1049,12 @@
             };
 
             setTimeout(function() {
-                html2pdf().set(opt).from(pdfBlock).save().then(function() {
-                    pdfBlock.classList.remove('pdf-rendering');
-                }).catch(function(err) {
-                    console.error('html2pdf error:', err);
-                    pdfBlock.classList.remove('pdf-rendering');
-                });
+                    html2pdf().set(opt).from(pdfBlock).save().then(() => {
+                        pdfBlock.classList.remove('pdf-rendering');
+                    }).catch(err => {
+                        console.error('html2pdf error:', err);
+                        pdfBlock.classList.remove('pdf-rendering');
+                    });
             }, 100);
         }
 

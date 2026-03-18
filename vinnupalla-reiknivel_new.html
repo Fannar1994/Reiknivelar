@@ -2,7 +2,7 @@
 <html lang="is">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
 <title>Vinnupalla reiknivél – BYKO Leiga</title>
@@ -1111,7 +1111,7 @@
   @media print {
     body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
     .calculator { box-shadow: none !important; padding: 0 !important; }
-    #pdf-print-block { position: static !important; left: auto !important; opacity: 1 !important; max-width: 100% !important; width: 100% !important; }
+    #pdf-print-block { display: block !important; max-width: 100% !important; width: 100% !important; }
     #pdf-print-block .pdf-hdr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     #pdf-print-block .pdf-hdr div[style*="background:#1e293b"] { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .pdf-hdr-right { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1134,22 +1134,17 @@
     .pdf-mat-table td:first-child { overflow: visible !important; white-space: normal !important; }
   }
 
-  /* PDF print block - positioned off-screen for html2canvas */
+  /* PDF print block - hidden on screen */
   #pdf-print-block {
-    position: fixed;
-    left: -9999px;
-    top: 0;
-    opacity: 0;
-    pointer-events: none;
-    width: 700px;
-    max-width: 700px;
+    display: none;
+    width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
     font-family: 'Segoe UI', system-ui, sans-serif;
     font-size: 13px;
     color: #1e293b;
     padding: 12px 20px;
   }
-  #pdf-print-block.pdf-rendering { opacity: 1; left: 0; z-index: 9999; }
   /* PDF header */
   .pdf-hdr {
     display: flex;
@@ -3210,14 +3205,14 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 
   // Show the pdf-print-block for html2pdf to capture
   var pdfBlock = document.getElementById('pdf-print-block');
-  pdfBlock.classList.add('pdf-rendering');
+  pdfBlock.style.display = 'block';
 
   // html2pdf options
   var opt = {
     margin:       [6, 8, 6, 8],
     filename:     pdfFilename,
     image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
   };
@@ -3225,12 +3220,12 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
   // Guard: check that html2pdf loaded
   if (typeof html2pdf === 'undefined') {
     alert('Villa: html2pdf.js tókst ekki að hlaðast. Athugaðu nettengingu og endurhladdu síðuna.');
-    pdfBlock.classList.remove('pdf-rendering');
+    pdfBlock.style.display = 'none';
     return;
   }
 
   function pdfCleanup() {
-    pdfBlock.classList.remove('pdf-rendering');
+    pdfBlock.style.display = 'none';
     document.querySelectorAll('#facades article.facade').forEach(function(facadeEl) {
       var summaryPanel = facadeEl.querySelector('.facade-summary-panel');
       if (summaryPanel) {
@@ -3245,16 +3240,13 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     if (globalSummary) globalSummary.classList.remove('print-force-hide');
   }
 
-  // Allow browser to fully paint the block before capturing
-  setTimeout(function() {
-      html2pdf().set(opt).from(pdfBlock).save().then(function() {
-        pdfCleanup();
-      }).catch(function(err) {
-        console.error('html2pdf error:', err);
-        alert('Villa við PDF gerð: ' + err.message);
-        pdfCleanup();
-      });
-  }, 100);
+  html2pdf().set(opt).from(pdfBlock).save().then(function() {
+    pdfCleanup();
+  }).catch(function(err) {
+    console.error('html2pdf error:', err);
+    alert('Villa við PDF gerð: ' + err.message);
+    pdfCleanup();
+  });
 });</script>
 
 <!-- ═══════════════════════════════════════════════════════

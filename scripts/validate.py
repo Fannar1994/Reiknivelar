@@ -60,6 +60,7 @@ def validate_index(filepath):
         'loftastodir.html',
         'motareiknivel-byko-v11.html',
         'vinnupalla-reiknivel.html',
+        'vinnupalla-reiknivel_new.html',
     ]
 
     with open(filepath, 'r', encoding='utf-8') as f:
