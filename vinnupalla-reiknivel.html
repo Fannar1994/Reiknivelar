@@ -3213,8 +3213,22 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
   var pdfBlock = document.getElementById('pdf-print-block');
   var overlay = document.getElementById('pdf-cover-overlay');
   overlay.style.display = 'block';
-  pdfBlock.classList.add('pdf-rendering');
   window.scrollTo(0, 0);
+
+  // Guard: check that html2pdf loaded
+  if (typeof html2pdf === 'undefined') {
+    alert('Villa: html2pdf.js tókst ekki að hlaðast. Athugaðu nettengingu og endurhladdu síðuna.');
+    overlay.style.display = 'none';
+    return;
+  }
+
+  // Clone into isolated 700px wrapper so html2canvas captures correct width
+  var clone = pdfBlock.cloneNode(true);
+  clone.classList.add('pdf-rendering');
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:absolute;left:0;top:0;width:700px;overflow:hidden;';
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
   // html2pdf options
   var opt = {
@@ -3226,16 +3240,8 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
   };
 
-  // Guard: check that html2pdf loaded
-  if (typeof html2pdf === 'undefined') {
-    alert('Villa: html2pdf.js tókst ekki að hlaðast. Athugaðu nettengingu og endurhladdu síðuna.');
-    pdfBlock.classList.remove('pdf-rendering');
-    overlay.style.display = 'none';
-    return;
-  }
-
   function pdfCleanup() {
-    pdfBlock.classList.remove('pdf-rendering');
+    wrapper.remove();
     overlay.style.display = 'none';
     document.querySelectorAll('#facades article.facade').forEach(function(facadeEl) {
       var summaryPanel = facadeEl.querySelector('.facade-summary-panel');
@@ -3253,7 +3259,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 
   // Allow browser to fully paint the block before capturing
   setTimeout(function() {
-      html2pdf().set(opt).from(pdfBlock).save().then(function() {
+      html2pdf().set(opt).from(clone).save().then(function() {
         pdfCleanup();
       }).catch(function(err) {
         console.error('html2pdf error:', err);

@@ -800,8 +800,15 @@ function generatePDF() {
   var pdfBlock = document.getElementById('pdf-print-block');
   var overlay = document.getElementById('pdf-cover-overlay');
   overlay.style.display = 'block';
-  pdfBlock.classList.add('pdf-rendering');
   window.scrollTo(0, 0);
+
+  // Clone into isolated 700px wrapper so html2canvas captures correct width
+  var clone = pdfBlock.cloneNode(true);
+  clone.classList.add('pdf-rendering');
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:absolute;left:0;top:0;width:700px;overflow:hidden;';
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
   var name = document.getElementById('clientName').value || 'Tilbod';
   var dateStr = document.getElementById('clientDate').value || new Date().toISOString().split('T')[0];
@@ -816,10 +823,10 @@ function generatePDF() {
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  function pdfDone() { pdfBlock.classList.remove('pdf-rendering'); overlay.style.display = 'none'; }
+  function pdfDone() { wrapper.remove(); overlay.style.display = 'none'; }
 
   setTimeout(function() {
-    html2pdf().set(opt).from(pdfBlock).save().then(pdfDone).catch(function(err) {
+    html2pdf().set(opt).from(clone).save().then(pdfDone).catch(function(err) {
       console.error('html2pdf error:', err);
       pdfDone();
     });
