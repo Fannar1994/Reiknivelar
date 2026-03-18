@@ -523,7 +523,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   </div>
 
   <div class="export-row" style="margin-bottom:20px">
-    <button class="export-btn pdf-btn" onclick="exportPDF()">⬇ Búa til PDF</button>
+    <button class="export-btn pdf-btn" onclick="openPdfDialog()">⬇ Búa til PDF</button>
     <button class="export-btn excel-btn" onclick="exportExcel()">📊 Flytja í Excel</button>
     <button class="btn-accent" onclick="saveQuote()">💾 Vista tilboð</button>
   </div>
@@ -689,8 +689,8 @@ body.pdf-hide-sig .print-signature { display: none !important; }
     </label>
     <div class="pdf-divider"></div>
     <div class="pdf-actions">
-      <button class="pdf-cancel-btn" onclick="closePdfDialog()">Hætta við</button>
-      <button class="pdf-print-btn" onclick="doPrint()">🖨 Prenta / PDF</button>
+      <button class="pdf-cancel-btn" id="pdfCancelBtn" onclick="closePdfDialog()">Hætta við</button>
+      <button class="pdf-print-btn" id="pdfConfirmBtn" onclick="doPrint()">⬇ Búa til PDF</button>
     </div>
   </div>
 </div>
@@ -1140,6 +1140,17 @@ function showToast(msg) {
 // =====================================================================
 // PDF & EXCEL EXPORT
 // =====================================================================
+function openPdfDialog() {
+  document.getElementById('pdf-overlay').classList.add('visible');
+}
+function closePdfDialog() {
+  document.getElementById('pdf-overlay').classList.remove('visible');
+}
+function doPrint() {
+  closePdfDialog();
+  exportPDF();
+}
+
 function exportPDF() {
   if (typeof html2pdf === 'undefined') {
     alert('Villa: html2pdf.js tókst ekki að hlaðast. Endurhladdu síðuna.');
