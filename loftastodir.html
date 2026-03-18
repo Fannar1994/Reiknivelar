@@ -347,6 +347,8 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   opacity: 0;
   pointer-events: none;
 }
+#pdf-print-block.pdf-rendering { position: absolute; left: 0; top: 0; opacity: 1; }
+#pdf-cover-overlay { display: none; position: fixed; inset: 0; background: #fff; z-index: 999999; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -605,8 +607,11 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 
 </div><!-- /container -->
 
+<!-- Cover overlay – hides pdf-print-block while html2canvas captures -->
+<div id="pdf-cover-overlay"></div>
+
 <!-- ===== PDF EXPORT BLOCK (hidden, used by html2pdf) ===== -->
-<div id="pdf-print-block">
+<div id="pdf-print-block"
 
   <!-- Branded header -->
   <div style="display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px;">
@@ -1262,6 +1267,8 @@ function exportPDF() {
 
   // Generate PDF
   var pdfBlock = document.getElementById('pdf-print-block');
+  var overlay = document.getElementById('pdf-cover-overlay');
+  overlay.style.display = 'block';
   pdfBlock.classList.add('pdf-rendering');
   window.scrollTo(0, 0);
 
@@ -1269,19 +1276,19 @@ function exportPDF() {
     margin:      [6, 8, 6, 8],
     filename:    filename,
     image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, onclone: function(clonedDoc) { var el = clonedDoc.getElementById('pdf-print-block'); el.style.position = 'static'; el.style.left = 'auto'; el.style.opacity = '1'; } },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:   { mode: ['css', 'legacy'] }
   };
 
+  function pdfDone() { pdfBlock.classList.remove('pdf-rendering'); overlay.style.display = 'none'; }
+
   // Allow browser to fully paint the block before capturing
   setTimeout(function() {
-      html2pdf().set(opt).from(pdfBlock).save().then(function() {
-        pdfBlock.classList.remove('pdf-rendering');
-      }).catch(function(err) {
+      html2pdf().set(opt).from(pdfBlock).save().then(pdfDone).catch(function(err) {
         console.error('html2pdf error:', err);
         alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-        pdfBlock.classList.remove('pdf-rendering');
+        pdfDone();
       });
   }, 200);
 }

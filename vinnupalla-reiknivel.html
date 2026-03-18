@@ -1134,7 +1134,7 @@
     .pdf-mat-table td:first-child { overflow: visible !important; white-space: normal !important; }
   }
 
-  /* PDF print block — always off-screen; onclone makes it visible only in the html2canvas clone */
+  /* PDF print block — hidden off-screen; .pdf-rendering brings it on-screen behind a cover overlay */
   #pdf-print-block {
     position: fixed;
     left: -9999px;
@@ -1149,6 +1149,8 @@
     opacity: 0;
     pointer-events: none;
   }
+  #pdf-print-block.pdf-rendering { position: absolute; left: 0; top: 0; opacity: 1; }
+  #pdf-cover-overlay { display: none; position: fixed; inset: 0; background: #fff; z-index: 999999; }
   /* PDF header */
   .pdf-hdr {
     display: flex;
@@ -3209,6 +3211,8 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 
   // Show the pdf-print-block for html2pdf to capture
   var pdfBlock = document.getElementById('pdf-print-block');
+  var overlay = document.getElementById('pdf-cover-overlay');
+  overlay.style.display = 'block';
   pdfBlock.classList.add('pdf-rendering');
   window.scrollTo(0, 0);
 
@@ -3217,7 +3221,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     margin:       [6, 8, 6, 8],
     filename:     pdfFilename,
     image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, onclone: function(clonedDoc) { var el = clonedDoc.getElementById('pdf-print-block'); el.style.position = 'static'; el.style.left = 'auto'; el.style.opacity = '1'; } },
+    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
   };
@@ -3226,11 +3230,13 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
   if (typeof html2pdf === 'undefined') {
     alert('Villa: html2pdf.js tókst ekki að hlaðast. Athugaðu nettengingu og endurhladdu síðuna.');
     pdfBlock.classList.remove('pdf-rendering');
+    overlay.style.display = 'none';
     return;
   }
 
   function pdfCleanup() {
     pdfBlock.classList.remove('pdf-rendering');
+    overlay.style.display = 'none';
     document.querySelectorAll('#facades article.facade').forEach(function(facadeEl) {
       var summaryPanel = facadeEl.querySelector('.facade-summary-panel');
       if (summaryPanel) {
@@ -3260,7 +3266,8 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
 <!-- ═══════════════════════════════════════════════════════
      DEDICATED PDF PRINT BLOCK - only visible when printing
      ═══════════════════════════════════════════════════════ -->
-<div id="pdf-print-block">
+<div id="pdf-cover-overlay"></div>
+<div id="pdf-print-block"
 
   <!-- Branded header -->
   <div class="pdf-hdr" style="display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e2e8f0;margin-bottom:12px;">

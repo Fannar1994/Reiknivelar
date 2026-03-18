@@ -299,7 +299,7 @@
         .export-btn.excel-btn { background: #217346; color: #fff; }
         .export-btn.excel-btn:hover { background: #1a5c38; }
 
-        /* PDF print block — always off-screen; onclone makes it visible only in the html2canvas clone */
+        /* PDF print block — hidden off-screen; .pdf-rendering brings it on-screen behind a cover overlay */
         #pdf-print-block {
             position: fixed;
             left: -9999px;
@@ -314,6 +314,8 @@
             opacity: 0;
             pointer-events: none;
         }
+        #pdf-print-block.pdf-rendering { position: absolute; left: 0; top: 0; opacity: 1; }
+        #pdf-cover-overlay { display: none; position: fixed; inset: 0; background: #fff; z-index: 999999; }
 
         /* PDF dialog overlay */
         .pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center; }
@@ -526,8 +528,11 @@
       </div>
     </div>
 
+    <!-- Cover overlay – hides pdf-print-block while html2canvas captures -->
+    <div id="pdf-cover-overlay"></div>
+
     <!-- PDF TEMPLATE -->
-    <div id="pdf-print-block">
+    <div id="pdf-print-block"
         <div style="display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px;">
             <div style="width:6px;background:#f5c800;flex-shrink:0;"></div>
             <div style="width:100%;background:#404042;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;">
@@ -1084,6 +1089,8 @@
             var fileName = 'Hjolapallar-' + safeName + '-' + fileDateStr + '.pdf';
 
             var pdfBlock = document.getElementById('pdf-print-block');
+            var overlay = document.getElementById('pdf-cover-overlay');
+            overlay.style.display = 'block';
             pdfBlock.classList.add('pdf-rendering');
             window.scrollTo(0, 0);
 
@@ -1091,17 +1098,17 @@
                 margin: [6, 8, 6, 8],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, onclone: function(clonedDoc) { var el = clonedDoc.getElementById('pdf-print-block'); el.style.position = 'static'; el.style.left = 'auto'; el.style.opacity = '1'; el.style.margin = '0 auto'; } },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
 
+            function pdfDone() { pdfBlock.classList.remove('pdf-rendering'); overlay.style.display = 'none'; }
+
             setTimeout(function() {
-                html2pdf().set(opt).from(pdfBlock).save().then(function() {
-                    pdfBlock.classList.remove('pdf-rendering');
-                }).catch(function(err) {
+                html2pdf().set(opt).from(pdfBlock).save().then(pdfDone).catch(function(err) {
                     console.error('html2pdf error:', err);
-                    pdfBlock.classList.remove('pdf-rendering');
+                    pdfDone();
                 });
             }, 200);
         }
