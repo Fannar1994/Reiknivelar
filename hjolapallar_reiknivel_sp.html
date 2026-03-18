@@ -1043,7 +1043,7 @@
                 margin: [6, 8, 6, 8],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: -window.scrollY, scrollX: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
@@ -1114,6 +1114,12 @@
             document.getElementById('start-date').addEventListener('change', () => { updateRentalDays(); calculate(); });
             document.getElementById('end-date').addEventListener('change', () => { updateRentalDays(); calculate(); });
             document.getElementById('rental-days').addEventListener('input', () => { updateEndDateFromDays(); calculate(); });
+
+            // Auto-recalculate when qty inputs change (event delegation)
+            document.getElementById('comp-body').addEventListener('input', function(e) {
+                if (e.target.classList.contains('qty-input')) recalculate();
+            });
+
             calculate();
         });
     </script>
