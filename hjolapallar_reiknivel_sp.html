@@ -300,20 +300,24 @@
         .export-btn.excel-btn:hover { background: #1a5c38; }
 
         /* PDF print block — hidden but in document flow for html2canvas */
+        /* PDF print block — off-screen but renderable for html2canvas */
         #pdf-print-block {
-            overflow: hidden;
-            height: 0;
+            position: fixed;
+            left: -9999px;
+            top: 0;
             width: 700px;
             max-width: 700px;
             box-sizing: border-box;
             font-family: 'Barlow', system-ui, Arial, sans-serif;
             font-size: 13px;
             color: #1e293b;
-            padding: 0 20px;
-            opacity: 0;
+            padding: 12px 20px;
             pointer-events: none;
         }
-        #pdf-print-block.pdf-rendering { height: auto; padding: 12px 20px; opacity: 1; pointer-events: auto; }
+        #pdf-print-block.pdf-rendering { left: 0; z-index: 9999; pointer-events: auto; }
+        #pdf-print-block table { page-break-inside: auto; }
+        #pdf-print-block tr { page-break-inside: avoid; }
+        #pdf-print-block thead { display: table-header-group; }
 
         /* PDF dialog overlay */
         .pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center; }
@@ -976,11 +980,11 @@
             return (name || 'Tilbod').replace(/[^a-zA-Z0-9\u00e1\u00e9\u00ed\u00f3\u00fa\u00fd\u00fe\u00e6\u00f6\u00f0\u00c1\u00c9\u00cd\u00d3\u00da\u00dd\u00de\u00c6\u00d6\u00d0 ]/g, '').replace(/ /g, '_');
         }
 
-        function collectExportItems() {
+        function collectExportItems(includeZero) {
             const items = [];
             document.querySelectorAll('.qty-input').forEach(input => {
                 const qty = parseInt(input.value, 10) || 0;
-                if (qty <= 0) return;
+                if (!includeZero && qty <= 0) return;
                 const idx = input.dataset.idx;
                 let itemno, itemName;
                 if (idx === 'support') {
@@ -1018,7 +1022,7 @@
             });
         });
 
-        function doGeneratePDF() {
+        async function doGeneratePDF() {
             if (typeof html2pdf === 'undefined') { alert('html2pdf library not loaded'); return; }
 
             var hideZeroQty = document.getElementById('pdfCheckHideZero').checked;
@@ -1038,17 +1042,17 @@
             document.getElementById('pdf-date').textContent = dateStr;
             document.getElementById('pdf-sig-name').textContent = name !== '—' ? name : '';
 
-            // Rental info
+            // Rental info – structured HTML instead of newline-delimited text
             var days = parseInt(document.getElementById('rental-days').value, 10) || 0;
             var startD = document.getElementById('start-date').value;
             var endD = document.getElementById('end-date').value;
-            var rentalLines = 'Leigutími: ' + days + ' dagar';
-            if (startD) rentalLines += '\nUpphafsdagur: ' + new Date(startD + 'T12:00:00').toLocaleDateString('is-IS');
-            if (endD) rentalLines += '\nLokadagur: ' + new Date(endD + 'T12:00:00').toLocaleDateString('is-IS');
-            document.getElementById('pdf-rental-info').innerText = rentalLines;
+            var rentalHtml = '<div>Leigutími: ' + days + ' dagar</div>';
+            if (startD) rentalHtml += '<div>Upphafsdagur: ' + new Date(startD + 'T12:00:00').toLocaleDateString('is-IS') + '</div>';
+            if (endD) rentalHtml += '<div>Lokadagur: ' + new Date(endD + 'T12:00:00').toLocaleDateString('is-IS') + '</div>';
+            document.getElementById('pdf-rental-info').innerHTML = rentalHtml;
 
-            // Collect items from the editable table
-            var items = collectExportItems();
+            // Collect items – include zeros so the checkbox can filter them
+            var items = collectExportItems(!hideZeroQty);
 
             // Build materials table
             var tbl = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
@@ -1058,7 +1062,6 @@
             tbl += '<th style="text-align:right;padding:6px;">Magn</th>';
             tbl += '</tr></thead><tbody>';
             items.forEach(function(it) {
-                if (hideZeroQty && it.qty === 0) return;
                 tbl += '<tr style="border-bottom:1px solid #f1f5f9;">';
                 tbl += '<td style="padding:5px 6px;">' + it.itemno + '</td>';
                 tbl += '<td style="padding:5px 6px;">' + it.name + '</td>';
@@ -1085,25 +1088,26 @@
 
             var pdfBlock = document.getElementById('pdf-print-block');
             pdfBlock.classList.add('pdf-rendering');
-            window.scrollTo(0, 0);
 
             var opt = {
                 margin: [6, 8, 6, 8],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, onclone: function(doc) { doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); el.style.margin = '0 auto'; } },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, width: 700, onclone: function(doc) { doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); if (el) { el.style.position = 'static'; el.style.left = 'auto'; el.style.margin = '0 auto'; } } },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
 
-            setTimeout(function() {
-                html2pdf().set(opt).from(pdfBlock).save().then(function() {
-                    pdfBlock.classList.remove('pdf-rendering');
-                }).catch(function(err) {
-                    console.error('html2pdf error:', err);
-                    pdfBlock.classList.remove('pdf-rendering');
-                });
-            }, 200);
+            // Wait for fonts and layout before capturing
+            try {
+                await document.fonts.ready;
+                await new Promise(function(resolve) { requestAnimationFrame(function() { requestAnimationFrame(resolve); }); });
+                await html2pdf().set(opt).from(pdfBlock).save();
+            } catch (err) {
+                console.error('html2pdf error:', err);
+            } finally {
+                pdfBlock.classList.remove('pdf-rendering');
+            }
         }
 
         // =====================================================================
