@@ -157,7 +157,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
 /* ── PDF print block — hidden but in document flow for html2canvas ── */
 #pdf-print-block{overflow:hidden;height:0;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:0 20px;opacity:0;pointer-events:none}
-#pdf-print-block.pdf-rendering{height:auto;padding:12px 20px;opacity:1;pointer-events:auto}
+#pdf-print-block.pdf-rendering{height:auto;padding:12px 20px;opacity:1;pointer-events:auto;position:absolute;left:0;top:0;z-index:-1}
 
 /* PDF dialog overlay */
 .pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}

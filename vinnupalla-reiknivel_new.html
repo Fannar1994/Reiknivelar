@@ -1137,13 +1137,17 @@
   /* PDF print block - hidden on screen */
   #pdf-print-block {
     display: none;
-    width: 100%;
-    max-width: 100%;
+    width: 700px;
+    max-width: 700px;
     box-sizing: border-box;
     font-family: 'Segoe UI', system-ui, sans-serif;
     font-size: 13px;
     color: #1e293b;
     padding: 12px 20px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
   }
   /* PDF header */
   .pdf-hdr {
@@ -3212,7 +3216,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', function() {
     margin:       [6, 8, 6, 8],
     filename:     pdfFilename,
     image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 700, width: 700 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
   };
