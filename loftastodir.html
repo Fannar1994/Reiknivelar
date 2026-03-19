@@ -146,8 +146,6 @@ body { font-family: 'Barlow', system-ui, Arial, sans-serif; background: var(--co
 input[type="date"], input[type="text"] { padding: 10px 12px; border: 1px solid #ccc; border-radius: var(--radius-md); font-family: 'Barlow', sans-serif; font-size: 14px; background: #fff; transition: border-color .2s; width: 100%; }
 input[type="date"]:focus, input[type="text"]:focus { outline: none; border-color: var(--color-dark); }
 .field-hint { font-size: 11px; color: var(--color-muted); margin-top: 3px; font-style: italic; line-height: 1.4; }
-.days-warning { background: #fff3cd; border: 1px solid #f5c800; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 12px; color: #856404; margin-top: 8px; display: none; }
-.days-warning.show { display: block; }
 
 /* ===== INFO BOX ===== */
 .info-box { background: #fffbe6; border-left: 4px solid var(--color-accent); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; color: #555; line-height: 1.6; }
@@ -375,22 +373,6 @@ body.pdf-hide-sig .print-signature { display: none !important; }
     </div>
   </div>
 
-  <!-- ===== INFO ===== -->
-  <div class="card">
-    <div class="card-body">
-      <div class="info-box">
-        <strong>LOFTASTOÐIR &amp; MÓTABITAR</strong>
-        <ul>
-          <li>Stoðin verður alltaf að standa beint undir byrðinni, ef hún hallar eða er ekki rétt undir þyngdarpunktinum getur hún gefið sig.</li>
-          <li>Hámarksálag fer eftir flokki og hæð — Class A: ≤25,9 kN · Class B: ≤30 kN · Class C/D/E: ≤35 kN</li>
-          <li>Öryggisstuðull er 1,7 á móti brotþoli. Hæðarstilling á 100 mm millibili — öryggisspinninn verður að vera fastur.</li>
-          <li>Þrífeður og rekkar eru sérskráðir, aldrei senda út nema skráðar á samning.</li>
-          <li>HT-20 mótabitar eru láréttir stoðbitar; lengd velst eftir bilmáli milli loftastoða.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
   <!-- ===== LEIGUTÍMABIL ===== -->
   <div class="card">
     <div class="card-header">
@@ -414,18 +396,11 @@ body.pdf-hide-sig .print-signature { display: none !important; }
           <input type="date" id="end-date">
         </div>
       </div>
-      <!-- Days stepper -->
+      <!-- Days input -->
       <div class="input-block" style="max-width:320px">
         <label class="label" for="rental-days">Leigutímabil (dagar)</label>
-        <div class="num-wrap" style="margin-top:4px">
-          <input type="number" id="rental-days" min="10" value="10">
-          <div class="num-arrows">
-            <button type="button" onclick="stepRentalDays(1)">&#9650;</button>
-            <button type="button" onclick="stepRentalDays(-1)">&#9660;</button>
-          </div>
-        </div>
+        <input type="number" id="rental-days" min="1" value="10" style="margin-top:4px">
         <div class="field-hint">Breyttu dagsetningum <em>eða</em> sláðu inn dagafjölda — þær uppfærast sjálfkrafa.</div>
-        <div class="days-warning" id="days-warning">⚠ Lágmarkstímabil er 10 dagar — lokadagur hefur verið færður.</div>
       </div>
     </div>
   </div>
@@ -486,13 +461,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
         <!-- Discount -->
         <div class="discount-row">
           <label for="discount-input" style="font-size:13px;color:#444;flex:1">Afsláttur (%)</label>
-          <div class="num-wrap">
-            <input type="number" id="discount-input" min="0" max="100" step="0.5" value="0">
-            <div class="num-arrows">
-              <button type="button" onclick="stepDiscount(1)">&#9650;</button>
-              <button type="button" onclick="stepDiscount(-1)">&#9660;</button>
-            </div>
-          </div>
+          <input type="number" id="discount-input" min="0" max="100" step="0.5" value="0" style="width:90px;padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm);text-align:center">
         </div>
         <div class="cost-line discounted" id="discounted-row" style="display:none">
           <span>Leiguverð með afslætti</span>
@@ -524,15 +493,10 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <div class="export-row" style="margin-bottom:20px">
     <button class="export-btn pdf-btn" onclick="openPdfDialog()">⬇ Búa til PDF</button>
     <button class="export-btn excel-btn" onclick="exportExcel()">📊 Flytja í Excel</button>
-    <button class="btn-accent" onclick="saveQuote()">💾 Vista tilboð</button>
   </div>
 
   <!-- ===== FILTER BAR (Loftastoðir) ===== -->
   <div class="filter-bar">
-    <div class="filter-group grow">
-      <label class="label" for="ls-search">Leita eftir nafni eða númer</label>
-      <input type="text" class="filter-input" id="ls-search" placeholder="t.d. Galv., B30, E35...">
-    </div>
     <div class="filter-group">
       <label class="label" for="ls-class-filter">Flokkur</label>
       <select class="filter-select" id="ls-class-filter" onchange="filterLoftastodir()">
@@ -576,8 +540,6 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <!-- ===== AUKAHLUTIR ===== -->
   <div class="section-title">Aukahlutir</div>
   <div class="product-grid" id="aukahlutir-grid"></div>
-
-  <button class="btn-calc" onclick="calculate(false)">Reikna efnislista</button>
 
   <!-- ===== RESULTS (auto-shown) ===== -->
   <div id="results">
@@ -774,7 +736,7 @@ function toISO(d)  { return d.toISOString().split('T')[0]; }
 // =====================================================================
 // DUAL DATE ↔ DAYS + 10-DAY MINIMUM
 // =====================================================================
-const MIN_DAYS = 10;
+const MIN_DAYS = 1;
 
 function calculateDaysBetween(s, e) {
   const start = new Date(s + 'T12:00:00');
@@ -782,15 +744,17 @@ function calculateDaysBetween(s, e) {
   return Math.max(1, Math.round((end - start) / 86400000) + 1);
 }
 
+const DEFAULT_DAYS = 10;
+
 function initializeDates() {
   const today = new Date();
   const end   = new Date(today);
-  end.setDate(today.getDate() + MIN_DAYS - 1);
+  end.setDate(today.getDate() + DEFAULT_DAYS - 1);
   document.getElementById('start-date').value  = toISO(today);
   document.getElementById('end-date').value    = toISO(end);
-  document.getElementById('rental-days').value = MIN_DAYS;
+  document.getElementById('rental-days').value = DEFAULT_DAYS;
   document.getElementById('clientDate').value  = toISO(today);
-  updateBadge(MIN_DAYS);
+  updateBadge(DEFAULT_DAYS);
 }
 
 function updateRentalDays() {
@@ -799,14 +763,10 @@ function updateRentalDays() {
   if (!s || !e) return;
   let days = calculateDaysBetween(s, e);
   if (days < MIN_DAYS) {
-    // Auto-extend end date
     const start = new Date(s + 'T12:00:00');
     start.setDate(start.getDate() + MIN_DAYS - 1);
     document.getElementById('end-date').value = toISO(start);
     days = MIN_DAYS;
-    showDaysWarning(true);
-  } else {
-    showDaysWarning(false);
   }
   document.getElementById('rental-days').value = days;
   updateBadge(days);
@@ -820,19 +780,12 @@ function updateEndDateFromDays() {
   if (days < MIN_DAYS) {
     days = MIN_DAYS;
     document.getElementById('rental-days').value = MIN_DAYS;
-    showDaysWarning(true);
-  } else {
-    showDaysWarning(false);
   }
   const start = new Date(s + 'T12:00:00');
   start.setDate(start.getDate() + days - 1);
   document.getElementById('end-date').value = toISO(start);
   updateBadge(days);
   scheduleCalculate();
-}
-
-function showDaysWarning(show) {
-  document.getElementById('days-warning').classList.toggle('show', show);
 }
 
 function updateBadge(days) {
@@ -883,16 +836,14 @@ function makeStepperQty(prefix, idx) {
 // FILTER (Loftastoðir)
 // =====================================================================
 function filterLoftastodir() {
-  var search  = document.getElementById('ls-search').value.toLowerCase().trim();
   var minKN   = parseFloat(document.getElementById('ls-kn-filter').value) || 0;
   var cls     = document.getElementById('ls-class-filter').value;
   var cards   = document.querySelectorAll('#loftastodir-grid .p-card');
   var visible = 0;
   LOFTASTODIR.forEach(function(p, i) {
-    var matchSearch = !search || p.name.toLowerCase().includes(search) || p.id.toLowerCase().includes(search);
     var matchKN     = !minKN  || p.kN_max >= minKN;
     var matchClass  = !cls    || p.classKey === cls;
-    var show = matchSearch && matchKN && matchClass;
+    var show = matchKN && matchClass;
     cards[i].classList.toggle('hidden', !show);
     if (show) visible++;
   });
@@ -907,7 +858,6 @@ function stepFilterKN(dir) {
 }
 
 function clearLsFilter() {
-  document.getElementById('ls-search').value   = '';
   document.getElementById('ls-kn-filter').value = '';
   document.getElementById('ls-class-filter').value = '';
   filterLoftastodir();
@@ -1490,7 +1440,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('rental-days').addEventListener('input', updateEndDateFromDays);
 
   // Filter listeners
-  document.getElementById('ls-search').addEventListener('input', filterLoftastodir);
   document.getElementById('ls-kn-filter').addEventListener('input', filterLoftastodir);
 
   // Discount listener
