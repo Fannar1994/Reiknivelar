@@ -331,21 +331,21 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   .filter-bar { flex-direction: column; }
   .filter-group.grow { width: 100%; }
 }
-/* PDF print block — off-screen but renderable for html2canvas */
+/* PDF print block — hidden but renderable for html2canvas */
 #pdf-print-block {
-  position: fixed;
-  left: -9999px;
-  top: 0;
+  overflow: hidden;
+  height: 0;
   width: 700px;
   max-width: 700px;
   box-sizing: border-box;
   font-family: 'Barlow', system-ui, Arial, sans-serif;
   font-size: 13px;
   color: #1e293b;
-  padding: 12px 20px;
+  padding: 0 20px;
+  opacity: 0;
   pointer-events: none;
 }
-#pdf-print-block.pdf-rendering { left: 0; z-index: 9999; pointer-events: auto; }
+#pdf-print-block.pdf-rendering { height: auto; padding: 12px 20px; opacity: 1; pointer-events: auto; }
 #pdf-print-block table { page-break-inside: auto; }
 #pdf-print-block tr { page-break-inside: avoid; }
 #pdf-print-block thead { display: table-header-group; }
@@ -1104,7 +1104,7 @@ function doPrint() {
   exportPDF();
 }
 
-async function exportPDF() {
+function exportPDF() {
   if (typeof html2pdf === 'undefined') {
     alert('Villa: html2pdf.js tókst ekki að hlaðast. Endurhladdu síðuna.');
     return;
@@ -1136,10 +1136,9 @@ async function exportPDF() {
   metaParts.push(dateStr);
   document.getElementById('pdf-meta').textContent = metaParts.join('  \u00b7  ') || '\u2013';
 
-  // Rental info
+  // Rental info – structured HTML instead of newline-delimited text
   var startD = document.getElementById('start-date').value;
   var endD   = document.getElementById('end-date').value;
-  // Rental info – structured HTML instead of newline-delimited text
   var rentalHtml = '<div>Leigutími: ' + days + ' dagar</div>';
   if (startD) rentalHtml += '<div>Upphafsdagur: ' + new Date(startD).toLocaleDateString('is-IS') + '</div>';
   if (endD)   rentalHtml += '<div>Lokadagur: ' + new Date(endD).toLocaleDateString('is-IS') + '</div>';
@@ -1218,27 +1217,27 @@ async function exportPDF() {
   // Generate PDF
   var pdfBlock = document.getElementById('pdf-print-block');
   pdfBlock.classList.add('pdf-rendering');
+  window.scrollTo(0, 0);
 
   var opt = {
     margin:      [6, 8, 6, 8],
     filename:    filename,
     image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, width: 700, onclone: function(doc) { doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); if (el) { el.style.position = 'static'; el.style.left = 'auto'; el.style.margin = '0 auto'; } } },
+    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, width: 700, onclone: function(doc) { doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); if (el) { el.style.margin = '0 auto'; } } },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:   { mode: ['css', 'legacy'] }
   };
 
-  // Wait for fonts and layout before capturing
-  try {
-    await document.fonts.ready;
-    await new Promise(function(resolve) { requestAnimationFrame(function() { requestAnimationFrame(resolve); }); });
-    await html2pdf().set(opt).from(pdfBlock).save();
-  } catch (err) {
-    console.error('html2pdf error:', err);
-    alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-  } finally {
-    pdfBlock.classList.remove('pdf-rendering');
-  }
+  // Allow browser to fully paint the block before capturing
+  setTimeout(function() {
+    html2pdf().set(opt).from(pdfBlock).save().then(function() {
+      pdfBlock.classList.remove('pdf-rendering');
+    }).catch(function(err) {
+      console.error('html2pdf error:', err);
+      alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
+      pdfBlock.classList.remove('pdf-rendering');
+    });
+  }, 200);
 }
 
 function exportExcel() {
