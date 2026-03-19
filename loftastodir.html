@@ -373,6 +373,8 @@ body.pdf-hide-sig .print-signature { display: none !important; }
       <div class="calc-header-sub">Loftastoðir &amp; mótabitar — verðútreikningur</div>
     </div>
     <div class="calc-header-right">
+      <button class="btn-header" onclick="resetAll()">Hreinsa</button>
+      <button class="btn-header accent" onclick="saveQuote()">💾 Vista tilboð</button>
       <button class="btn-lb" onclick="document.getElementById('lbModal').classList.add('lb-open')">📖 Leiðbeiningar</button>
     </div>
   </div>
@@ -630,6 +632,10 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 
 <!-- ===== PRINT-ONLY CLIENT BLOCK ===== -->
 <div id="print-client-block" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+    <strong id="print-project-title" style="font-size:14px;">Loftastoðir — Byko Leiga</strong>
+    <span id="print-date" style="font-size:12px;color:#666;"></span>
+  </div>
   <div id="print-client-info"></div>
 </div>
 
@@ -1416,6 +1422,24 @@ function calculate(silent) {
   var proj = document.getElementById('project-name').value;
   document.getElementById('print-project-title').textContent = proj || 'Loftastoðir — Byko Leiga';
   document.getElementById('print-date').textContent = new Date().toLocaleDateString('is-IS');
+
+  // Populate print-client-info for browser print
+  var printParts = [];
+  var cName = (document.getElementById('clientName').value || '').trim();
+  var cCompany = (document.getElementById('clientCompany').value || '').trim();
+  var cKt = (document.getElementById('clientKennitala').value || '').trim();
+  var cPhone = (document.getElementById('clientPhone').value || '').trim();
+  var cEmail = (document.getElementById('clientEmail').value || '').trim();
+  var cAddr = (document.getElementById('clientAddress').value || '').trim();
+  var cUttektar = (document.getElementById('clientUttektar').value || '').trim();
+  if (cName)     printParts.push('<strong>Nafn:</strong> ' + cName);
+  if (cCompany)  printParts.push('<strong>Fyrirtæki:</strong> ' + cCompany);
+  if (cKt)       printParts.push('<strong>Kennitala:</strong> ' + cKt);
+  if (cPhone)    printParts.push('<strong>Sími:</strong> ' + cPhone);
+  if (cEmail)    printParts.push('<strong>Netfang:</strong> ' + cEmail);
+  if (cAddr)     printParts.push('<strong>Heimilisfang:</strong> ' + cAddr);
+  if (cUttektar) printParts.push('<strong>Úttektaraðili:</strong> ' + cUttektar);
+  document.getElementById('print-client-info').innerHTML = printParts.join(' &nbsp;·&nbsp; ');
 
   // Show results (scroll only first time)
   var wasVisible = _resultsVisible;
