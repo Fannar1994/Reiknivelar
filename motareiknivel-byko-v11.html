@@ -155,12 +155,10 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
   .pdf-sum-box.accent .pdf-sum-val{color:#fff!important}
 }
 
-/* ── PDF print block — off-screen but renderable for html2canvas ── */
-#pdf-print-block{position:fixed;left:-9999px;top:0;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px;pointer-events:none}
-#pdf-print-block.pdf-rendering{left:0;z-index:9999;pointer-events:auto}
-#pdf-print-block table{page-break-inside:auto}
-#pdf-print-block tr{page-break-inside:avoid}
-#pdf-print-block thead{display:table-header-group}
+/* ── PDF print block — hidden on screen, visible in print ── */
+#pdf-print-block{display:none;width:700px;max-width:700px;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1e293b;padding:12px 20px;pointer-events:none}
+#pdf-print-block.pdf-rendering{display:block;pointer-events:auto}
+@media print{body>*:not(#pdf-print-block){display:none!important}#pdf-print-block{display:block!important;position:static!important;width:100%!important;max-width:100%!important;padding:12px 20px!important;pointer-events:auto!important}}
 
 /* PDF dialog overlay */
 .pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center}
@@ -203,7 +201,6 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .pdf-sig-name{font-size:8px;color:#64748b}
 .pdf-layout-box{background:#f8f9fb;border:1px solid #e0e0e0;border-radius:4px;padding:8px 12px;margin-bottom:8px;font-size:11px;white-space:pre-wrap;font-family:'Consolas','Fira Code',monospace;line-height:1.5;color:#333}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
@@ -1302,13 +1299,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-async function generatePDF() {
+function generatePDF() {
     if (!lastBoqResult) {
         alert('Reiknaðu fyrst efnislistann.');
-        return;
-    }
-    if (typeof html2pdf === 'undefined') {
-        alert('Villa: html2pdf.js tókst ekki að hlaðast. Endurhladdu síðuna.');
         return;
     }
 
@@ -1399,30 +1392,15 @@ async function generatePDF() {
     pdfParts.push(dateStr);
     var pdfFilename = pdfParts.join('-') + '.pdf';
 
-    // ── Show block, generate, hide ──
+    // ── Show block, print, hide ──
     var pdfBlock = document.getElementById('pdf-print-block');
     pdfBlock.classList.add('pdf-rendering');
+    document.title = pdfFilename.replace('.pdf', '');
 
-    var opt = {
-        margin:      [6, 8, 6, 8],
-        filename:    pdfFilename,
-        image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, width: 700, onclone: function(doc) { doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); if (el) { el.style.position = 'static'; el.style.left = 'auto'; el.style.margin = '0 auto'; } } },
-        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:   { mode: ['css', 'legacy'], avoid: '.pdf-box' }
-    };
-
-    // Wait for fonts and layout before capturing
-    try {
-        await document.fonts.ready;
-        await new Promise(function(resolve) { requestAnimationFrame(function() { requestAnimationFrame(resolve); }); });
-        await html2pdf().set(opt).from(pdfBlock).save();
-    } catch (err) {
-        console.error('html2pdf error:', err);
-        alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-    } finally {
+    setTimeout(function() {
+        window.print();
         pdfBlock.classList.remove('pdf-rendering');
-    }
+    }, 200);
 }
 
 
