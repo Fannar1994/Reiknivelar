@@ -59,7 +59,6 @@ def validate_index(filepath):
         'hjolapallar_reiknivel_sp.html',
         'loftastodir.html',
         'motareiknivel-byko-v11.html',
-        'vinnupalla-reiknivel.html',
         'vinnupalla-reiknivel_new.html',
     ]
 
