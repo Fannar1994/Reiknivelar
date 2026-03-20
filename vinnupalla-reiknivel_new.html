@@ -1109,19 +1109,45 @@
 
   /* ── Print / PDF ─────────────────────────────── */
   @media print {
+    /* Hide everything except the PDF block */
     body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
-    .calculator { box-shadow: none !important; padding: 0 !important; }
-    #pdf-print-block { position: static !important; left: auto !important; max-width: 100% !important; width: 100% !important; }
-    #pdf-print-block .pdf-hdr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    #pdf-print-block .pdf-hdr div[style*="background:#1e293b"] { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pdf-hdr-right { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body > *:not(#pdf-print-block) { display: none !important; }
+    .calculator { display: none !important; }
+    .no-print { display: none !important; }
+    .pdf-overlay { display: none !important; }
+    .lb-overlay { display: none !important; }
+    .stack-overlay { display: none !important; }
+    .confirm-overlay { display: none !important; }
+
+    /* Show and position the PDF block */
+    #pdf-print-block {
+      display: block !important;
+      position: static !important;
+      left: auto !important;
+      top: auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 8mm !important;
+      margin: 0 !important;
+      pointer-events: auto !important;
+      font-family: 'Segoe UI', system-ui, sans-serif !important;
+      font-size: 13px !important;
+      color: #1e293b !important;
+    }
+
+    /* Color-adjust for backgrounds */
+    #pdf-print-block * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    #pdf-print-block .pdf-hdr div[style*="background:#1e293b"] { background: #1e293b !important; }
+    .pdf-hdr-right { background: #1e293b !important; }
     .pdf-hdr-left { background: #fff !important; }
-    .pdf-sum-box.accent { background: #1e293b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pdf-sum-box.accent { background: #1e293b !important; }
     .pdf-sum-box.accent .pdf-sum-val { color: #fff !important; }
     .pdf-hdr-right h2 { color: #fff !important; }
     .pdf-hdr-right .pdf-sub { color: #94a3b8 !important; }
     .pdf-hdr-right .pdf-client-meta { color: #cbd5e1 !important; }
     .pdf-zero td { color: #cbd5e1 !important; }
+
+    /* Table styling */
     .pdf-mat-table { font-size: 11px !important; width: 100% !important; }
     .pdf-mat-table col.col-name { width: 35% !important; }
     .pdf-mat-table col.col-qty  { width: 10% !important; }
@@ -1132,15 +1158,22 @@
     .pdf-mat-table th { font-size: 10px !important; padding: 6px 6px !important; }
     .pdf-mat-table td { padding: 3px 6px !important; }
     .pdf-mat-table td:first-child { overflow: visible !important; white-space: normal !important; }
+
+    /* Summary boxes grid fix */
+    .pdf-sum-row { display: grid !important; grid-template-columns: repeat(4,1fr) !important; gap: 6px !important; width: 100% !important; }
+    .pdf-top-row { display: flex !important; gap: 8px !important; width: 100% !important; }
+    .pdf-client-grid { display: grid !important; grid-template-columns: auto 1fr !important; }
+    .pdf-sig-section { display: grid !important; }
+
+    /* Page break control */
+    #pdf-print-block table { page-break-inside: auto; }
+    #pdf-print-block tr { page-break-inside: avoid; }
+    #pdf-print-block thead { display: table-header-group; }
   }
 
-  /* PDF print block — off-screen but renderable for html2canvas */
+  /* PDF print block — hidden by default */
   #pdf-print-block {
-    position: fixed;
-    left: -9999px;
-    top: 0;
-    width: 700px;
-    max-width: 700px;
+    display: none;
     box-sizing: border-box;
     font-family: 'Segoe UI', system-ui, sans-serif;
     font-size: 13px;
@@ -1148,10 +1181,6 @@
     padding: 12px 20px;
     pointer-events: none;
   }
-  #pdf-print-block.pdf-rendering { left: 0; z-index: 9999; pointer-events: auto; }
-  #pdf-print-block table { page-break-inside: auto; }
-  #pdf-print-block tr { page-break-inside: avoid; }
-  #pdf-print-block thead { display: table-header-group; }
   /* PDF header */
   .pdf-hdr {
     display: flex;
@@ -1407,7 +1436,7 @@
 @media print{.lb-overlay{display:none!important}}
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- html2pdf removed - using window.print() instead -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
@@ -1655,8 +1684,8 @@
         Heildaryfirlit
       </label>
       <label class="pdf-check-row">
-        <input type="checkbox" id="pdfCheckHideZero">
-        Fela línur með magn = 0
+        <input type="checkbox" id="pdfCheckShowZero">
+        Sýna línur með magn = 0
       </label>
       <div class="pdf-divider"></div>
       <div class="pdf-section-label">Hliðar</div>
@@ -2327,6 +2356,20 @@ function renderEditPanel(facadeEl, perFacade, facadeId) {
 
   var overrides = overridesByFacade[facadeId] || {};
   var tbody = panel.querySelector('.edit-body');
+
+  // If rows already exist, just update the auto-qty cells (preserve focus on override inputs)
+  var existingRows = tbody.querySelectorAll('tr');
+  if (existingRows.length === ALL_ITEMS.length) {
+    ALL_ITEMS.forEach(function(key, idx) {
+      var autoQty = perFacade[key] || 0;
+      var row = existingRows[idx];
+      var qtyCell = row.querySelector('.qty-auto');
+      if (qtyCell) qtyCell.textContent = autoQty;
+    });
+    return;
+  }
+
+  // First render: build full table
   tbody.innerHTML = '';
 
   ALL_ITEMS.forEach(function(key) {
@@ -2363,6 +2406,8 @@ function renderEditPanel(facadeEl, perFacade, facadeId) {
     btn.addEventListener('click', function() {
       var item = btn.dataset.item;
       overridesByFacade[facadeId][item] = null;
+      // Force full re-render after reset by clearing rows
+      tbody.innerHTML = '';
       recalcAll();
     });
   });
@@ -2917,7 +2962,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', async functio
     selectedWalls.push(+cb.dataset.facadeId);
   });
   var showTotal = document.getElementById('pdfCheckTotal').checked;
-  var hideZeroQty = document.getElementById('pdfCheckHideZero').checked;
+  var showZeroQty = document.getElementById('pdfCheckShowZero').checked;
 
   // Fill client info in print header
   var name      = document.getElementById('clientName').value.trim();
@@ -3121,7 +3166,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', async functio
           var cells = srcRow.querySelectorAll('td');
           if (cells.length < 6) return;
           var qty = parseInt(cells[3].textContent) || 0;
-          if (hideZeroQty && qty === 0) return;
+          if (!showZeroQty && qty === 0) return;
           var tr = document.createElement('tr');
           var rowColor = qty === 0 ? 'color:#c0c0c0;' : '';
           tr.style.borderBottom = '1px solid #f1f5f9';
@@ -3150,7 +3195,7 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', async functio
         var cells = srcRow.querySelectorAll('td');
         if (cells.length < 6) return;
         var qty = parseInt(cells[3].textContent) || 0;
-        if (hideZeroQty && qty === 0) return;
+        if (!showZeroQty && qty === 0) return;
         var tr  = document.createElement('tr');
         var rowColor = qty === 0 ? 'color:#c0c0c0;' : '';
         tr.style.borderBottom = '1px solid #f1f5f9';
@@ -3210,29 +3255,12 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', async functio
   if (_d) pdfParts.push(_d);
   var pdfFilename = pdfParts.join('-') + '.pdf';
 
-  // Show the pdf-print-block for html2pdf to capture
+  // Make the pdf-print-block visible for printing
   var pdfBlock = document.getElementById('pdf-print-block');
-  pdfBlock.classList.add('pdf-rendering');
-
-  // html2pdf options
-  var opt = {
-    margin:       [6, 8, 6, 8],
-    filename:     pdfFilename,
-    image:        { type: 'jpeg', quality: 0.95 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, width: 700, onclone: function(doc) { Array.from(doc.body.children).forEach(function(child) { if (child.id !== 'pdf-print-block') child.style.display = 'none'; }); doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); if (el) { el.style.position = 'static'; el.style.left = '0'; el.style.top = '0'; el.style.width = '700px'; el.style.margin = '0 auto'; } } },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:    { mode: ['css', 'legacy'], avoid: '.pdf-box' }
-  };
-
-  // Guard: check that html2pdf loaded
-  if (typeof html2pdf === 'undefined') {
-    alert('Villa: html2pdf.js tókst ekki að hlaðast. Athugaðu nettengingu og endurhladdu síðuna.');
-    pdfBlock.classList.remove('pdf-rendering');
-    return;
-  }
+  pdfBlock.style.display = 'block';
 
   function pdfCleanup() {
-    pdfBlock.classList.remove('pdf-rendering');
+    pdfBlock.style.display = 'none';
     document.querySelectorAll('#facades article.facade').forEach(function(facadeEl) {
       var summaryPanel = facadeEl.querySelector('.facade-summary-panel');
       if (summaryPanel) {
@@ -3247,15 +3275,14 @@ document.getElementById('pdfConfirmBtn').addEventListener('click', async functio
     if (globalSummary) globalSummary.classList.remove('print-force-hide');
   }
 
-  // Wait for fonts and layout before capturing
+  // Wait for fonts, then open print dialog
   try {
     await document.fonts.ready;
     await new Promise(function(resolve) { requestAnimationFrame(function() { requestAnimationFrame(resolve); }); });
-    await html2pdf().set(opt).from(pdfBlock).save();
+    window.print();
     pdfCleanup();
   } catch (err) {
-    console.error('html2pdf error:', err);
-    alert('Villa við PDF gerð: ' + err.message);
+    console.error('Print error:', err);
     pdfCleanup();
   }
 });</script>
