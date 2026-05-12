@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Girðingareiknivél v13 – Byko Leiga</title>
+<title>Girðingareiknivél v14 – Byko Leiga</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap');
 :root{--color-border:#ddd;--color-surface:#fafafa;--color-bg:#f2f4f7;--color-muted:#666;--color-dark:#404042;--color-accent:#f5c800;--radius-sm:5px;--radius-md:8px;--radius-lg:10px}
@@ -222,7 +222,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
         </div>
       </div>
 
-      <div class="note-box">Leiguverð lækkar sjálfkrafa eftir leigutíma. Sjá nánar í <em>sundurliðun eftir tímabilum</em>.</div>
+      <div class="note-box no-print">Leiguverð lækkar sjálfkrafa eftir leigutíma. Sjá nánar í <em>sundurliðun eftir tímabilum</em>.</div>
 
       <div id="accSection">
         <div class="section-label no-print">Aukahlutir</div>
@@ -428,8 +428,8 @@ function calculate(){
   var TIP='<span class="tooltip-wrap"><span class="tooltip-icon">i</span><span class="tooltip-bubble">Verð er áætlað og byggt á gildandi verðskrá (janúar 2026). Endanlegt verð kann að breytast.</span></span>';
   var html='<div class="result-box">';
   if(minWarning)html+='<div class="result-warning">&#9888; Lágmarksleigutími miðar við '+MIN_DAYS+' daga.</div>';
-  html+='<div class="result-row"><span class="r-label">Leigutími</span><span class="r-val">'+days+' dagar</span></div>';
-  html+='<div class="result-row"><span class="r-label">Tilboðslínur</span><span class="r-val">'+quoteLines.length+'</span></div>';
+  html+='<div class="result-row no-print"><span class="r-label">Leigutími</span><span class="r-val">'+days+' dagar</span></div>';
+  html+='<div class="result-row no-print"><span class="r-label">Tilboðslínur</span><span class="r-val">'+quoteLines.length+'</span></div>';
 
   html+='<div class="result-subsection-label">Efnislisti</div>';
   html+='<table class="mat-table"><thead><tr><th>Vara</th><th>Magn</th><th>Leiga (samtals)</th></tr></thead><tbody>';
