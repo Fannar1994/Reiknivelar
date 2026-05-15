@@ -1171,6 +1171,17 @@
     #pdf-print-block thead { display: table-header-group; }
   }
 
+  /* Stiga toggle button active state */
+  .toggle-stiga-btn.active-stiga {
+    background: #1e293b;
+    color: #fff;
+    border-color: #1e293b;
+  }
+  .toggle-stiga-btn.active-stiga:hover {
+    background: #334155;
+    border-color: #334155;
+  }
+
   /* PDF print block — hidden by default */
   #pdf-print-block {
     display: none;
@@ -1534,6 +1545,19 @@
     </thead>
     <tbody id="results"></tbody>
   </table>
+
+  <div class="action-row no-print" style="margin-top:8px;">
+    <button type="button" class="edit-btn" id="globalEditBtn">✏️ Breyta magni (rekkar / fylgihlutagrind)</button>
+  </div>
+
+  <div class="panel hidden no-print" id="globalEditPanel">
+    <strong>Breyta magni &mdash; rekkar og fylgihlutagrind</strong>
+    <p class="help-text" style="margin-top:4px;">Sjálfgefinð magn er reiknað sjálfvirkt. Þú getur hnekkt hverri línu. Smelltu á × til að endurstilla.</p>
+    <table>
+      <thead><tr><th>Heiti</th><th>Sjálfvirkt</th><th>Hnekking</th><th></th></tr></thead>
+      <tbody id="globalEditBody"></tbody>
+    </table>
+  </div>
 
   <div class="summary">
     <div class="summary-box">
@@ -1908,6 +1932,8 @@ let nextFacadeId     = 1;
 let extrasByFacade   = {};  // { facadeId: { itemName: quantity } }
 let legSplitByFacade = {};  // { facadeId: { 50: qty, 100: qty } }
 let overridesByFacade = {}; // { facadeId: { itemName: qty | null } }
+let stigaByFacade = {};    // { facadeId: true/false }
+let globalOverrides = {};  // { itemName: qty | null } — overrides for racks/grids
 
 // ── Utility helpers ───────────────────────────────────────────────────────────
 
@@ -2096,6 +2122,7 @@ function createFacadeHTML(id) {
     '</div>',
 
     '<div class="action-row">',
+      '<button type="button" class="toggle-stiga-btn">+ Stigapallar og stigar</button>',
       '<button type="button" class="toggle-extras-btn">Að auki</button>',
       '<button type="button" class="toggle-legs-btn">Lappir – skipting</button>',
       '<button type="button" class="toggle-summary-btn">Sýna efni (hlið)</button>',
@@ -2159,7 +2186,7 @@ function createFacadeHTML(id) {
  * @param {number} endcaps   - Number of end closures
  * @returns {Object} Map of item name to quantity (includes internal LEGS_TOTAL key)
  */
-function calculateFacadeMaterials(length, levels2m, levels07m, endcaps, isFirst) {
+function calculateFacadeMaterials(length, levels2m, levels07m, endcaps, includeStiga) {
   var bays           = Math.ceil(length / BOARD_LENGTH_M);
   var framesPerLevel = bays + 1;
   var pairedLevels   = Math.min(levels2m, levels07m);
@@ -2167,7 +2194,7 @@ function calculateFacadeMaterials(length, levels2m, levels07m, endcaps, isFirst)
 
   var frames2m         = framesPerLevel * levels2m;
   var frames07m        = framesPerLevel * levels07m;
-  var stairBoards      = isFirst ? levels2m : 0;
+  var stairBoards      = includeStiga ? levels2m : 0;
   var floorBoards      = (levels2m * 2 * bays) - stairBoards;
   var handrails        = (levels2m + 1) * bays;
   var handrailSupports = (bays + 1) + endcaps;
@@ -2184,9 +2211,9 @@ function calculateFacadeMaterials(length, levels2m, levels07m, endcaps, isFirst)
   result["Rammar 2,0m"]        = frames2m;
   result["Rammar 0,7m"]        = frames07m;
   result["Gólfborð 1,8m"]      = floorBoards;
-  result["Stigapallar 1,8m"]   = isFirst ? stairBoards : 0;
-  result["Stigar 2,7m"]        = isFirst ? pairedLevels : 0;
-  result["Stigar 2,0m"]        = isFirst ? onlyLevels2m : 0;
+  result["Stigapallar 1,8m"]   = includeStiga ? stairBoards : 0;
+  result["Stigar 2,7m"]        = includeStiga ? pairedLevels : 0;
+  result["Stigar 2,0m"]        = includeStiga ? onlyLevels2m : 0;
   result["Tvöföld handrið"]    = handrails;
   result["Handriðastoðir"]     = handrailSupports;
   result["Veggfestingar 50cm"] = anchors50cm;
@@ -2255,9 +2282,75 @@ function renderFacadeSummary(facadeEl, perFacade, facadeId) {
 }
 
 /** Render the global results table and all summary boxes. */
+/** Render the global edit panel for racks/grids (only update auto values if rows exist). */
+function renderGlobalEditPanel(combined, items) {
+  var panel = document.getElementById('globalEditPanel');
+  if (!panel || panel.classList.contains('hidden')) return;
+
+  var tbody = document.getElementById('globalEditBody');
+
+  // If rows already exist, just update auto-qty cells (preserve focus)
+  var existingRows = tbody.querySelectorAll('tr');
+  if (existingRows.length === items.length) {
+    items.forEach(function(key, idx) {
+      // Compute auto value (what calculateRacks/AccessoryGrids computed before override)
+      var autoQty = combined._auto ? combined._auto[key] : (combined[key] || 0);
+      var row = existingRows[idx];
+      var qtyCell = row.querySelector('.qty-auto');
+      if (qtyCell) qtyCell.textContent = autoQty;
+    });
+    return;
+  }
+
+  // First render: build full table
+  tbody.innerHTML = '';
+
+  items.forEach(function(key) {
+    var autoQty = combined._auto ? combined._auto[key] : (combined[key] || 0);
+    var hasOverride = globalOverrides[key] !== null && globalOverrides[key] !== undefined;
+    var overrideVal = hasOverride ? globalOverrides[key] : '';
+
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + key + '</td>' +
+      '<td class="qty-auto" style="color:var(--color-muted);text-align:right;">' + autoQty + '</td>' +
+      '<td><input type="number" class="override-input' + (hasOverride ? ' is-overridden' : '') + '" ' +
+        'min="0" value="' + overrideVal + '" placeholder="–" data-item="' + key + '"></td>' +
+      '<td><button type="button" class="reset-override-btn" data-item="' + key + '" ' +
+        'title="Endurstilla">' + (hasOverride ? '×' : '') + '</button></td>';
+    tbody.appendChild(tr);
+  });
+
+  // Override input events
+  tbody.querySelectorAll('.override-input').forEach(function(input) {
+    input.addEventListener('input', function() {
+      var item = input.dataset.item;
+      var val = input.value.trim();
+      globalOverrides[item] = val !== '' ? +val : null;
+      input.classList.toggle('is-overridden', val !== '');
+      var resetBtn = input.closest('tr').querySelector('.reset-override-btn');
+      if (resetBtn) resetBtn.textContent = val !== '' ? '×' : '';
+      recalcAll();
+    });
+  });
+
+  // Reset buttons
+  tbody.querySelectorAll('.reset-override-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = btn.dataset.item;
+      globalOverrides[item] = null;
+      tbody.innerHTML = '';
+      recalcAll();
+    });
+  });
+}
+
 function renderGlobalResults(combined) {
   var totalPrice  = 0;
   var totalWeight = 0;
+
+  // Clean up internal _auto property
+  delete combined._auto;
 
   document.getElementById('results').innerHTML = ALL_ITEMS.map(function(key) {
     var qty       = combined[key] || 0;
@@ -2440,7 +2533,8 @@ function recalcAll() {
 
     var facadeIndex = Array.from(document.querySelectorAll('#facades article.facade')).indexOf(facadeEl);
     var isFirst    = facadeIndex === 0;
-    var auto      = calculateFacadeMaterials(length, levels2m, levels07m, endcaps, isFirst);
+    var includeStiga = isFirst || !!stigaByFacade[facadeId];
+    var auto      = calculateFacadeMaterials(length, levels2m, levels07m, endcaps, includeStiga);
     var legsTotal = auto["LEGS_TOTAL"];
 
     var legsTotalEl = facadeEl.querySelector('.legs-total-display');
@@ -2480,7 +2574,26 @@ function recalcAll() {
 
   calculateRacks(combined);
   calculateAccessoryGrids(combined, document.querySelectorAll('article.facade').length > 0);
+
+  // Store auto-computed rack/grid values before overriding
+  var GLOBAL_OVERRIDE_ITEMS = ["Rekkar fyrir ramma 50 stk.", "Rekkar fyrir gólf 40 stk.", "Rekki f/tvöföld handrið 40 stk.", "Fylgihlutagrind"];
+  combined._auto = {};
+  GLOBAL_OVERRIDE_ITEMS.forEach(function(key) { combined._auto[key] = combined[key] || 0; });
+
+  // Apply global overrides for racks/grids
+  GLOBAL_OVERRIDE_ITEMS.forEach(function(key) {
+    if (globalOverrides[key] !== null && globalOverrides[key] !== undefined) {
+      combined[key] = globalOverrides[key];
+    }
+  });
+
+  renderGlobalEditPanel(combined, GLOBAL_OVERRIDE_ITEMS);
   renderGlobalResults(combined);
+
+  // Update stiga button visibility (first facade always has stiga)
+  document.querySelectorAll('#facades article.facade').forEach(function(el) {
+    if (el._updateStigaBtn) el._updateStigaBtn();
+  });
 }
 
 // ── Facade management ─────────────────────────────────────────────────────────
@@ -2491,6 +2604,7 @@ function addFacade() {
   extrasByFacade[id]   = {};
   ALL_ITEMS.forEach(function(key) { extrasByFacade[id][key] = 0; });
   overridesByFacade[id] = {};
+  stigaByFacade[id] = false;
   legSplitByFacade[id] = { 50: 0, 100: 0 };
 
   var facadeEl = document.createElement('article');
@@ -2562,6 +2676,42 @@ function addFacade() {
     recalcAll();
   });
 
+  // Stigapallar & stigar toggle
+  var stigaBtn = facadeEl.querySelector('.toggle-stiga-btn');
+  function updateStigaBtn() {
+    var facadeIndex = Array.from(document.querySelectorAll('#facades article.facade')).indexOf(facadeEl);
+    var isFirst = facadeIndex === 0;
+    if (isFirst) {
+      stigaBtn.style.display = 'none'; // always included for first facade
+    } else {
+      stigaBtn.style.display = '';
+      if (stigaByFacade[id]) {
+        stigaBtn.textContent = '✓ Stigapallar og stigar';
+        stigaBtn.classList.add('active-stiga');
+      } else {
+        stigaBtn.textContent = '+ Stigapallar og stigar';
+        stigaBtn.classList.remove('active-stiga');
+      }
+    }
+  }
+  stigaBtn.addEventListener('click', function() {
+    stigaByFacade[id] = !stigaByFacade[id];
+    // Clear stiga overrides when toggling off
+    if (!stigaByFacade[id]) {
+      delete overridesByFacade[id]["Stigapallar 1,8m"];
+      delete overridesByFacade[id]["Stigar 2,7m"];
+      delete overridesByFacade[id]["Stigar 2,0m"];
+    }
+    updateStigaBtn();
+    // Force edit panel re-render
+    var editBody = facadeEl.querySelector('.edit-body');
+    if (editBody) editBody.innerHTML = '';
+    recalcAll();
+  });
+  updateStigaBtn();
+  // Also update on DOM changes (facade reorder/delete)
+  facadeEl._updateStigaBtn = updateStigaBtn;
+
   // Remove button — show confirm dialog
   facadeEl.querySelector('.remove-btn').addEventListener('click', function() {
     var wallName = facadeEl.querySelector('.facade-name-input').value.trim() || 'Hlið #' + id;
@@ -2632,6 +2782,7 @@ function removeFacade(facadeId) {
   delete extrasByFacade[facadeId];
   delete legSplitByFacade[facadeId];
   delete overridesByFacade[facadeId];
+  delete stigaByFacade[facadeId];
   recalcAll();
 }
 
@@ -2643,6 +2794,10 @@ function resetCalculator() {
   extrasByFacade    = {};
   legSplitByFacade  = {};
   overridesByFacade = {};
+  stigaByFacade     = {};
+  globalOverrides   = {};
+  document.getElementById('globalEditBody').innerHTML = '';
+  document.getElementById('globalEditPanel').classList.add('hidden');
   document.getElementById('discountInput').value           = 0;
   document.getElementById('totalWeight').textContent       = '0,00 kg';
   document.getElementById('dailyTotal').textContent        = '0 kr';
@@ -2680,6 +2835,17 @@ document.getElementById('confirmOverlay').addEventListener('click', function(e) 
 });
 
 document.getElementById('addFacadeBtn').addEventListener('click', addFacade);
+
+// Global edit panel toggle
+document.getElementById('globalEditBtn').addEventListener('click', function() {
+  var panel = document.getElementById('globalEditPanel');
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden')) {
+    // Force re-render of edit panel rows
+    document.getElementById('globalEditBody').innerHTML = '';
+  }
+  recalcAll();
+});
 document.getElementById('resetBtn').addEventListener('click', function() {
   var overlay = document.getElementById('resetOverlay');
   overlay.classList.add('visible');
