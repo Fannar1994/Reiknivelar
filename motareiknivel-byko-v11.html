@@ -1864,6 +1864,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial calculation
     calculate(true);
+
+    // Deep link: #id15 activates ID-15 (mode D)
+    if (window.location.hash === '#id15') {
+        var d15Btn = document.querySelector('.sys-tab[onclick*="switchMode(\'D\'"]');
+        if (d15Btn) switchMode('D', d15Btn);
+    }
 });
 </script>
 
