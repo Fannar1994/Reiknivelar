@@ -166,6 +166,11 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
     <!-- CONFIGURATOR (no-print) -->
     <div class="no-print">
+      <div class="section-label">Tegund útreiknings</div>
+      <div class="fence-tabs" style="grid-template-columns:1fr 1fr">
+        <button class="fence-tab active" id="modeRentalBtn" onclick="setCalcMode('rental',this)"><span class="tab-name">Leiga</span><span class="tab-sub">Verð pr. dag</span></button>
+        <button class="fence-tab" id="modeSaleBtn" onclick="setCalcMode('sale',this)"><span class="tab-name">Sala</span><span class="tab-sub">Stykkjaverð</span></button>
+      </div>
       <div class="section-label">Tegund girðingar</div>
       <div class="fence-tabs">
         <button class="fence-tab active" onclick="selectFenceType('standard',this)"><span class="tab-name">Girðingar 3,5m</span><span class="tab-sub">Vinnustaðagirðingar</span></button>
@@ -211,7 +216,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
     <div id="sharedSection" style="display:none">
       <div class="divider no-print"></div>
 
-      <div class="days-row">
+      <div class="days-row rental-only">
         <div class="field">
           <label>Leigutími (dagar)</label>
           <div class="num-wrap">
@@ -222,7 +227,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
         </div>
       </div>
 
-      <div class="note-box no-print">Leiguverð lækkar sjálfkrafa eftir leigutíma. Sjá nánar í <em>sundurliðun eftir tímabilum</em>.</div>
+      <div class="note-box no-print rental-only">Leiguverð lækkar sjálfkrafa eftir leigutíma. Sjá nánar í <em>sundurliðun eftir tímabilum</em>.</div>
 
       <div id="accSection">
         <div class="section-label no-print">Aukahlutir</div>
@@ -243,24 +248,25 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 
 <script>
 var currentFenceType="standard",currentHeight="2.0",currentStoneType="concrete",inputMode="meters",MIN_DAYS=10;
+var calcMode="rental";
 var quoteLines=[];
 var lineIdCounter=0;
 
 var PRODUCTS={
-  "fence-3500x2000x1.1":{rentalNo:"01-BAT-GI01-015",saleNo:"0295300",desc:"Girðingar 3,5x2m",rates:[100,50,25,13,13,13,13,13,13,13,13,13],salePrice:19995},
-  "fence-3500x2000x1.7":{rentalNo:"01-BAT-GI01-053",saleNo:"0295317",desc:"Girðingar 3,5x2m",rates:[100,50,25,13,13,13,13,13,13,13,13,13],salePrice:24995},
-  "fence-3500x1200x1.1":{rentalNo:"01-BAT-GI01-052",saleNo:"0295290",desc:"Girðingar 3,5x1,2m",rates:[80,40,20,10,10,10,10,10,10,10,10,10],salePrice:12995},
-  "queue-barrier":{rentalNo:"01-BAT-GI01-050",saleNo:"0295292",desc:"Biðraðagirðingar 2,5x1,1m",rates:[130,65,33,16,16,16,16,16,16,16,16,16],salePrice:24995},
-  "plastic-fence":{rentalNo:"01-BAT-GI01-043",saleNo:"0295243",desc:"Girðing plast 2,1x1,1m",rates:[80,40,20,10,10,10,10,10,10,10,10,10],salePrice:26995},
-  "stone-concrete":{rentalNo:"01-BAT-GI01-054",saleNo:"0295320",desc:"Steinar f/girðingar",rates:[20,10,5,3,3,3,3,3,3,3,3,3],salePrice:2495},
-  "stone-pvc":{rentalNo:"01-BAT-GI01-0541",saleNo:"0295325",desc:"PVC Steinar f/girðingar",rates:[50,25,13,6,6,6,6,6,6,6,6,6],salePrice:3995},
+  "fence-3500x2000x1.1":{rentalNo:"01-BAT-GI01-015",saleNo:"0295300",desc:"Girðingar 3,5x2m",rates:[100,80,60,40,20,20,20,20,20,20,20,20],salePrice:19995},
+  "fence-3500x2000x1.7":{rentalNo:"01-BAT-GI01-053",saleNo:"0295317",desc:"Girðingar 3,5x2m",rates:[100,80,60,40,20,20,20,20,20,20,20,20],salePrice:24995},
+  "fence-3500x1200x1.1":{rentalNo:"01-BAT-GI01-052",saleNo:"0295290",desc:"Girðingar 3,5x1,2m",rates:[80,64,48,32,16,16,16,16,16,16,16,16],salePrice:12995},
+  "queue-barrier":{rentalNo:"01-BAT-GI01-050",saleNo:"0295292",desc:"Biðraðagirðingar 2,5x1,1m",rates:[130,104,78,52,26,26,26,26,26,26,26,26],salePrice:24995},
+  "plastic-fence":{rentalNo:"01-BAT-GI01-043",saleNo:"0295243",desc:"Girðing plast 2,1x1,1m",rates:[80,64,48,32,16,16,16,16,16,16,16,16],salePrice:26995},
+  "stone-concrete":{rentalNo:"01-BAT-GI01-054",saleNo:"0295320",desc:"Steinar f/girðingar",rates:[20,16,12,8,4,4,4,4,4,4,4,4],salePrice:2495},
+  "stone-pvc":{rentalNo:"01-BAT-GI01-0541",saleNo:"0295325",desc:"PVC Steinar f/girðingar",rates:[50,40,30,20,10,10,10,10,10,10,10,10],salePrice:3995},
   "clamps":{rentalNo:"01-BAT-GI01-097",saleNo:"97100097",desc:"Klemmur f/girðingar",rates:[2,2,2,2,2,2,2,2,2,2,2,2],salePrice:995},
   "rack-fence":{rentalNo:"01-BAT-GI01-100",saleNo:"97100100",desc:"Rekki f/girðingar (25stk)",rates:[100,100,100,100,100,100,100,100,100,100,100,100],salePrice:99995},
   "rack-queue":{rentalNo:"01-BAT-GI01-051",saleNo:"97310020",desc:"Rekki f/biðraðagirðingar (15stk)",rates:[64,64,64,64,64,64,64,64,64,64,64,64],salePrice:84995},
-  "walking-gate":{rentalNo:"01-BAT-GI01-096",saleNo:"97100096",desc:"Gönguhlið 1,2m",rates:[100,50,25,13,13,13,13,13,13,13,13,13],salePrice:20312},
-  "wheels":{rentalNo:"01-BAT-GI01-099",saleNo:"97100099",desc:"Hjól f/girðingar",rates:[110,55,28,14,14,14,14,14,14,14,14,14],salePrice:18395},
-  "lock":{rentalNo:"01-BAT-GI01-101",saleNo:"971000981",desc:"Efri læsing f/hlið",rates:[50,25,13,6,6,6,6,6,6,6,6,6],salePrice:4858},
-  "warning-sign":{rentalNo:"01-BAT-GI01-045",saleNo:"0295245",desc:"Gátaskjöldur 1,3x0,31m",rates:[40,20,10,5,5,5,5,5,5,5,5,5],salePrice:9995}
+  "walking-gate":{rentalNo:"01-BAT-GI01-096",saleNo:"97100096",desc:"Gönguhlið 1,2m",rates:[100,80,60,40,20,20,20,20,20,20,20,20],salePrice:20312},
+  "wheels":{rentalNo:"01-BAT-GI01-099",saleNo:"97100099",desc:"Hjól f/girðingar",rates:[110,88,66,44,22,22,22,22,22,22,22,22],salePrice:18395},
+  "lock":{rentalNo:"01-BAT-GI01-101",saleNo:"971000981",desc:"Efri læsing f/hlið",rates:[50,40,30,20,10,10,10,10,10,10,10,10],salePrice:4858},
+  "warning-sign":{rentalNo:"01-BAT-GI01-045",saleNo:"0295245",desc:"Gátaskjöldur 1,3x0,31m",rates:[40,32,24,16,8,8,8,8,8,8,8,8],salePrice:9995}
 };
 
 var FENCE_TYPES={
@@ -275,7 +281,12 @@ function fmtDec(n,d){return n.toFixed(d).replace(".",",")}
 function parseVal(s){if(!s)return 0;return parseFloat(String(s).replace(/,/g,"."))||0}
 function calcRentalCost(days,rates,qty){var t=0,r=days;for(var i=0;i<12;i++){if(r<=0)break;var pd=Math.min(r,30);t+=pd*rates[i]*qty;r-=pd}return t}
 
-function selectFenceType(type,btn){currentFenceType=type;document.querySelectorAll(".fence-tab").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");updateConfig()}
+function selectFenceType(type,btn){currentFenceType=type;btn.parentNode.querySelectorAll(".fence-tab").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");updateConfig()}
+function setCalcMode(mode,btn){calcMode=mode;btn.parentNode.querySelectorAll(".fence-tab").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");updateModeUI();calculate()}
+function updateModeUI(){
+  var rentalOnly=document.querySelectorAll(".rental-only");
+  for(var i=0;i<rentalOnly.length;i++)rentalOnly[i].style.display=calcMode==="rental"?"":"none";
+}
 function selectHeight(h,btn){currentHeight=h;btn.closest(".option-tabs").querySelectorAll(".option-tab").forEach(function(b){b.classList.remove("active")});btn.classList.add("active")}
 function selectStoneType(s,btn){currentStoneType=s;btn.closest(".option-tabs").querySelectorAll(".option-tab").forEach(function(b){b.classList.remove("active")});btn.classList.add("active")}
 function setInputMode(mode,btn){inputMode=mode;document.getElementById("lengthInput").value="";btn.closest(".input-mode-toggle").querySelectorAll("button").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");updateConfig()}
@@ -393,10 +404,61 @@ function renderLines(){
   container.innerHTML=html;
 }
 
+function renderSale(box){
+  var gateQty=Math.max(0,parseInt(parseVal(document.getElementById("gateQty").value))||0);
+  var wheelsQty=Math.max(0,parseInt(parseVal(document.getElementById("wheelsQty").value))||0);
+  var lockQty=Math.max(0,parseInt(parseVal(document.getElementById("lockQty").value))||0);
+  var signQty=Math.max(0,parseInt(parseVal(document.getElementById("signQty").value))||0);
+  var total=0;var lineGroups=[];
+  for(var li=0;li<quoteLines.length;li++){
+    var line=quoteLines[li];var groupItems=[];
+    for(var j=0;j<line.items.length;j++){
+      var ri=line.items[j];var p=PRODUCTS[ri.key];
+      var cost=p.salePrice*ri.qty;total+=cost;
+      groupItems.push({desc:p.desc,qty:ri.qty,cost:cost,unit:p.salePrice});
+    }
+    lineGroups.push({line:line,items:groupItems});
+  }
+  var accItems=[];
+  function addAccSale(key,qty){
+    if(qty<=0)return;var p=PRODUCTS[key];var cost=p.salePrice*qty;total+=cost;
+    accItems.push({desc:p.desc,qty:qty,cost:cost,unit:p.salePrice});
+  }
+  addAccSale("walking-gate",gateQty);addAccSale("wheels",wheelsQty);addAccSale("lock",lockQty);addAccSale("warning-sign",signQty);
+
+  var TIP='<span class="tooltip-wrap"><span class="tooltip-icon">i</span><span class="tooltip-bubble">Verð er áætlað og byggt á gildandi verðskrá (janúar 2026). Endanlegt verð kann að breytast.</span></span>';
+  var html='<div class="result-box">';
+  html+='<div class="result-row no-print"><span class="r-label">Reikningsmáti</span><span class="r-val">Sala</span></div>';
+  html+='<div class="result-row no-print"><span class="r-label">Tilboðslínur</span><span class="r-val">'+quoteLines.length+'</span></div>';
+  html+='<div class="result-subsection-label">Efnislisti</div>';
+  html+='<table class="mat-table"><thead><tr><th>Vara</th><th>Magn</th><th>Stykkjaverð</th><th>Samtals</th></tr></thead><tbody>';
+  for(var g=0;g<lineGroups.length;g++){
+    var grp=lineGroups[g];
+    html+='<tr class="mat-group-header"><td colspan="4">'+grp.line.desc+' — '+grp.line.detail+'</td></tr>';
+    for(var j=0;j<grp.items.length;j++){
+      var it=grp.items[j];
+      html+='<tr><td>'+it.desc+'</td><td>'+it.qty+' stk</td><td>'+fmtNum(it.unit)+' kr</td><td>'+fmtNum(it.cost)+' kr</td></tr>';
+    }
+  }
+  if(accItems.length>0){
+    html+='<tr class="mat-group-header"><td colspan="4">Aukahlutir</td></tr>';
+    for(var j=0;j<accItems.length;j++){
+      var it=accItems[j];
+      html+='<tr><td>'+it.desc+'</td><td>'+it.qty+' stk</td><td>'+fmtNum(it.unit)+' kr</td><td>'+fmtNum(it.cost)+' kr</td></tr>';
+    }
+  }
+  html+='</tbody></table>';
+  html+='<div class="result-total"><span class="rt-label">Heildarverð (sala, með VSK) '+TIP+'</span><span class="rt-value">'+fmtNum(total)+' kr</span></div>';
+  html+='<button class="print-btn no-print" onclick="printPDF()">&#9660; Prenta / Vista PDF</button>';
+  html+='</div>';
+  box.innerHTML=html;
+}
+
 function calculate(){
   if(quoteLines.length===0)return;
-  var days=parseInt(parseVal(document.getElementById("rentalDays").value))||0;
   var box=document.getElementById("resultBox");
+  if(calcMode==="sale"){renderSale(box);return}
+  var days=parseInt(parseVal(document.getElementById("rentalDays").value))||0;
   var minWarning=false;
   if(days<MIN_DAYS&&days>0){minWarning=true;days=MIN_DAYS}
   if(days<=0){box.innerHTML='<div class="result-empty">Fylltu inn leigutíma.</div>';return}
