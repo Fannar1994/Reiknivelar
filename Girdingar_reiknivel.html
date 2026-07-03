@@ -323,11 +323,12 @@ function getPeriodRate(rates,periodIndex){return rates[Math.min(periodIndex,rate
 function calcRentalCost(days,rates,qty){var t=0,r=days,i=0;while(r>0){var pd=Math.min(r,30);t+=pd*getPeriodRate(rates,i)*qty;r-=pd;i++}return t}
 function parseLocalDate(v){if(!v)return null;var parts=v.split("-");if(parts.length!==3)return null;return new Date(parseInt(parts[0],10),parseInt(parts[1],10)-1,parseInt(parts[2],10))}
 function formatLocalDate(d){var y=d.getFullYear();var m=String(d.getMonth()+1).padStart(2,"0");var day=String(d.getDate()).padStart(2,"0");return y+"-"+m+"-"+day}
+function formatDisplayDate(v){var d=parseLocalDate(v);if(!d)return v;return d.getDate()+"."+(d.getMonth()+1)+". "+d.getFullYear()}
 function setDateError(show){var el=document.getElementById("dateError");if(el)el.classList.toggle("show",!!show)}
 function getRentalDateLabel(){
   var startEl=document.getElementById("rentalStartDate"),endEl=document.getElementById("rentalEndDate");
   if(!startEl||!endEl||!startEl.value||!endEl.value)return "";
-  return startEl.value+" - "+endEl.value;
+  return formatDisplayDate(startEl.value)+" - "+formatDisplayDate(endEl.value);
 }
 function updateRentalDaysFromDates(){
   var startEl=document.getElementById("rentalStartDate"),endEl=document.getElementById("rentalEndDate"),daysEl=document.getElementById("rentalDays");
