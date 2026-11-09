@@ -998,7 +998,6 @@ function selectedProducts(){return [['ls',LOFTASTODIR],['mb',MOTABITAR],['ak',AU
 // =====================================================================
 function fmtInt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 function fmtDec(n) { return n == null ? 'óstaðfest' : Number(n).toFixed(2).replace('.', ','); }
-function fmtMoney(n) { const a=Number(n||0).toFixed(2).split('.'); return a[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(a[1]==='00'?'':','+a[1]); }
 function toISO(d)  { return d.toISOString().split('T')[0]; }
 
 // =====================================================================
@@ -1329,9 +1328,11 @@ function exportPDF() {
     '<th style="text-align:left;padding:7px">Heiti</th>'+
     '<th style="text-align:right;padding:7px">Magn</th>'+
     (includeWeight?'<th style="text-align:right;padding:7px">Þyngd (kg)</th>':'')+
+    '<th style="text-align:left;padding:7px">BYKO</th>'+
     '</tr></thead><tbody>';
-  for (const {p,qty} of items) {
+  for (const {p,qty,group} of items) {
     const weight=p.weight_kg!=null?p.weight_kg*qty:null;
+    const link=productLink(p,group);
     if(weight===null)missingWeight=true;else totalWeight+=weight;
     table+='<tr style="border-bottom:1px solid #eee">'+
       '<td style="padding:6px">'+escapeHTML(p.id)+'</td>'+
@@ -1339,6 +1340,7 @@ function exportPDF() {
       '<td style="padding:6px">'+escapeHTML(p.name)+'</td>'+
       '<td style="padding:6px;text-align:right">'+qty+'</td>'+
       (includeWeight?'<td style="padding:6px;text-align:right">'+(weight==null?'—':fmtDec(weight))+'</td>':'')+
+      '<td style="padding:6px"><a href="'+link.url+'">'+(link.direct?'Vara':'Flokkur')+'</a></td>'+
       '</tr>';
   }
   table+='</tbody></table><p style="font-size:12px;margin-top:14px">'+
@@ -1351,7 +1353,7 @@ function exportPDF() {
   block.classList.add('pdf-rendering');
   const filename='Efnislisti-loftastodir-'+(project||name||'verkefni').replace(/[\\/:*?"<>|]/g,'').slice(0,55)+'.pdf';
   const opts={
-    margin:[6,8,6,8],filename,
+    margin:[6,8,6,8],filename,enableLinks:true,
     image:{type:'jpeg',quality:0.95},
     html2canvas:{scale:2,useCORS:true,logging:false,scrollY:0,scrollX:0,windowWidth:794,width:700,
       onclone: function(doc) {
