@@ -1124,7 +1124,7 @@ let _resultsVisible = false;
 
 function scheduleCalculate() {
   clearTimeout(_calcTimer);
-  _calcTimer = setTimeout(function() { calculate(true); }, 350);
+  _calcTimer = setTimeout(function() { calculate(true); saveQuote(true); }, 350);
 }
 
 // =====================================================================
@@ -1137,16 +1137,21 @@ function stepQty(prefix, idx, dir) {
   scheduleCalculate();
 }
 
-function makeStepperQty(prefix, idx) {
+function makeStepperQty(prefix, idx, name) {
+  const safeName=escapeHTML(name);
   return '<div class="p-qty">' +
-    '<label>Magn (stk)</label>' +
-    '<input type="number" id="' + prefix + '-qty-' + idx + '" class="qty-input" min="0" value="0">' +
-  '</div>';
+    '<label for="'+prefix+'-qty-'+idx+'">Magn (stk.)</label>'+
+    '<div class="qty-controls">' +
+      '<button type="button" onclick="stepQty(\''+prefix+'\','+idx+',-1)" aria-label="Fækka '+safeName+'">−</button>' +
+      '<input type="number" id="'+prefix+'-qty-'+idx+'" class="qty-input" min="0" step="1" inputmode="numeric" value="0" aria-label="Magn '+safeName+'">' +
+      '<button type="button" onclick="stepQty(\''+prefix+'\','+idx+',1)" aria-label="Fjölga '+safeName+'">+</button>' +
+    '</div></div>';
 }
 
 // =====================================================================
 // FILTER (Loftastoðir)
 // =====================================================================
+
 let activeCatalogue='ls';
 function switchCatalogue(key){
   activeCatalogue=key;
@@ -1158,27 +1163,66 @@ function switchCatalogue(key){
   });
   document.getElementById('class-filter-wrap').hidden=key!=='ls';
   document.getElementById('kn-filter-wrap').hidden=key!=='ls';
+  document.getElementById('height-filter-wrap').hidden=key!=='ls';
   filterCatalogue();
+}
+function parseHeight(value) {
+  const text=String(value||'').trim().toLowerCase().replace(',', '.');
+  const match=text.match(/(\d+(?:\.\d+)?)/);
+  if(!match)return null;
+  const number=Number(match[1]);
+  return text.includes('cm')?number/100:number;
 }
 function filterCatalogue(){
   const text=document.getElementById('catalog-search').value.trim().toLocaleLowerCase('is');
   const cls=document.getElementById('ls-class-filter').value;
   const min=document.getElementById('ls-kn-filter').value;
-  [['ls',LOFTASTODIR],['mb',MOTABITAR],['ak',AUKAHLUTIR]].forEach(function(pair){
-    const prefix=pair[0],arr=pair[1];let visible=0;
-    arr.forEach(function(p,i){
-      const card=document.getElementById(prefix+'-card-'+i);if(!card)return;
+  const heightRaw=document.getElementById('height-filter').value.replace(',','.');
+  const height=heightRaw!==''?Number(heightRaw):null;
+  const visibleByGroup={};
+  for(const [prefix,arr] of [['ls',LOFTASTODIR],['mb',MOTABITAR],['ak',AUKAHLUTIR]]){
+    let visible=0;
+    arr.forEach((p,i)=>{
+      const card=document.getElementById(prefix+'-card-'+i);
+      if(!card)return;
       const haystack=[p.name,p.id,p.articleNumber||''].join(' ').toLocaleLowerCase('is');
-      const show=(!text||haystack.includes(text))&&(prefix!=='ls'||!cls||p.classKey===cls)&&
-        (prefix!=='ls'||min===''||(p.kN_max!=null&&p.kN_max>=Number(min)));
-      card.classList.toggle('hidden',!show);if(show)visible++;
+      const fitsHeight=prefix!=='ls'||height===null||!Number.isFinite(height)||
+        (parseHeight(p.minHeight)!==null && parseHeight(p.maxHeight)!==null &&
+         height>=parseHeight(p.minHeight) && height<=parseHeight(p.maxHeight));
+      const show=(!text||haystack.includes(text)) &&
+        (prefix!=='ls'||!cls||p.classKey===cls) &&
+        (prefix!=='ls'||min===''||(p.kN_max!=null&&p.kN_max>=Number(min))) && fitsHeight;
+      card.classList.toggle('hidden',!show);
+      if(show)visible++;
     });
+    visibleByGroup[prefix]=visible;
     document.getElementById(prefix+'-count').textContent=visible+' / '+arr.length;
-  });
+    document.getElementById('match-'+prefix).textContent='('+visible+')';
+  }
+  // Search covers all sections; move to a matching tab when current tab has no results.
+  if(text && visibleByGroup[activeCatalogue]===0) {
+    const first=['ls','mb','ak'].find(k=>visibleByGroup[k]>0);
+    if(first && first!==activeCatalogue) {
+      activeCatalogue=first;
+      ['ls','mb','ak'].forEach(k=>{
+        document.getElementById('pane-'+k).hidden=k!==first;
+        const tab=document.getElementById('tab-'+k);
+        tab.classList.toggle('active',k===first);
+        tab.setAttribute('aria-selected',String(k===first));
+      });
+      document.getElementById('class-filter-wrap').hidden=first!=='ls';
+      document.getElementById('kn-filter-wrap').hidden=first!=='ls';
+      document.getElementById('height-filter-wrap').hidden=first!=='ls';
+    }
+  }
 }
 function filterLoftastodir(){filterCatalogue();}
-function stepFilterKN(dir){const el=document.getElementById('ls-kn-filter');el.value=Math.max(0,(Number(el.value)||0)+dir);filterCatalogue();}
-function clearLsFilter(){document.getElementById('ls-kn-filter').value='';document.getElementById('ls-class-filter').value='';document.getElementById('catalog-search').value='';filterCatalogue();}
+function clearLsFilter(){
+  for(const id of ['catalog-search','ls-class-filter','ls-kn-filter','height-filter']) {
+    document.getElementById(id).value='';
+  }
+  filterCatalogue();
+}
 
 // =====================================================================
 // PRODUCT DETAILS
@@ -1203,7 +1247,7 @@ function renderCatalogue(items,prefix,containerId){
     card.innerHTML='<div class="catalog-main"><div class="p-name">'+p.name+'</div><div class="p-id">'+p.id+' · Sölunr. '+(p.articleNumber||'óstaðfest')+'</div></div>'+
       '<div class="catalog-meta">'+details+'</div>'+
       '<div class="catalog-price"><a href="'+productLink(p,prefix).url+'" target="_blank" rel="noopener noreferrer" title="'+(productLink(p,prefix).direct?'Staðfest vörusíða':'Yfirlit vöruflokks, ekki nákvæm vörusíða')+'">'+(productLink(p,prefix).direct?'Skoða vöru ↗':'Skoða flokk ↗')+'</a></div>'+
-      makeStepperQty(prefix,i)+
+      makeStepperQty(prefix,i,p.name)+
       '<button type="button" class="btn-info" onclick="showTooltip('+i+',\''+prefix+'\')" aria-label="Nánari upplýsingar">i</button>';
     container.appendChild(card);
   });
@@ -1463,11 +1507,21 @@ function exportExcel(){
 }
 
 
+function removeSelected(group,id) {
+  const arr=group==='ls'?LOFTASTODIR:group==='mb'?MOTABITAR:AUKAHLUTIR;
+  const idx=arr.findIndex(p=>p.id===id);
+  if(idx<0)return;
+  document.getElementById(group+'-qty-'+idx).value=0;
+  calculate(true);
+  saveQuote(true);
+}
 function resetAll(){
+  if(selectedProducts().length && !confirm('Viltu hreinsa magn allra vara úr efnislistanum? Verkefnisupplýsingar haldast.'))return;
   for(const [group,arr] of [['ls',LOFTASTODIR],['mb',MOTABITAR],['ak',AUKAHLUTIR]]){
     arr.forEach((_,i)=>{document.getElementById(group+'-qty-'+i).value=0;});
   }
   calculate(true);
+  saveQuote(true);
 }
 function calculate(silent) {
   const items=selectedProducts();
@@ -1493,6 +1547,14 @@ function calculate(silent) {
   document.getElementById('summary-days').textContent=getRentalDays()+' dagar';
   document.getElementById('summary-items').textContent=fmtInt(total)+' stk.';
   document.getElementById('summary-types').textContent=String(items.length);
+  const shortlist=document.getElementById('selected-shortlist');
+  if(!items.length)shortlist.innerHTML='<p class="shortlist-empty">Engar vörur valdar enn. Finndu vöru og veldu magn.</p>';
+  else {
+    shortlist.innerHTML=items.map(({p,group,qty})=>'<div class="shortlist-entry">'+
+      '<div><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.id)+'</small></div>'+
+      '<div class="shortlist-actions"><strong>'+fmtInt(qty)+' stk.</strong>'+
+      '<button type="button" class="remove-item" aria-label="Fjarlægja '+escapeHTML(p.name)+'" onclick="removeSelected(\''+group+'\',\''+p.id+'\')">×</button></div></div>').join('');
+  }
   document.getElementById('summary-weight').textContent=weightKnown ? fmtDec(knownWeight)+' kg'+(weightMissing?' (ófullkomið)':'') : (items.length?'Óstaðfest':'—');
   const results=document.getElementById('results');
   results.classList.toggle('show',items.length>0);
@@ -1519,6 +1581,12 @@ document.addEventListener('DOMContentLoaded', function() {
   renderAukahlutir();
   switchCatalogue('ls');
   calculate(true);
+
+  // Input í efnislista er sjálfvirkt vistað í vafranum
+  for(const id of ['project-name','clientName','clientCompany','clientKennitala','clientPhone','clientEmail','clientAddress','clientUttektar','clientDate']) {
+    document.getElementById(id).addEventListener('input',scheduleCalculate);
+    document.getElementById(id).addEventListener('change',scheduleCalculate);
+  }
 
   // Date / days listeners
   document.getElementById('start-date').addEventListener('change', updateRentalDays);
