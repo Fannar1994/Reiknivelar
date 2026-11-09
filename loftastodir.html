@@ -118,8 +118,6 @@ body { font-family: 'Barlow', system-ui, Arial, sans-serif; background: var(--co
 
 /* Pricing */
 .p-pricing { display: flex; flex-direction: column; gap: 2px; font-size: 12px; padding: 4px 0; color: var(--color-muted); }
-.p-sale { font-size: 13px; } .p-sale .sale-text { font-weight: 600; color: var(--color-muted); }
-.p-sale .sale-text strong { color: var(--color-dark); }
 
 /* ===== STEPPER INPUT ===== */
 .num-wrap { display: flex; border: 1px solid #ccc; border-radius: var(--radius-md); overflow: hidden; background: #fff; transition: border-color .2s; }
@@ -172,13 +170,6 @@ input[type="date"]:focus, input[type="text"]:focus { outline: none; border-color
 .client-date-row input[type="date"] { width: auto; }
 @media (max-width: 700px) { .client-grid { grid-template-columns: 1fr 1fr; } }
 
-/* ===== DISCOUNT ===== */
-.discount-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--color-border); margin-top: 6px; }
-.discount-row label { font-size: 13px; color: #444; flex: 1; }
-.discount-row .num-wrap { width: 110px; flex-shrink: 0; }
-.cost-line.discounted { font-size: 15px; font-weight: 700; color: #166534; }
-.cost-line.discounted .val { color: #166534; }
-
 /* ===== PDF DIALOG ===== */
 .pdf-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2000; align-items: center; justify-content: center; }
 .pdf-overlay.visible { display: flex; }
@@ -230,7 +221,6 @@ tbody tr:hover { background: var(--color-surface); }
 .cost-line .val { font-weight: 600; color: var(--color-dark); }
 .cost-line.total { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--color-dark); border-top: 2px solid var(--color-dark); margin-top: 8px; padding-top: 12px; letter-spacing: .5px; }
 .cost-line.total .val { color: var(--color-dark); }
-.cost-line.sale-total { font-size: 13px; color: var(--color-muted); }
 
 /* ===== CALCULATE BUTTON ===== */
 .btn-calc { width: 100%; padding: 14px; background: var(--color-dark); color: #fff; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px; cursor: pointer; transition: transform .1s, box-shadow .2s; margin-top: 16px; text-transform: uppercase; }
@@ -287,8 +277,6 @@ tbody tr:hover { background: var(--color-surface); }
 }
 
 /* ===== PDF OPTIONS — body class toggles ===== */
-body.pdf-hide-sale .p-sale,
-body.pdf-hide-sale #results-body td:last-child { display: none !important; }
 body.pdf-hide-weight .summary-weight-row { display: none !important; }
 body.pdf-hide-sig .print-signature { display: none !important; }
 
@@ -411,7 +399,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 
   <!-- ===== RESTORE BANNER ===== -->
   <div class="restore-banner" id="restore-banner">
-    <span>💾 Vistað tilboð er til staðar — vilt þú endurheimta það?</span>
+    <span>💾 Vistaður efnislisti er til staðar. Viltu endurheimta hann?</span>
     <div class="banner-actions">
       <button class="btn-restore yes" onclick="restoreQuote()">Endurheimta</button>
       <button class="btn-restore no"  onclick="dismissRestore()">Hunsa</button>
@@ -541,7 +529,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <div style="display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;margin-bottom:12px;">
     <div style="width:6px;background:#f5c800;flex-shrink:0;"></div>
     <div style="width:100%;background:#404042;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;">
-      <h2 style="font-size:20px;font-weight:700;color:#fff;margin:0 0 4px;">Leigutilboð — Loftastoðir</h2>
+      <h2 style="font-size:20px;font-weight:700;color:#fff;margin:0 0 4px;">Efnislisti — Loftastoðir</h2>
       <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:3px;">BYKO Leiga</div>
       <div id="pdf-meta" style="font-size:11px;color:rgba(255,255,255,.7);">–</div>
     </div>
@@ -605,7 +593,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <div class="pdf-box">
     <p class="pdf-box-title">Búa til PDF / Prenta</p>
     <p class="pdf-box-sub">Veldu hvað á að birtast í efnislistanum.</p>
-    <div class="pdf-tip">💡 <strong>Ábending:</strong> Til að fela vafrabrot — veldu „More settings" og slökktu á „Headers and footers".</div>
+    <div class="pdf-tip">Efnislistinn inniheldur magn og vörunúmer en ekki verð.</div>
     <div class="pdf-section-label">Valkostir</div>
 <label class="pdf-check-row">
       <input type="checkbox" id="pdf-check-weight" checked>
