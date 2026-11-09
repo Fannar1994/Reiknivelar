@@ -1036,9 +1036,9 @@ function exportPDF() {
       var qty = parseInt(document.getElementById(prefix + '-qty-' + i).value) || 0;
       if (qty > 0) {
         var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
-        var sale = p.salePrice ? p.salePrice * qty : 0;
-        var wt   = p.weight_kg ? p.weight_kg * qty : 0;
-        items.push({ id: p.id, name: p.name, qty: qty, cost: cost, sale: sale, weight: wt });
+        var sale = p.salePrice != null ? p.salePrice * qty : null;
+        var wt = p.weight_kg != null ? p.weight_kg * qty : null;
+        items.push({ id: p.id, articleNumber: p.articleNumber || '', name: p.name, qty: qty, cost: cost, sale: sale, weight: wt });
       }
     });
     return items;
@@ -1055,10 +1055,11 @@ function exportPDF() {
   }
 
   // Build table
-  var totalRental = 0, totalSale = 0, totalWeight = 0;
+  var totalRental = 0, totalSale = 0, totalWeight = 0, missingWeight = false, missingSale = false, knownWeight = false, knownSale = false;
   var tbl = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
   tbl += '<thead><tr style="background:#f8fafc;border-bottom:2px solid #e0e0e0;">';
   tbl += '<th style="text-align:left;padding:6px;">Leigunr.</th>';
+  tbl += '<th style="text-align:left;padding:6px;">Sölunr.</th>';
   tbl += '<th style="text-align:left;padding:6px;">Lýsing</th>';
   tbl += '<th style="text-align:right;padding:6px;">Magn</th>';
   tbl += '<th style="text-align:right;padding:6px;">Þyngd (kg)</th>';
@@ -1067,15 +1068,16 @@ function exportPDF() {
   tbl += '</tr></thead><tbody>';
   allItems.forEach(function(it) {
     totalRental += it.cost;
-    totalSale += it.sale;
-    totalWeight += it.weight;
+    if (it.sale != null) { totalSale += it.sale; knownSale = true; } else missingSale = true;
+    if (it.weight != null) { totalWeight += it.weight; knownWeight = true; } else missingWeight = true;
     tbl += '<tr style="border-bottom:1px solid #f1f5f9;">';
     tbl += '<td style="padding:5px 6px;">' + it.id + '</td>';
+    tbl += '<td style="padding:5px 6px;">' + (it.articleNumber || '—') + '</td>';
     tbl += '<td style="padding:5px 6px;">' + it.name + '</td>';
     tbl += '<td style="text-align:right;padding:5px 6px;">' + it.qty + '</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + fmtDec(it.weight) + '</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + fmtInt(Math.round(it.cost)) + ' kr</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + fmtInt(Math.round(it.sale)) + ' kr</td>';
+    tbl += '<td style="text-align:right;padding:5px 6px;">' + (it.weight != null ? fmtDec(it.weight) : '—') + '</td>';
+    tbl += '<td style="text-align:right;padding:5px 6px;">' + fmtMoney(it.cost) + ' kr</td>';
+    tbl += '<td style="text-align:right;padding:5px 6px;">' + (it.sale != null ? fmtMoney(it.sale) + ' kr' : '—') + '</td>';
     tbl += '</tr>';
   });
   tbl += '</tbody></table>';
@@ -1083,11 +1085,11 @@ function exportPDF() {
   // Totals
   var discounted = discount > 0 ? totalRental * (1 - discount / 100) : totalRental;
   tbl += '<div style="margin-top:10px;font-size:12px;line-height:1.8;">';
-  tbl += '<strong>Heildarþyngd:</strong> ' + fmtDec(totalWeight) + ' kg<br>';
-  tbl += '<strong>Leiguverð (fyrir afslátt):</strong> ' + fmtInt(Math.round(totalRental)) + ' kr<br>';
+  tbl += '<strong>Þyngd:</strong> ' + (knownWeight ? fmtDec(totalWeight) + ' kg' : 'Óstaðfest') + (missingWeight ? ' (þyngd sumra vara vantar)' : '') + '<br>';
+  tbl += '<strong>Leiguverð (fyrir afslátt):</strong> ' + fmtMoney(totalRental) + ' kr<br>';
   if (discount > 0) tbl += '<strong>Afsláttur:</strong> ' + discount + '%<br>';
-  tbl += '<strong>Samtals leiguverð:</strong> ' + fmtInt(Math.round(discounted)) + ' kr<br>';
-  tbl += '<strong>Samtals söluverð:</strong> ' + fmtInt(Math.round(totalSale)) + ' kr';
+  tbl += '<strong>Samtals leiguverð:</strong> ' + fmtMoney(discounted) + ' kr<br>';
+  tbl += '<strong>Þekkt söluverð:</strong> ' + (knownSale ? fmtMoney(totalSale) + ' kr' : 'Óstaðfest') + (missingSale ? ' (verð sumra vara vantar)' : '');
   tbl += '</div>';
 
   document.getElementById('pdf-content').innerHTML = tbl;
@@ -1165,9 +1167,9 @@ function exportExcel() {
       var qty = parseInt(document.getElementById(prefix + '-qty-' + i).value) || 0;
       if (qty > 0) {
         var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
-        var sale = p.salePrice ? p.salePrice * qty : 0;
-        var wt   = p.weight_kg ? p.weight_kg * qty : 0;
-        itemRows.push([p.id, p.articleNumber || '', p.name, qty, Math.round(wt * 100) / 100, Math.round(cost * 100)/100, p.salePrice!=null ? Math.round(sale * 100)/100 : null]);
+        var sale = p.salePrice != null ? p.salePrice * qty : null;
+        var wt = p.weight_kg != null ? p.weight_kg * qty : null;
+        itemRows.push([p.id, p.articleNumber || '', p.name, qty, wt != null ? Math.round(wt * 100) / 100 : null, Math.round(cost * 100)/100, sale != null ? Math.round(sale * 100)/100 : null]);
       }
     });
   }
