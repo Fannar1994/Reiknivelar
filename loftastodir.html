@@ -694,6 +694,22 @@ const AUKAHLUTIR = [
   {"id":"01-MÓT-LM51-689","articleNumber":"HA553689","name":"Euro geymslurekki 120/80","weight_kg":null,"dayRate":61.93,"weekRate":433.55,"salePrice":null},
 ];
 
+// Heimildir / fyrirvarar birtast í nánari upplýsingum, ekki í þéttum vörulista.
+const DATA_NOTES = {
+  '01-MÓT-LM51-041': 'Almenn ítölsk Villalta-stoð, módel 70/120. Leyfilegur burður úr Villalta-töflu: 1.700 kg við 70 cm og 1.480 kg við 120 cm. Engin Class-merking.',
+  '01-MÓT-LM51-029': 'Almenn ítölsk Villalta-stoð, módel 160/290. Leyfilegur burður úr Villalta-töflu: 1.570 kg við 160 cm og 1.010 kg við 290 cm. Engin Class-merking.',
+  '01-MÓT-LM51-027': 'Leiguvörulistinn segir 160/300 cm, en Villalta-bæklingurinn og BYKO-síðan nefna 160/290 cm. Burður við 300 cm er því óstaðfestur.',
+  '01-MÓT-LM51-026': 'Leiguvörulistinn segir 200/350 cm, en Villalta-bæklingurinn og BYKO-síðan nefna 200/360 cm. Staðfesta þarf að um sömu útfærslu sé að ræða.',
+  '01-MÓT-LM51-028': 'Leiguvörulistinn segir 200/350 cm, en Villalta-bæklingurinn og BYKO-síðan nefna 200/360 cm. Staðfesta þarf að um sömu útfærslu sé að ræða.',
+  '01-MÓT-LM51-033': 'Leiguvörulistinn segir 300/540 cm og Item Description 2 er HA601400. Ekki hefur verið staðfest hvort þetta sé Villalta-loftastoð; hvorki burðargeta né þyngd eru staðfest.',
+  '01-MÓT-LM51-935': 'Faresin E35: burður 46,73 kN við 200 cm og 32,12 kN við 350 cm, þyngd 23 kg og flokkur E samkvæmt byko.is. Ekki nota 30 kN Villalta E35-töfluna fyrir þessa vöru.',
+  '01-MÓT-LM51-048': 'Vörulistinn segir B45 260/480 cm en DIN EN 1065 tafla Villalta B45 nær aðeins upp í 450 cm. Burður við 480 cm er ekki staðfestur.',
+  '01-MÓT-LM51-079': 'Vörulistinn segir D55 301/550 cm. Meðfylgjandi Villalta DIN EN 1065 flokkur D tafla nær til D50, en ekki D55. Burðargeta D55 er óstaðfest.',
+  '01-MÓT-LM71-935': '3,00 m HT20-biti er skráður í leiguvörulista en vantar í lengdarval Kaufmann-bæklings. Þyngd og nákvæm framleiðandagerð þurfa staðfestingu.',
+  '01-MÓT-LM71-011': 'Item Description 2 segir Notað efni; þetta er ekki staðfest sölunúmer.',
+  '01-MÓT-LM51-095': 'Framlenging fyrir loftastoð. Samhæfni, heimil samsetning og burðargeta þarf að staðfesta fyrir notkun.'
+};
+
 // =====================================================================
 // FORMATTING
 // =====================================================================
@@ -885,7 +901,10 @@ function showTooltip(idx,type){
  ['Söluverð',p.salePrice!=null?fmtMoney(p.salePrice)+' kr.':'Samkvæmt fyrirspurn']];
  document.getElementById('tooltip-content').innerHTML='<h3>'+p.name+'</h3><table class="tooltip-table"><tbody>'+
  rows.map(function(r){return '<tr><td>'+r[0]+'</td><td><strong>'+r[1]+'</strong></td></tr>';}).join('')+
- '</tbody></table><p class="tooltip-warn">Burðartölur eru aðeins upplýsingar úr tiltækum töflum. Staðfestið tæknigögn fyrir nákvæma gerð og hæð áður en stoðir eru notaðar.</p>';
+ '</tbody></table>' +
+ (DATA_NOTES[p.id] ? '<div class="tooltip-note">'+DATA_NOTES[p.id]+'</div>' : '') +
+ (p.id === '01-MÓT-LM51-935' ? '<p style="margin-top:10px"><a target="_blank" rel="noopener" href="https://byko.is/leiguvara/faresin-loftastodir-e35-200350-galv-464540">Skoða vöruna á byko.is</a></p>' : '') +
+ '<p class="tooltip-warn">Burðartölur eiga aðeins við rétta gerð við tilgreinda hæð. Staðfestið burðarhönnun og uppsetningu áður en efnið er notað.</p>';
  document.getElementById('tooltip-modal').classList.add('open');
 }
 function closeTooltip(e) {
