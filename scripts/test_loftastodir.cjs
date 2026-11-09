@@ -72,7 +72,8 @@ assert.equal(faresin.weight_kg,23);
 assert.equal(faresin.salePrice,19621);
 assert.equal(map.get('01-MÓT-LM51-041').kg_max,1480);
 assert.equal(map.get('01-MÓT-LM51-029').kg_max,1010);
-assert.equal(map.get('01-MÓT-LM51-079').kN_max,null, 'D55 capacity not confirmed');
+assert.equal(map.get('01-MÓT-LM51-079').kN_max,20, 'Villalta 2020 D55 550 cm capacity');
+assert.equal(map.get('01-MÓT-LM51-079').kN_min,20, 'Villalta 2020 Class D constant permissible load');
 assert.equal(map.get('01-MÓT-LM51-048').kN_max,null, 'B45 at 480cm is not confirmed');
 assert.ok(html.includes('<tr><td>300 cm</td><td>—</td><td>1.071 kg</td>'),
   'Villalta 300 cm handbook row must not show 160/290 capacity');
