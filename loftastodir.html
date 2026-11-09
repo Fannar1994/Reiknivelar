@@ -389,6 +389,38 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 .catalog-price a:hover{background:#f2f6fa;border-color:#7e97af}
 .quote-panel .catalog-note{font-size:12px;color:#667085;line-height:1.55}
 
+
+/* Vöruval og áreiðanleg vistun */
+.autosave-strip{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:9px 13px;margin:10px 0 14px;background:#f7f8fa;border:1px solid #e2e6ec;border-radius:8px;font:500 12px 'Barlow',sans-serif;color:#37506c}
+.autosave-privacy{color:#737b87;font-weight:400}
+.shortlist-block{border-top:1px solid #e2e6ea;padding-top:14px;margin-top:14px}
+.shortlist-title{font:700 15px 'Barlow',sans-serif;margin-bottom:8px}
+.shortlist{max-height:340px;overflow:auto;display:grid;gap:7px}
+.shortlist-entry{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px;background:#f7f8fa;border:1px solid #e4e8ec;border-radius:7px;font-size:12px}
+.shortlist-entry strong{color:#26303b;display:block;line-height:1.3}
+.shortlist-entry small{color:#697386;display:block;margin-top:3px}
+.shortlist-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.shortlist-actions .remove-item{border:1px solid #d4dce5;background:#fff;border-radius:5px;color:#546275;min-width:27px;min-height:27px;cursor:pointer}
+.shortlist-actions .remove-item:hover{background:#fff1f0;border-color:#e6a09b;color:#922}
+.shortlist-empty{color:#737b87;font-size:12px;margin:0}
+.qty-controls{display:flex;align-items:stretch;gap:3px}
+.qty-controls button{width:28px;min-width:28px;padding:0;background:#f0f2f5;border:1px solid #cbd3dc;border-radius:5px;color:#344054;cursor:pointer;font-size:18px;line-height:1}
+.qty-controls button:hover{background:#e1e7ee}
+.qty-controls input{width:49px!important;min-width:42px;max-width:60px;text-align:center;padding:7px 2px!important}
+.product-grid .p-card{grid-template-columns:minmax(170px,2fr) minmax(135px,1.1fr) minmax(110px,.9fr) 122px 28px}
+.catalog-tab small{font-size:11px;color:#79818e;padding-left:3px}
+.catalog-tab.active small{color:#475467}
+.shortlist-entry:focus-within{outline:1px solid #d6b640}
+@media(max-width:760px){
+  .product-grid .p-card{grid-template-columns:minmax(0,1fr) 122px 28px}
+  .product-grid .p-qty{grid-column:2;grid-row:1}
+}
+@media(max-width:520px){
+  .calc-header-right{gap:5px}
+  .calc-header-right .btn-header{font-size:12px;padding:8px 9px}
+  .autosave-strip{align-items:flex-start;flex-direction:column;gap:3px}
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" integrity="sha512-MpDFIChbcXl2QgipQrt1VcPHMldRILetapBl5MPCA9Y8r7qvlwx1/Mc9hNTzY+kS5kX6PdoDq41ws1HiVNLdZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -413,12 +445,19 @@ body.pdf-hide-sig .print-signature { display: none !important; }
       <div class="calc-header-sub">Loftastoðir og undirsláttur · Efnislisti án verðútreiknings</div>
     </div>
     <div class="calc-header-right">
-      <button class="btn-header" onclick="resetAll()">Hreinsa</button>
-      <button class="btn-header accent" onclick="saveQuote()">Vista efnislista</button>
+      <button class="btn-header" type="button" onclick="resetAll()">Hreinsa magn</button>
+      <button class="btn-header accent" type="button" onclick="saveQuote(false)">Vista núna</button>
+      <button class="btn-header" type="button" onclick="downloadDraft()">Sækja afrit</button>
+      <button class="btn-header" type="button" onclick="document.getElementById('backup-import').click()">Opna afrit</button>
       <button class="btn-lb" onclick="document.getElementById('lbModal').classList.add('lb-open')">📖 Leiðbeiningar</button>
     </div>
   </div>
 
+  <input type="file" id="backup-import" accept=".json,application/json" hidden onchange="importDraft(event)">
+  <div class="autosave-strip" role="status" aria-live="polite">
+    <span id="save-status">Vistað sjálfvirkt í vafranum</span>
+    <span class="autosave-privacy">Afrit í JSON er hægt að færa milli tækja. Ekki vistað miðlægt.</span>
+  </div>
   <!-- Leigutímabil -->
   <div class="card setup-panel">
     <div class="card-header">Leigutímabil <span class="badge" id="rental-days-badge">20 dagar</span></div>
@@ -435,19 +474,20 @@ body.pdf-hide-sig .print-signature { display: none !important; }
   <div class="work-grid">
     <main class="catalog-area">
       <nav class="catalog-tabs" role="tablist" aria-label="Vöruflokkar">
-        <button class="catalog-tab active" id="tab-ls" role="tab" aria-selected="true" aria-controls="pane-ls" onclick="switchCatalogue('ls')">Loftastoðir</button>
-        <button class="catalog-tab" id="tab-mb" role="tab" aria-selected="false" aria-controls="pane-mb" onclick="switchCatalogue('mb')">Mótabitar</button>
-        <button class="catalog-tab" id="tab-ak" role="tab" aria-selected="false" aria-controls="pane-ak" onclick="switchCatalogue('ak')">Fylgihlutir</button>
+        <button type="button" class="catalog-tab active" id="tab-ls" role="tab" aria-selected="true" aria-controls="pane-ls" onclick="switchCatalogue('ls')">Loftastoðir <small id="match-ls"></small></button>
+        <button type="button" class="catalog-tab" id="tab-mb" role="tab" aria-selected="false" aria-controls="pane-mb" onclick="switchCatalogue('mb')">Mótabitar <small id="match-mb"></small></button>
+        <button type="button" class="catalog-tab" id="tab-ak" role="tab" aria-selected="false" aria-controls="pane-ak" onclick="switchCatalogue('ak')">Fylgihlutir <small id="match-ak"></small></button>
       </nav>
       <div class="filter-bar">
         <div class="filter-group catalog-search"><label class="label" for="catalog-search">Leit</label><input class="filter-input" id="catalog-search" type="search" placeholder="Vöruheiti, leigunúmer eða sölunúmer" oninput="filterCatalogue()"></div>
+        <div class="filter-group" id="height-filter-wrap"><label class="label" for="height-filter">Hæð sem þarf (m)</label><input class="filter-input" id="height-filter" type="number" min="0" max="20" step="0.1" placeholder="t.d. 3,5" oninput="filterCatalogue()" style="max-width:125px"></div>
         <div class="filter-group" id="class-filter-wrap"><label class="label" for="ls-class-filter">Flokkur</label><select class="filter-select" id="ls-class-filter" onchange="filterCatalogue()">
           <option value="">Allir</option><option value="B">B</option><option value="BD">B/D</option><option value="CD">C/D</option><option value="CE">C/E</option><option value="D">D</option><option value="E">E</option>
         </select></div>
-        <div class="filter-group" id="kn-filter-wrap"><label class="label" for="ls-kn-filter">Lágmarksburður við mestu hæð (kN)</label><input class="filter-input" type="number" id="ls-kn-filter" min="0" placeholder="t.d. 20" style="max-width:125px" oninput="filterCatalogue()"></div>
+        <div class="filter-group" id="kn-filter-wrap"><label class="label" for="ls-kn-filter">Burður (kN), aðeins staðlaðar stoðir</label><input class="filter-input" type="number" id="ls-kn-filter" min="0" placeholder="t.d. 20" style="max-width:125px" oninput="filterCatalogue()"></div>
         <button class="btn-filter-clear" onclick="clearLsFilter()">Hreinsa síur</button>
       </div>
-      <p class="catalog-note">Sölunúmer miðast við <strong>Item Description 2</strong>. <strong>Almennar ítalskar loftastoðir eru án Class-merkingar</strong> og burður þeirra er sýndur í kg þar sem viðeigandi Villalta-tafla er til. EN 1065-gerðir eru merktar sínum flokki og burður sýndur í kN. Óstaðfest burðargeta og þyngd eru ekki reiknuð sem staðfestar tölur. <a href="https://byko.is/thjonusta/leiga/steypumot-og-girdingar/steypumot/undirslattarefni" target="_blank" rel="noopener">Tæknigögn BYKO</a>.</p>
+      <p class="catalog-note">Síur eftir hæð sýna vörur sem ná hæðinni, en tryggja <strong>ekki</strong> nægilegan burð við þá hæð. Sannreynið burðartöflu og uppsetningu. Sölunúmer miðast við <strong>Item Description 2</strong>. <strong>Almennar ítalskar loftastoðir eru án Class-merkingar</strong> og burður þeirra er sýndur í kg þar sem viðeigandi Villalta-tafla er til. EN 1065-gerðir eru merktar sínum flokki og burður sýndur í kN. Óstaðfest burðargeta og þyngd eru ekki reiknuð sem staðfestar tölur. <a href="https://byko.is/thjonusta/leiga/steypumot-og-girdingar/steypumot/undirslattarefni" target="_blank" rel="noopener">Tæknigögn BYKO</a>.</p>
       <section class="catalog-pane" id="pane-ls" role="tabpanel" aria-labelledby="tab-ls">
         <div class="section-title">Loftastoðir <span class="count" id="ls-count"></span></div><div class="product-grid" id="loftastodir-grid"></div>
       </section>
@@ -468,6 +508,10 @@ body.pdf-hide-sig .print-signature { display: none !important; }
             <div class="cost-line summary-weight-row"><span>Þyngd (þekkt gögn)</span><span class="val" id="summary-weight">—</span></div>
             <div class="cost-line total"><span>Vörutegundir</span><span class="val" id="summary-types">0</span></div>
             <p class="catalog-note" style="margin-top:12px">Efnislisti án verðútreiknings. Vöruupplýsingar á byko.is eru viðmið.</p>
+          </div>
+          <div class="shortlist-block">
+            <div class="shortlist-title">Valdar vörur</div>
+            <div id="selected-shortlist" class="shortlist" aria-live="polite"><p class="shortlist-empty">Engar vörur valdar enn.</p></div>
           </div>
           <details class="quote-details">
             <summary>Verkefni og viðskiptavinur</summary>
