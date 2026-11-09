@@ -1149,7 +1149,7 @@ function stepFilterKN(dir){const el=document.getElementById('ls-kn-filter');el.v
 function clearLsFilter(){document.getElementById('ls-kn-filter').value='';document.getElementById('ls-class-filter').value='';document.getElementById('catalog-search').value='';filterCatalogue();}
 
 // =====================================================================
-// RENTAL COST
+// PRODUCT DETAILS
 // =====================================================================
 
 
@@ -1206,7 +1206,7 @@ function closeTooltip(e) {
 // =====================================================================
 // SAVE / RESTORE
 // =====================================================================
-var STORAGE_KEY = 'loftastodir-quote-v2';
+var STORAGE_KEY = 'loftastodir-quote-v2'; // retained for backwards compatibility
 
 function saveQuote() {
   var data = {
@@ -1311,360 +1311,165 @@ function doPrint() {
   exportPDF();
 }
 
+
 function exportPDF() {
-  if (typeof html2pdf === 'undefined') {
-    alert('Villa: html2pdf.js tókst ekki að hlaðast. Endurhladdu síðuna.');
-    return;
-  }
-
-  var days = getRentalDays();
-  var discount = parseFloat(document.getElementById('discount-input').value) || 0;
-
-  // Client info
-  var name      = (document.getElementById('clientName').value || '').trim() || '\u2013';
-  var company   = (document.getElementById('clientCompany').value || '').trim() || '\u2013';
-  var kt        = (document.getElementById('clientKennitala').value || '').trim() || '\u2013';
-  var uttektar  = (document.getElementById('clientUttektar').value || '').trim() || '\u2013';
-  var cdate     = document.getElementById('clientDate').value;
-  var today     = new Date();
-  var dateStr   = cdate ? new Date(cdate).toLocaleDateString('is-IS') : (today.getDate() + '.' + (today.getMonth()+1) + '.' + today.getFullYear());
-
-  document.getElementById('pdf-c-name').textContent    = name;
+  if (typeof html2pdf === 'undefined') { alert('Ekki tókst að hlaða PDF-útflutningi.'); return; }
+  const items = selectedProducts();
+  if (!items.length) { alert('Veldu magn á að minnsta kosti einni vöru.'); return; }
+  const value = id => (document.getElementById(id).value || '').trim();
+  const name = value('clientName') || '—';
+  const company = value('clientCompany') || '—';
+  const date = value('clientDate') || toISO(new Date());
+  const project = value('project-name');
+  document.getElementById('pdf-c-name').textContent = name;
   document.getElementById('pdf-c-company').textContent = company;
-  document.getElementById('pdf-c-kt').textContent      = kt;
-  document.getElementById('pdf-c-uttektar').textContent = uttektar;
-  document.getElementById('pdf-c-date').textContent    = dateStr;
-  document.getElementById('pdf-sig-name').textContent  = name !== '\u2013' ? name : '';
-
-  // Meta line
-  var metaParts = [];
-  if (company !== '\u2013') metaParts.push(company);
-  else if (name !== '\u2013') metaParts.push(name);
-  metaParts.push(dateStr);
-  document.getElementById('pdf-meta').textContent = metaParts.join('  \u00b7  ') || '\u2013';
-
-  // Rental info – structured HTML instead of newline-delimited text
-  var startD = document.getElementById('start-date').value;
-  var endD   = document.getElementById('end-date').value;
-  var rentalHtml = '<div>Leigutími: ' + days + ' dagar</div>';
-  if (startD) rentalHtml += '<div>Upphafsdagur: ' + new Date(startD).toLocaleDateString('is-IS') + '</div>';
-  if (endD)   rentalHtml += '<div>Lokadagur: ' + new Date(endD).toLocaleDateString('is-IS') + '</div>';
-  if (discount > 0) rentalHtml += '<div>Afsláttur: ' + discount + '%</div>';
-  document.getElementById('pdf-rental-info').innerHTML = rentalHtml;
-
-  // Collect items
-  function collectItems(arr, prefix) {
-    var items = [];
-    arr.forEach(function(p, i) {
-      var qty = parseInt(document.getElementById(prefix + '-qty-' + i).value) || 0;
-      if (qty > 0) {
-        var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
-        var sale = p.salePrice != null ? p.salePrice * qty : null;
-        var wt = p.weight_kg != null ? p.weight_kg * qty : null;
-        items.push({ id: p.id, articleNumber: p.articleNumber || '', name: p.name, qty: qty, cost: cost, sale: sale, weight: wt });
+  document.getElementById('pdf-c-kt').textContent = value('clientKennitala') || '—';
+  document.getElementById('pdf-c-uttektar').textContent = value('clientUttektar') || '—';
+  document.getElementById('pdf-c-date').textContent = date;
+  document.getElementById('pdf-sig-name').textContent = name === '—' ? '' : name;
+  document.getElementById('pdf-meta').textContent = [company !== '—' ? company : name,date].join(' · ');
+  const days = getRentalDays();
+  document.getElementById('pdf-rental-info').innerHTML =
+    '<div>Verkefni: '+escapeHTML(project||'—')+'</div>'+
+    '<div>Áætlaður leigutími: '+days+' dagar</div>'+
+    '<div>Upphaf: '+escapeHTML(value('start-date'))+' · Lok: '+escapeHTML(value('end-date'))+'</div>';
+  let totalWeight=0,missingWeight=false;
+  const includeWeight=document.getElementById('pdf-check-weight').checked;
+  let table='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#f8fafc;border-bottom:2px solid #ddd">'+
+    '<th style="text-align:left;padding:7px">Leigunr.</th>'+
+    '<th style="text-align:left;padding:7px">Sölunr.</th>'+
+    '<th style="text-align:left;padding:7px">Heiti</th>'+
+    '<th style="text-align:right;padding:7px">Magn</th>'+
+    (includeWeight?'<th style="text-align:right;padding:7px">Þyngd (kg)</th>':'')+
+    '</tr></thead><tbody>';
+  for (const {p,qty} of items) {
+    const weight=p.weight_kg!=null?p.weight_kg*qty:null;
+    if(weight===null)missingWeight=true;else totalWeight+=weight;
+    table+='<tr style="border-bottom:1px solid #eee">'+
+      '<td style="padding:6px">'+escapeHTML(p.id)+'</td>'+
+      '<td style="padding:6px">'+escapeHTML(p.articleNumber||'—')+'</td>'+
+      '<td style="padding:6px">'+escapeHTML(p.name)+'</td>'+
+      '<td style="padding:6px;text-align:right">'+qty+'</td>'+
+      (includeWeight?'<td style="padding:6px;text-align:right">'+(weight==null?'—':fmtDec(weight))+'</td>':'')+
+      '</tr>';
+  }
+  table+='</tbody></table><p style="font-size:12px;margin-top:14px">'+
+    '<strong>Alls: '+fmtInt(items.reduce((sum,x)=>sum+x.qty,0))+' stk.</strong>'+
+    (includeWeight?' · Þekkt þyngd: '+fmtDec(totalWeight)+' kg'+(missingWeight?' (ófullkomið)':''):'')+
+    '</p><p style="font-size:11px;color:#555">Efnislisti án verðupplýsinga. Skoðið vörur og tæknigögn á byko.is. Burðargeta skal staðfest fyrir uppsetningu.</p>';
+  document.getElementById('pdf-content').innerHTML=table;
+  document.body.classList.toggle('pdf-hide-sig',!document.getElementById('pdf-check-sig').checked);
+  const block=document.getElementById('pdf-print-block');
+  block.classList.add('pdf-rendering');
+  const filename='Efnislisti-loftastodir-'+(project||name||'verkefni').replace(/[\\/:*?"<>|]/g,'').slice(0,55)+'.pdf';
+  const opts={
+    margin:[6,8,6,8],filename,
+    image:{type:'jpeg',quality:0.95},
+    html2canvas:{scale:2,useCORS:true,logging:false,scrollY:0,scrollX:0,windowWidth:794,width:700,
+      onclone: function(doc) {
+        Array.from(doc.body.children).forEach(child=>{if(child.id!=='pdf-print-block')child.style.display='none';});
+        doc.body.style.padding='0';doc.body.style.margin='0';
+        const el=doc.getElementById('pdf-print-block');
+        if(el){el.style.position='static';el.style.left='0';el.style.top='0';el.style.width='700px';el.style.margin='0 auto';}
       }
-    });
-    return items;
-  }
-
-  var allItems = [];
-  allItems = allItems.concat(collectItems(LOFTASTODIR, 'ls'));
-  allItems = allItems.concat(collectItems(MOTABITAR, 'mb'));
-  allItems = allItems.concat(collectItems(AUKAHLUTIR, 'ak'));
-
-  if (allItems.length === 0) {
-    alert('Engir hlutir valdir. Veldu magn á a.m.k. einni vöru.');
-    return;
-  }
-
-  // Build table
-  var totalRental = 0, totalSale = 0, totalWeight = 0, missingWeight = false, missingSale = false, knownWeight = false, knownSale = false;
-  var tbl = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-  tbl += '<thead><tr style="background:#f8fafc;border-bottom:2px solid #e0e0e0;">';
-  tbl += '<th style="text-align:left;padding:6px;">Leigunr.</th>';
-  tbl += '<th style="text-align:left;padding:6px;">Sölunr.</th>';
-  tbl += '<th style="text-align:left;padding:6px;">Lýsing</th>';
-  tbl += '<th style="text-align:right;padding:6px;">Magn</th>';
-  tbl += '<th style="text-align:right;padding:6px;">Þyngd (kg)</th>';
-  tbl += '<th style="text-align:right;padding:6px;">Leiguverð</th>';
-  tbl += '<th style="text-align:right;padding:6px;">Söluverð</th>';
-  tbl += '</tr></thead><tbody>';
-  allItems.forEach(function(it) {
-    totalRental += it.cost;
-    if (it.sale != null) { totalSale += it.sale; knownSale = true; } else missingSale = true;
-    if (it.weight != null) { totalWeight += it.weight; knownWeight = true; } else missingWeight = true;
-    tbl += '<tr style="border-bottom:1px solid #f1f5f9;">';
-    tbl += '<td style="padding:5px 6px;">' + it.id + '</td>';
-    tbl += '<td style="padding:5px 6px;">' + (it.articleNumber || '—') + '</td>';
-    tbl += '<td style="padding:5px 6px;">' + it.name + '</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + it.qty + '</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + (it.weight != null ? fmtDec(it.weight) : '—') + '</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + fmtMoney(it.cost) + ' kr</td>';
-    tbl += '<td style="text-align:right;padding:5px 6px;">' + (it.sale != null ? fmtMoney(it.sale) + ' kr' : '—') + '</td>';
-    tbl += '</tr>';
-  });
-  tbl += '</tbody></table>';
-
-  // Totals
-  var discounted = discount > 0 ? totalRental * (1 - discount / 100) : totalRental;
-  tbl += '<div style="margin-top:10px;font-size:12px;line-height:1.8;">';
-  tbl += '<strong>Þyngd:</strong> ' + (knownWeight ? fmtDec(totalWeight) + ' kg' : 'Óstaðfest') + (missingWeight ? ' (þyngd sumra vara vantar)' : '') + '<br>';
-  tbl += '<strong>Leiguverð (fyrir afslátt):</strong> ' + fmtMoney(totalRental) + ' kr<br>';
-  if (discount > 0) tbl += '<strong>Afsláttur:</strong> ' + discount + '%<br>';
-  tbl += '<strong>Samtals leiguverð:</strong> ' + fmtMoney(discounted) + ' kr<br>';
-  tbl += '<strong>Þekkt söluverð:</strong> ' + (knownSale ? fmtMoney(totalSale) + ' kr' : 'Óstaðfest') + (missingSale ? ' (verð sumra vara vantar)' : '');
-  tbl += '</div>';
-
-  document.getElementById('pdf-content').innerHTML = tbl;
-
-  // Generate filename
-  var clientName = (document.getElementById('clientName').value || '').trim();
-  var safeName = (clientName || 'tilbod').replace(/[\\/:*?"<>|]/g, '');
-  var fileDateStr = today.getDate() + '.' + (today.getMonth()+1) + '.' + today.getFullYear();
-  var filename = 'Loftastodir-' + safeName + '-' + fileDateStr + '.pdf';
-
-  // Generate PDF
-  var pdfBlock = document.getElementById('pdf-print-block');
-  pdfBlock.classList.add('pdf-rendering');
-  window.scrollTo(0, 0);
-
-  var opt = {
-    margin:      [6, 8, 6, 8],
-    filename:    filename,
-    image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0, windowWidth: 794, width: 700, onclone: function(doc) { Array.from(doc.body.children).forEach(function(child) { if (child.id !== 'pdf-print-block') child.style.display = 'none'; }); doc.body.style.padding = '0'; doc.body.style.margin = '0'; var el = doc.getElementById('pdf-print-block'); if (el) { el.style.position = 'static'; el.style.left = '0'; el.style.top = '0'; el.style.width = '700px'; el.style.margin = '0 auto'; } } },
-    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:   { mode: ['css', 'legacy'] }
+    },
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['css','legacy']}
   };
-
-  // Allow browser to fully paint the block before capturing
-  setTimeout(function() {
-    html2pdf().set(opt).from(pdfBlock).save().then(function() {
-      pdfBlock.classList.remove('pdf-rendering');
-    }).catch(function(err) {
-      console.error('html2pdf error:', err);
-      alert('Villa við PDF gerð: ' + (err && err.message ? err.message : String(err)));
-      pdfBlock.classList.remove('pdf-rendering');
+  const cleanup=()=>{block.classList.remove('pdf-rendering');document.body.classList.remove('pdf-hide-sig');};
+  setTimeout(()=>{
+    html2pdf().set(opts).from(block).save().then(cleanup).catch(err=>{
+      cleanup();console.error(err);alert('Ekki tókst að útbúa PDF: '+String(err.message||err));
     });
-  }, 200);
+  },200);
 }
-
-function exportExcel() {
-  if (typeof XLSX === 'undefined') {
-    alert('Villa: XLSX.js tókst ekki að hlaðast. Endurhladdu síðuna.');
-    return;
-  }
-
-  var days = getRentalDays();
-  var discount = parseFloat(document.getElementById('discount-input').value) || 0;
-
-  // Client info
-  var name      = (document.getElementById('clientName').value || '').trim() || '\u2013';
-  var company   = (document.getElementById('clientCompany').value || '').trim() || '\u2013';
-  var kt        = (document.getElementById('clientKennitala').value || '').trim() || '\u2013';
-  var uttektar  = (document.getElementById('clientUttektar').value || '').trim() || '\u2013';
-  var address   = (document.getElementById('clientAddress').value || '').trim() || '\u2013';
-  var cdate     = document.getElementById('clientDate').value;
-  var today     = new Date();
-  var dateStr   = cdate ? new Date(cdate).toLocaleDateString('is-IS') : (today.getDate() + '.' + (today.getMonth()+1) + '.' + today.getFullYear());
-
-  // Sheet 1: Upplýsingar
-  var infoData = [
-    ['Upplýsingar'],
-    ['Nafn', name],
-    ['Fyrirtæki', company],
-    ['Kennitala', kt],
-    ['Úttektaraðili', uttektar],
-    ['Heimilisfang', address],
-    ['Dagsetning', dateStr],
-    ['Leigutími (dagar)', days],
-    ['Afsláttur', discount + '%']
+function exportExcel(){
+  if(typeof XLSX==='undefined'){alert('Ekki tókst að hlaða Excel-útflutningi.');return;}
+  const items=selectedProducts();
+  if(!items.length){alert('Veldu magn á að minnsta kosti einni vöru.');return;}
+  const value=id=>(document.getElementById(id).value||'').trim();
+  const info=[
+    ['Efnislisti - loftastoðir og undirsláttur'],
+    ['Verkefni',value('project-name')],
+    ['Nafn',value('clientName')],
+    ['Fyrirtæki',value('clientCompany')],
+    ['Kennitala',value('clientKennitala')],
+    ['Sími',value('clientPhone')],
+    ['Netfang',value('clientEmail')],
+    ['Heimilisfang',value('clientAddress')],
+    ['Úttektaraðili',value('clientUttektar')],
+    ['Dagsetning',value('clientDate')],
+    ['Upphafsdagur',value('start-date')],
+    ['Lokadagur',value('end-date')],
+    ['Leigutími (dagar)',getRentalDays()],
+    ['Verðupplýsingar','Ekki innifaldar']
   ];
-
-  // Sheet 2: Efnislisti
-  var itemHeader = ['Leigunr.', 'Sölunr.', 'Lýsing', 'Magn', 'Þyngd (kg)', 'Leiguverð', 'Söluverð'];
-  var itemRows = [itemHeader];
-
-  function addItems(arr, prefix) {
-    arr.forEach(function(p, i) {
-      var qty = parseInt(document.getElementById(prefix + '-qty-' + i).value) || 0;
-      if (qty > 0) {
-        var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
-        var sale = p.salePrice != null ? p.salePrice * qty : null;
-        var wt = p.weight_kg != null ? p.weight_kg * qty : null;
-        itemRows.push([p.id, p.articleNumber || '', p.name, qty, wt != null ? Math.round(wt * 100) / 100 : null, Math.round(cost * 100)/100, sale != null ? Math.round(sale * 100)/100 : null]);
-      }
-    });
+  const data=[['Flokkur','Leigunúmer','Sölunúmer','Vöruheiti','Magn (stk)','Þyngd (kg)','Tengill á byko.is','Tengill tegund']];
+  const groupName={ls:'Loftastoðir',mb:'Mótabitar',ak:'Fylgihlutir'};
+  for(const {p,group,qty} of items){
+    const link=productLink(p,group);
+    data.push([groupName[group],p.id,p.articleNumber||'',p.name,qty,
+      p.weight_kg!=null?Number((qty*p.weight_kg).toFixed(2)):null,
+      link.url,link.direct?'Vörusíða':'Flokksíða']);
   }
-
-  addItems(LOFTASTODIR, 'ls');
-  addItems(MOTABITAR, 'mb');
-  addItems(AUKAHLUTIR, 'ak');
-
-  if (itemRows.length <= 1) {
-    alert('Engir hlutir valdir. Veldu magn á a.m.k. einni vöru.');
-    return;
+  const book=XLSX.utils.book_new();
+  const wsInfo=XLSX.utils.aoa_to_sheet(info);
+  const wsData=XLSX.utils.aoa_to_sheet(data);
+  wsData['!cols']=[{wch:16},{wch:24},{wch:18},{wch:45},{wch:14},{wch:16},{wch:67},{wch:16}];
+  for(let i=1;i<data.length;i++){
+    const cell=wsData['G'+(i+1)];
+    if(cell)cell.l={Target:data[i][6],Tooltip:data[i][7]};
   }
-
-  var wb = XLSX.utils.book_new();
-  var ws1 = XLSX.utils.aoa_to_sheet(infoData);
-  XLSX.utils.book_append_sheet(wb, ws1, 'Upplýsingar');
-  var ws2 = XLSX.utils.aoa_to_sheet(itemRows);
-  XLSX.utils.book_append_sheet(wb, ws2, 'Efnislisti');
-
-  var clientName = (document.getElementById('clientName').value || '').trim();
-  var safeName = (clientName || 'tilbod').replace(/[\\/:*?"<>|]/g, '');
-  var fileDateStr = today.getDate() + '.' + (today.getMonth()+1) + '.' + today.getFullYear();
-  XLSX.writeFile(wb, 'Loftastodir-' + safeName + '-' + fileDateStr + '.xlsx');
+  XLSX.utils.book_append_sheet(book,wsInfo,'Verkefni');
+  XLSX.utils.book_append_sheet(book,wsData,'Efnislisti');
+  const safe=(value('project-name')||'verkefni').replace(/[\\/:*?"<>|]/g,'').slice(0,55);
+  XLSX.writeFile(book,'Efnislisti-loftastodir-'+safe+'.xlsx');
 }
 
-// =====================================================================
-// DISCOUNT
-// =====================================================================
-function stepDiscount(dir) {
-  var input = document.getElementById('discount-input');
-  var val   = parseFloat(input.value) || 0;
-  input.value = Math.min(100, Math.max(0, val + dir * 0.5)).toFixed(1);
-  scheduleCalculate();
-}
 
-// =====================================================================
-// RESET
-// =====================================================================
-function resetAll() {
-  LOFTASTODIR.forEach(function(_, i)  { document.getElementById('ls-qty-' + i).value = 0; });
-  MOTABITAR.forEach(function(_, i)    { document.getElementById('mb-qty-' + i).value = 0; });
-  AUKAHLUTIR.forEach(function(_, i)   { document.getElementById('ak-qty-' + i).value = 0; });
-  document.getElementById('results').classList.remove('show');
-  _resultsVisible = false;
-  document.getElementById('summary-days').textContent = getRentalDays() + ' dagar';
-  document.getElementById('summary-items').textContent = '0 stk';
-  document.getElementById('summary-weight').textContent = '—';
-  document.getElementById('total-rental').textContent = '0 kr';
-  document.getElementById('total-sale').textContent = '—';
-  document.getElementById('discounted-row').style.display = 'none';
+function resetAll(){
+  for(const [group,arr] of [['ls',LOFTASTODIR],['mb',MOTABITAR],['ak',AUKAHLUTIR]]){
+    arr.forEach((_,i)=>{document.getElementById(group+'-qty-'+i).value=0;});
+  }
+  calculate(true);
 }
-
-// =====================================================================
-// CALCULATE
-// =====================================================================
 function calculate(silent) {
-  var days = getRentalDays();
-  var items = [], totalRental = 0, totalSale = 0, totalItems = 0, totalWeight = 0, hasWeight = false, missingWeight = false;
-
-  LOFTASTODIR.forEach(function(p, i) {
-    var qty = parseInt(document.getElementById('ls-qty-' + i).value) || 0;
-    if (qty > 0) {
-      var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
-      var sale = p.salePrice ? p.salePrice * qty : 0;
-      items.push({ id:p.id, articleNumber:p.articleNumber, name:p.name, qty:qty, cost:cost, sale:sale, hasSale:!!p.salePrice });
-      totalRental += cost; totalSale += sale; totalItems += qty;
-      if (p.weight_kg != null) { totalWeight += p.weight_kg * qty; hasWeight = true; } else missingWeight = true;
-    }
-  });
-
-  MOTABITAR.forEach(function(b, i) {
-    var qty = parseInt(document.getElementById('mb-qty-' + i).value) || 0;
-    if (qty > 0) {
-      var cost = calculateRentalCost(b.dayRate, b.weekRate, days, qty);
-      var sale = b.salePrice ? b.salePrice * qty : 0;
-      items.push({ id:b.id, articleNumber:b.articleNumber, name:b.name, qty:qty, cost:cost, sale:sale, hasSale:!!b.salePrice });
-      totalRental += cost; totalSale += sale; totalItems += qty;
-      if (b.weight_kg != null) { totalWeight += b.weight_kg * qty; hasWeight = true; } else missingWeight = true;
-    }
-  });
-
-  AUKAHLUTIR.forEach(function(a, i) {
-    var qty = parseInt(document.getElementById('ak-qty-' + i).value) || 0;
-    if (qty > 0) {
-      var cost = calculateRentalCost(a.dayRate, a.weekRate, days, qty);
-      var sale = a.salePrice ? a.salePrice * qty : 0;
-      items.push({ id:a.id, articleNumber:a.articleNumber, name:a.name, qty:qty, cost:cost, sale:sale, hasSale:!!a.salePrice });
-      totalRental += cost; totalSale += sale; totalItems += qty;
-      if (a.weight_kg != null) { totalWeight += a.weight_kg * qty; hasWeight = true; } else missingWeight = true;
-    }
-  });
-
-  if (items.length === 0) {
-    document.getElementById('results').classList.remove('show');
-    _resultsVisible = false;
-    document.getElementById('summary-days').textContent = days + ' dagar';
-    document.getElementById('summary-items').textContent = '0 stk';
-    document.getElementById('summary-weight').textContent = '—';
-    document.getElementById('total-rental').textContent = '0 kr';
-    document.getElementById('total-sale').textContent = '—';
-    document.getElementById('discounted-row').style.display = 'none';
-    return;
-  }
-
-  // Build results table
-  var tbody = document.getElementById('results-body');
-  tbody.innerHTML = '';
-  items.forEach(function(item) {
-    var tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td>' + item.id + '</td>' +
-      '<td>' + item.articleNumber + '</td>' +
-      '<td>' + item.name + '</td>' +
-      '<td style="text-align:right">' + fmtInt(item.qty) + ' stk</td>' +
-      '<td style="text-align:right">' + fmtMoney(item.cost) + ' kr</td>' +
-      '<td style="text-align:right">' + (item.hasSale ? fmtMoney(item.sale) + ' kr' : '—') + '</td>';
+  const items=selectedProducts();
+  const total=items.reduce((sum,x)=>sum+x.qty,0);
+  let knownWeight=0,weightMissing=false,weightKnown=false;
+  const tbody=document.getElementById('results-body');
+  tbody.innerHTML='';
+  for(const {p,group,qty} of items){
+    const weight=p.weight_kg!=null ? qty*p.weight_kg : null;
+    if(weight===null)weightMissing=true;
+    else {knownWeight+=weight;weightKnown=true;}
+    const link=productLink(p,group);
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+escapeHTML(p.id)+'</td>'+
+      '<td>'+escapeHTML(p.articleNumber||'—')+'</td>'+
+      '<td>'+escapeHTML(p.name)+'</td>'+
+      '<td style="text-align:right">'+fmtInt(qty)+' stk.</td>'+
+      '<td style="text-align:right">'+(weight===null?'—':fmtDec(weight))+'</td>'+
+      '<td><a href="'+link.url+'" target="_blank" rel="noopener noreferrer">'+
+        (link.direct?'Vörusíða ↗':'Flokksíða ↗')+'</a></td>';
     tbody.appendChild(tr);
-  });
-
-  // Summary
-  var weeks    = Math.ceil(days / 7);
-  var dayLabel = days < 7 ? days + ' dagar (dagverð)' : days + ' dagar (' + weeks + ' vikur — vikuverð)';
-
-  document.getElementById('summary-days').textContent   = dayLabel;
-  document.getElementById('summary-items').textContent  = fmtInt(totalItems) + ' stk';
-  document.getElementById('summary-weight').textContent = hasWeight ? fmtDec(totalWeight) + ' kg' + (missingWeight ? ' (ófullkomið)' : '') : 'Óstaðfest';
-  document.getElementById('total-rental').textContent   = fmtMoney(totalRental) + ' kr';
-  document.getElementById('total-sale').textContent     = totalSale > 0 ? fmtMoney(totalSale) + ' kr' : '—';
-
-  // Discount
-  var discPct = parseFloat(document.getElementById('discount-input').value) || 0;
-  var discountedRow = document.getElementById('discounted-row');
-  if (discPct > 0) {
-    var discounted = totalRental * (1 - discPct / 100);
-    document.getElementById('total-discounted').textContent = fmtMoney(discounted) + ' kr';
-    discountedRow.style.display = '';
-  } else {
-    discountedRow.style.display = 'none';
   }
-
-  // Print meta
-  var proj = document.getElementById('project-name').value;
-  document.getElementById('print-project-title').textContent = proj || 'Loftastoðir — Byko Leiga';
-  document.getElementById('print-date').textContent = new Date().toLocaleDateString('is-IS');
-
-  // Populate print-client-info for browser print
-  var printParts = [];
-  var cName = (document.getElementById('clientName').value || '').trim();
-  var cCompany = (document.getElementById('clientCompany').value || '').trim();
-  var cKt = (document.getElementById('clientKennitala').value || '').trim();
-  var cPhone = (document.getElementById('clientPhone').value || '').trim();
-  var cEmail = (document.getElementById('clientEmail').value || '').trim();
-  var cAddr = (document.getElementById('clientAddress').value || '').trim();
-  var cUttektar = (document.getElementById('clientUttektar').value || '').trim();
-  if (cName)     printParts.push('<strong>Nafn:</strong> ' + cName);
-  if (cCompany)  printParts.push('<strong>Fyrirtæki:</strong> ' + cCompany);
-  if (cKt)       printParts.push('<strong>Kennitala:</strong> ' + cKt);
-  if (cPhone)    printParts.push('<strong>Sími:</strong> ' + cPhone);
-  if (cEmail)    printParts.push('<strong>Netfang:</strong> ' + cEmail);
-  if (cAddr)     printParts.push('<strong>Heimilisfang:</strong> ' + cAddr);
-  if (cUttektar) printParts.push('<strong>Úttektaraðili:</strong> ' + cUttektar);
-  document.getElementById('print-client-info').innerHTML = printParts.join(' &nbsp;·&nbsp; ');
-
-  // Show results (scroll only first time)
-  var wasVisible = _resultsVisible;
-  document.getElementById('results').classList.add('show');
-  _resultsVisible = true;
-  if (!wasVisible && !silent) {
-    setTimeout(function() {
-      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+  document.getElementById('summary-days').textContent=getRentalDays()+' dagar';
+  document.getElementById('summary-items').textContent=fmtInt(total)+' stk.';
+  document.getElementById('summary-types').textContent=String(items.length);
+  document.getElementById('summary-weight').textContent=weightKnown ? fmtDec(knownWeight)+' kg'+(weightMissing?' (ófullkomið)':'') : (items.length?'Óstaðfest':'—');
+  const results=document.getElementById('results');
+  results.classList.toggle('show',items.length>0);
+  _resultsVisible=items.length>0;
+  document.getElementById('print-project-title').textContent=
+    document.getElementById('project-name').value||'Loftastoðir – Efnislisti';
+  document.getElementById('print-date').textContent=new Date().toLocaleDateString('is-IS');
+  const parts=[];
+  for(const [id,label] of [['clientName','Nafn'],['clientCompany','Fyrirtæki'],['clientKennitala','Kennitala'],['clientPhone','Sími'],['clientEmail','Netfang'],['clientAddress','Heimilisfang'],['clientUttektar','Úttektaraðili']]){
+    const value=document.getElementById(id).value.trim();
+    if(value)parts.push('<strong>'+label+':</strong> '+escapeHTML(value));
   }
+  document.getElementById('print-client-info').innerHTML=parts.join(' · ');
 }
 
 // =====================================================================
