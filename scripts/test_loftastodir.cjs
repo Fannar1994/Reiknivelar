@@ -26,7 +26,6 @@ const expected = [
 ['01-MÓT-LM51-913','971000913',38.71,270.97],
 ['01-MÓT-LM51-091','97100091',38.7081,270.9665],
 ['01-MÓT-LM51-079','97100079',67.7416,474.1912],
-['01-MÓT-LM51-048','97100048',27.10,189.67],
 ['01-MÓT-LM51-042','97100042',61.9329,433.5503],
 ['01-MÓT-LM51-041','97100041',15.4832,108.3824],
 ['01-MÓT-LM51-040','97100040',61.9329,433.5503],
@@ -50,6 +49,7 @@ const expected = [
 ['01-MÓT-LM71-926','153926',18.55,129.85],
 ['01-MÓT-LM71-924','153924',17.15,120.05]
 ];
+assert.equal(products.length, 34, 'Expected 34 catalogued products after removing B45');
 assert.equal(products.length, expected.length, 'Wrong number of catalogued products');
 const map = new Map(products.map(p => [p.id,p]));
 assert.equal(map.size, products.length, 'Duplicate rental item number');
@@ -74,7 +74,7 @@ assert.equal(map.get('01-MÓT-LM51-041').kg_max,1480);
 assert.equal(map.get('01-MÓT-LM51-029').kg_max,1010);
 assert.equal(map.get('01-MÓT-LM51-079').kN_max,20, 'Villalta 2020 D55 550 cm capacity');
 assert.equal(map.get('01-MÓT-LM51-079').kN_min,20, 'Villalta 2020 Class D constant permissible load');
-assert.equal(map.get('01-MÓT-LM51-048').kN_max,null, 'B45 at 480cm is not confirmed');
+assert.equal(map.has('01-MÓT-LM51-048'),false, 'Unverified B45 must not be included in catalogue');
 assert.ok(html.includes('<tr><td>300 cm</td><td>—</td><td>1.071 kg</td>'),
   'Villalta 300 cm handbook row must not show 160/290 capacity');
 assert.equal(data.calculateRentalCost(15,108,8,2),432,
