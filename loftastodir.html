@@ -695,58 +695,67 @@ const CLASS_INFO = {
 // PRODUCTS — Loftastoðir
 // =====================================================================
 const LOFTASTODIR = [
-  { id:'01-MÓT-LM51-041', articleNumber:'97100041', name:'Loftastoðir 0,7–1,2M (Málað)',         minHeight:'0,7M',  maxHeight:'1,2M',  kN_min:25.9, kN_max:20.8, weight_kg:5.8,   classLabel:'A',   classKey:'A',  dayRate:16, weekRate:112, salePrice:5422  },
-  { id:'01-MÓT-LM51-027', articleNumber:'97100027', name:'Loftastoðir 1,6–3,0M (Málað)',         minHeight:'1,6M',  maxHeight:'3,0M',  kN_min:11.7, kN_max:3.3,  weight_kg:9.75,  classLabel:'A',   classKey:'A',  dayRate:16, weekRate:112, salePrice:6689  },
-  { id:'01-MÓT-LM51-026', articleNumber:'97100026', name:'Loftastoðir 2,0–3,5M (Málað)',         minHeight:'2,0M',  maxHeight:'3,5M',  kN_min:7.5,  kN_max:2.4,  weight_kg:10.26, classLabel:'A',   classKey:'A',  dayRate:16, weekRate:112, salePrice:7547  },
-  { id:'01-MÓT-LM51-029', articleNumber:'97100029', name:'Loftastoðir 1,6–2,9M (Galv.)',         minHeight:'1,6M',  maxHeight:'2,9M',  kN_min:11.7, kN_max:3.6,  weight_kg:11.0,  classLabel:'A',   classKey:'A',  dayRate:20, weekRate:140, salePrice:9174  },
-  { id:'01-MÓT-LM51-028', articleNumber:'97100028', name:'Loftastoðir 2,0–3,5M (Galv.)',         minHeight:'2,0M',  maxHeight:'3,5M',  kN_min:7.5,  kN_max:2.4,  weight_kg:11.0,  classLabel:'A',   classKey:'A',  dayRate:20, weekRate:140, salePrice:10340 },
-  { id:'01-MÓT-LM51-092', articleNumber:'97100092', name:'Loftastoðir B/D30 175/300',             minHeight:'175cm', maxHeight:'300cm', kN_min:13.1, kN_max:4.4,  weight_kg:16.89, classLabel:'B/D', classKey:'BD', dayRate:30, weekRate:210, salePrice:17633 },
-  { id:'01-MÓT-LM51-031', articleNumber:'97100031', name:'Loftastoðir B30 178/300 HPE Galv.',     minHeight:'178cm', maxHeight:'300cm', kN_min:12.6, kN_max:4.4,  weight_kg:16.8,  classLabel:'B',   classKey:'B',  dayRate:28, weekRate:196, salePrice:20869 },
-  { id:'01-MÓT-LM51-913', articleNumber:'97100913', name:'Loftastoðir CE30 179/300 Galv.',        minHeight:'179cm', maxHeight:'300cm', kN_min:18.7, kN_max:6.7,  weight_kg:10.26, classLabel:'C/E', classKey:'CE', dayRate:40, weekRate:280, salePrice:21750 },
-  { id:'01-MÓT-LM51-032', articleNumber:'97100032', name:'Loftastoðir B35 200/350 HPE Galv.',     minHeight:'200cm', maxHeight:'350cm', kN_min:10.0, kN_max:3.3,  weight_kg:17.4,  classLabel:'B',   classKey:'B',  dayRate:28, weekRate:196, salePrice:18706 },
-  { id:'01-MÓT-LM51-091', articleNumber:'97100091', name:'Loftastoðir CD35 201/350 Galv.',        minHeight:'201cm', maxHeight:'350cm', kN_min:14.9, kN_max:4.9,  weight_kg:20.5,  classLabel:'C/D', classKey:'CD', dayRate:40, weekRate:280, salePrice:21395 },
-  { id:'01-MÓT-LM51-235', articleNumber:'97100235', name:'Loftastoðir E35 (201/350)',             minHeight:'201cm', maxHeight:'350cm', kN_min:30.0, kN_max:30.0, weight_kg:20.5,  classLabel:'E',   classKey:'E',  dayRate:40, weekRate:280, salePrice:19995 },
-  { id:'01-MÓT-LM51-935', articleNumber:'FA8169012C',name:'Faresin Loftastoðir E35 200/350 (Galv.)',minHeight:'200cm',maxHeight:'350cm',kN_min:30.0, kN_max:30.0, weight_kg:null,  classLabel:'E',   classKey:'E',  dayRate:40, weekRate:280, salePrice:19621 },
-  { id:'01-MÓT-LM51-048', articleNumber:'97100048', name:'Loftastoðir B45 260/480 Galv.',         minHeight:'260cm', maxHeight:'480cm', kN_min:5.9,  kN_max:1.7,  weight_kg:21.18, classLabel:'B',   classKey:'B',  dayRate:28, weekRate:196, salePrice:39669 },
-  { id:'01-MÓT-LM51-080', articleNumber:'97100209', name:'Loftastoðir D45',                       minHeight:'260cm', maxHeight:'450cm', kN_min:20.0, kN_max:20.0, weight_kg:42.0,  classLabel:'D',   classKey:'D',  dayRate:60, weekRate:420, salePrice:24650 },
-  { id:'01-MÓT-LM51-079', articleNumber:'97100079', name:'Loftastoðir D55 301/550 Galv.',         minHeight:'301cm', maxHeight:'550cm', kN_min:20.0, kN_max:20.0, weight_kg:42.0,  classLabel:'D',   classKey:'D',  dayRate:70, weekRate:490, salePrice:40795 },
+  { id:'01-MÓT-LM51-041', articleNumber:'97100041', name:"Loftastoð 0,70–1,20 m, máluð",         minHeight:'0,7M',  maxHeight:'1,2M',  kN_min:16.67, kN_max:14.51, weight_kg:5.8,   classLabel:"Almenn",   classKey:"U",  dayRate:15.48, weekRate:108.38, salePrice:null  },
+  { id:'01-MÓT-LM51-027', articleNumber:'97100027', name:"Loftastoð 1,60–3,00 m, máluð",         minHeight:'1,6M',  maxHeight:'3,0M',  kN_min:null, kN_max:null,  weight_kg:9.75,  classLabel:"Almenn",   classKey:"U",  dayRate:15.48, weekRate:108.38, salePrice:null  },
+  { id:'01-MÓT-LM51-026', articleNumber:'97100026', name:"Loftastoð 2,00–3,50 m, máluð",         minHeight:'2,0M',  maxHeight:'3,5M',  kN_min:null,  kN_max:null,  weight_kg:10.26, classLabel:"Almenn",   classKey:"U",  dayRate:15.48, weekRate:108.38, salePrice:null  },
+  { id:'01-MÓT-LM51-029', articleNumber:'97100029', name:"Loftastoð 1,60–2,90 m, galvaníseruð",         minHeight:'1,6M',  maxHeight:'2,9M',  kN_min:15.39, kN_max:9.9,  weight_kg:11.0,  classLabel:"Almenn",   classKey:"U",  dayRate:19.36, weekRate:135.48, salePrice:null  },
+  { id:'01-MÓT-LM51-028', articleNumber:'97100028', name:"Loftastoð 2,00–3,50 m, galvaníseruð",         minHeight:'2,0M',  maxHeight:'3,5M',  kN_min:null,  kN_max:null,  weight_kg:11.0,  classLabel:"Almenn",   classKey:"U",  dayRate:19.36, weekRate:135.48, salePrice:null },
+  { id:'01-MÓT-LM51-092', articleNumber:'97100092', name:'Loftastoðir B/D30 175/300',             minHeight:'175cm', maxHeight:'300cm', kN_min:null, kN_max:20,  weight_kg:16.89, classLabel:'B/D', classKey:'BD', dayRate:29.03, weekRate:203.22, salePrice:null },
+  { id:'01-MÓT-LM51-031', articleNumber:'97100031', name:'Loftastoðir B30 178/300 HPE Galv.',     minHeight:'178cm', maxHeight:'300cm', kN_min:null, kN_max:13.33,  weight_kg:16.8,  classLabel:'B',   classKey:'B',  dayRate:27.1, weekRate:189.67, salePrice:20869 },
+  { id:'01-MÓT-LM51-913', articleNumber:"971000913", name:'Loftastoðir CE30 179/300 Galv.',        minHeight:'179cm', maxHeight:'300cm', kN_min:null, kN_max:30,  weight_kg:10.26, classLabel:'C/E', classKey:'CE', dayRate:38.71, weekRate:270.97, salePrice:null },
+  { id:'01-MÓT-LM51-032', articleNumber:'97100032', name:'Loftastoðir B35 200/350 HPE Galv.',     minHeight:'200cm', maxHeight:'350cm', kN_min:30, kN_max:11.43,  weight_kg:17.4,  classLabel:'B',   classKey:'B',  dayRate:27.1, weekRate:189.67, salePrice:null },
+  { id:'01-MÓT-LM51-091', articleNumber:'97100091', name:'Loftastoðir CD35 201/350 Galv.',        minHeight:'201cm', maxHeight:'350cm', kN_min:null, kN_max:20,  weight_kg:20.5,  classLabel:'C/D', classKey:'CD', dayRate:38.71, weekRate:270.97, salePrice:null },
+  { id:'01-MÓT-LM51-235', articleNumber:'97100235', name:'Loftastoðir E35 (201/350)',             minHeight:'201cm', maxHeight:'350cm', kN_min:null, kN_max:30, weight_kg:20.5,  classLabel:'E',   classKey:'E',  dayRate:38.71, weekRate:270.97, salePrice:null },
+  { id:'01-MÓT-LM51-935', articleNumber:'FA8169012C',name:"Faresin E35 loftastoð 2,00–3,50 m (galv.)",minHeight:'200cm',maxHeight:'350cm',kN_min:46.73, kN_max:32.12, weight_kg:23,  classLabel:'E',   classKey:'E',  dayRate:38.71, weekRate:270.97, salePrice:19621 },
+  { id:'01-MÓT-LM51-048', articleNumber:'97100048', name:'Loftastoðir B45 260/480 Galv.',         minHeight:'260cm', maxHeight:'480cm', kN_min:26.63,  kN_max:null,  weight_kg:21.18, classLabel:'B',   classKey:'B',  dayRate:27.1, weekRate:189.67, salePrice:39669 },
+  { id:'01-MÓT-LM51-080', articleNumber:'97100209', name:'Loftastoðir D45',                       minHeight:'260cm', maxHeight:'450cm', kN_min:20, kN_max:20, weight_kg:42.0,  classLabel:'D',   classKey:'D',  dayRate:58.07, weekRate:406.45, salePrice:null },
+  { id:'01-MÓT-LM51-079', articleNumber:'97100079', name:'Loftastoðir D55 301/550 Galv.',         minHeight:'301cm', maxHeight:'550cm', kN_min:null, kN_max:null, weight_kg:42.0,  classLabel:'D',   classKey:'D',  dayRate:67.74, weekRate:474.19, salePrice:null },
+  {"id":"01-MÓT-LM51-033","articleNumber":"HA601400","name":"Loftastoð 3,0–5,4 m (galv.)","minHeight":"3,0 m","maxHeight":"5,4 m","kN_min":null,"kN_max":null,"weight_kg":5.8,"classLabel":"Óstaðfest","classKey":"U","dayRate":9.95,"weekRate":69.6,"salePrice":null},
 ];
 
 // =====================================================================
 // PRODUCTS — Mótabitar HT-20
 // =====================================================================
 const MOTABITAR = [
-  { id:'01-MÓT-LM71-924', articleNumber:'0153924', name:'HT-20 2,45 m', length_m:2.45, weight_kg:11.27, dayRate:17, weekRate:119, salePrice:8647  },
-  { id:'01-MÓT-LM71-926', articleNumber:'0153926', name:'HT-20 2,65 m', length_m:2.65, weight_kg:12.19, dayRate:19, weekRate:133, salePrice:9471  },
-  { id:'01-MÓT-LM71-929', articleNumber:'0153929', name:'HT-20 2,9 m',  length_m:2.9,  weight_kg:13.34, dayRate:20, weekRate:140, salePrice:10295 },
-  { id:'01-MÓT-LM71-933', articleNumber:'0153933', name:'HT-20 3,3 m',  length_m:3.3,  weight_kg:13.34, dayRate:21, weekRate:145, salePrice:11634 },
-  { id:'01-MÓT-LM71-936', articleNumber:'0153936', name:'HT-20 3,6 m',  length_m:3.6,  weight_kg:16.56, dayRate:25, weekRate:175, salePrice:13076 },
-  { id:'01-MÓT-LM71-939', articleNumber:'0153939', name:'HT-20 3,9 m',  length_m:3.9,  weight_kg:17.94, dayRate:27, weekRate:189, salePrice:17633 },
-  { id:'01-MÓT-LM71-949', articleNumber:'0153949', name:'HT-20 4,9 m',  length_m:4.9,  weight_kg:22.54, dayRate:34, weekRate:238, salePrice:17299 },
+  { id:'01-MÓT-LM71-924', articleNumber:"153924", name:'HT-20 2,45 m', length_m:2.45, weight_kg:11.27, dayRate:17.15, weekRate:120.05, salePrice:null  },
+  { id:'01-MÓT-LM71-926', articleNumber:"153926", name:'HT-20 2,65 m', length_m:2.65, weight_kg:12.19, dayRate:18.55, weekRate:129.85, salePrice:null  },
+  { id:'01-MÓT-LM71-929', articleNumber:"153929", name:'HT-20 2,9 m',  length_m:2.9,  weight_kg:13.34, dayRate:20.3, weekRate:142.1, salePrice:null },
+  { id:'01-MÓT-LM71-933', articleNumber:"153933", name:'HT-20 3,3 m',  length_m:3.3,  weight_kg:15.18, dayRate:23.1, weekRate:161.7, salePrice:null },
+  { id:'01-MÓT-LM71-936', articleNumber:"153936", name:'HT-20 3,6 m',  length_m:3.6,  weight_kg:16.56, dayRate:25.2, weekRate:176.4, salePrice:null },
+  { id:'01-MÓT-LM71-939', articleNumber:"153939", name:'HT-20 3,9 m',  length_m:3.9,  weight_kg:17.94, dayRate:27.3, weekRate:191.1, salePrice:null },
+  { id:'01-MÓT-LM71-949', articleNumber:"153949", name:'HT-20 4,9 m',  length_m:4.9,  weight_kg:22.54, dayRate:34.3, weekRate:240.1, salePrice:null },
+  {"id":"01-MÓT-LM71-935","articleNumber":"153935","name":"HT-20 3,0 m","length_m":3,"weight_kg":13.34,"dayRate":21,"weekRate":147,"salePrice":null},
+  {"id":"01-MÓT-LM71-990","articleNumber":"FA290020L","name":"Faresin H20 2,9 m","length_m":2.9,"weight_kg":null,"dayRate":20.3,"weekRate":142.1,"salePrice":9381},
+  {"id":"01-MÓT-LM71-992","articleNumber":"FA390020L","name":"Faresin H20 3,9 m","length_m":3.9,"weight_kg":null,"dayRate":27.3,"weekRate":191.1,"salePrice":12616},
+  {"id":"01-MÓT-LM71-011","articleNumber":null,"name":"Notaður mótabiti 1,2 m","length_m":1.2,"weight_kg":null,"dayRate":8.4,"weekRate":58.8,"salePrice":null},
 ];
 
 // =====================================================================
 // PRODUCTS — Aukahlutir
 // =====================================================================
 const AUKAHLUTIR = [
-  { id:'01-MÓT-LM51-024', articleNumber:'97100024',  name:'Þrífótur f/ Loftastoðir',              weight_kg:11.55, dayRate:28,  weekRate:196, salePrice:10156  },
-  { id:'01-MÓT-LM51-095', articleNumber:'97100095',  name:'Framlenging f/ Loftastoðir 100cm',      weight_kg:11.55, dayRate:16,  weekRate:112, salePrice:6295   },
-  { id:'01-MÓT-LM51-040', articleNumber:'97100040',  name:'Rekkar fyrir Loftastoðir (Málað)',       weight_kg:32.6,  dayRate:64,  weekRate:448, salePrice:45580  },
-  { id:'01-MÓT-LM51-954', articleNumber:'FA9169154', name:'Faresin Loftastoðarekki (Galv.)',        weight_kg:null,  dayRate:106, weekRate:745, salePrice:114955 },
-  { id:'01-MÓT-LM51-025', articleNumber:'97100025',  name:'Gafflar stórir',                         weight_kg:2.5,   dayRate:16,  weekRate:112, salePrice:2515   },
+  { id:'01-MÓT-LM51-024', articleNumber:'97100024',  name:'Þrífótur f/ Loftastoðir',              weight_kg:11.55, dayRate:27.1,  weekRate:189.67, salePrice:null  },
+  { id:'01-MÓT-LM51-095', articleNumber:'97100095',  name:'Framlenging f/ Loftastoðir 100cm',      weight_kg:11.55, dayRate:15.48,  weekRate:108.38, salePrice:null   },
+  { id:'01-MÓT-LM51-040', articleNumber:'97100040',  name:'Rekkar fyrir Loftastoðir (Málað)',       weight_kg:32.6,  dayRate:61.93,  weekRate:433.55, salePrice:null  },
+  { id:'01-MÓT-LM51-954', articleNumber:'FA9169154', name:'Faresin Loftastoðarekki (Galv.)',        weight_kg:null,  dayRate:103.01, weekRate:721.04, salePrice:114955 },
+  { id:"01-MÓT-LM55-025", articleNumber:'97100025',  name:'Gafflar stórir',                         weight_kg:2.5,   dayRate:15.48,  weekRate:108.38, salePrice:null   },
+  {"id":"01-MÓT-LM51-042","articleNumber":"97100042","name":"Rekki fyrir loftastoðir D45","weight_kg":32.6,"dayRate":61.93,"weekRate":433.55,"salePrice":null},
+  {"id":"01-MÓT-LM51-021","articleNumber":"HA553690","name":"Euro geymslurekki 240/80","weight_kg":null,"dayRate":61.93,"weekRate":433.55,"salePrice":null},
+  {"id":"01-MÓT-LM51-689","articleNumber":"HA553689","name":"Euro geymslurekki 120/80","weight_kg":32.6,"dayRate":61.93,"weekRate":433.55,"salePrice":null},
 ];
 
 // =====================================================================
 // FORMATTING
 // =====================================================================
 function fmtInt(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
-function fmtDec(n) { return n.toFixed(1).replace('.', ','); }
+function fmtDec(n) { return n == null ? 'óstaðfest' : Number(n).toFixed(2).replace('.', ','); }
+function fmtMoney(n) { const a=Number(n||0).toFixed(2).split('.'); return a[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(a[1]==='00'?'':','+a[1]); }
 function toISO(d)  { return d.toISOString().split('T')[0]; }
 
 // =====================================================================
 // DUAL DATE ↔ DAYS + 10-DAY MINIMUM
 // =====================================================================
-const MIN_DAYS = 1;
+const MIN_DAYS = 20;
 
 function calculateDaysBetween(s, e) {
   const start = new Date(s + 'T12:00:00');
@@ -754,7 +763,7 @@ function calculateDaysBetween(s, e) {
   return Math.max(1, Math.round((end - start) / 86400000) + 1);
 }
 
-const DEFAULT_DAYS = 10;
+const DEFAULT_DAYS = 20;
 
 function initializeDates() {
   const today = new Date();
@@ -851,7 +860,7 @@ function filterLoftastodir() {
   var cards   = document.querySelectorAll('#loftastodir-grid .p-card');
   var visible = 0;
   LOFTASTODIR.forEach(function(p, i) {
-    var matchKN     = !minKN  || p.kN_max >= minKN;
+    var matchKN     = !minKN || (p.kN_max !== null && p.kN_max >= minKN);
     var matchClass  = !cls    || p.classKey === cls;
     var show = matchKN && matchClass;
     cards[i].classList.toggle('hidden', !show);
@@ -876,10 +885,7 @@ function clearLsFilter() {
 // =====================================================================
 // RENTAL COST
 // =====================================================================
-function calculateRentalCost(dayRate, weekRate, days, qty) {
-  if (days < 7) return dayRate * days * qty;
-  return weekRate * Math.ceil(days / 7) * qty;
-}
+function calculateRentalCost(dayRate, weekRate, days, qty) { return (Math.floor(days/7)*weekRate+(days%7)*dayRate)*qty; }
 
 // =====================================================================
 // RENDER CARDS
@@ -902,10 +908,10 @@ function renderLoftastodir() {
         '<div class="spec"><span class="spec-lbl">Class:</span> <span class="cls cls-' + p.classKey + '">' + p.classLabel + '</span></div>' +
       '</div>' +
       '<div class="p-pricing">' +
-        '<span>Daggjald: <strong>' + fmtInt(p.dayRate) + ' kr.</strong></span>' +
-        '<span>Vikugjald: <strong>' + fmtInt(p.weekRate) + ' kr.</strong></span>' +
+        '<span>Daggjald: <strong>' + fmtMoney(p.dayRate) + ' kr.</strong></span>' +
+        '<span>Vikugjald: <strong>' + fmtMoney(p.weekRate) + ' kr.</strong></span>' +
       '</div>' +
-      (p.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtInt(p.salePrice) + ' kr.</strong></span></div>' : '') +
+      (p.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtMoney(p.salePrice) + ' kr.</strong></span></div>' : '') +
       makeStepperQty('ls', i);
     grid.appendChild(card);
   });
@@ -927,10 +933,10 @@ function renderMotabitar() {
         '<div class="spec"><span class="spec-lbl">Þyngd:</span> ' + fmtDec(b.weight_kg) + ' kg</div>' +
       '</div>' +
       '<div class="p-pricing">' +
-        '<span>Daggjald: <strong>' + fmtInt(b.dayRate) + ' kr.</strong></span>' +
-        '<span>Vikugjald: <strong>' + fmtInt(b.weekRate) + ' kr.</strong></span>' +
+        '<span>Daggjald: <strong>' + fmtMoney(b.dayRate) + ' kr.</strong></span>' +
+        '<span>Vikugjald: <strong>' + fmtMoney(b.weekRate) + ' kr.</strong></span>' +
       '</div>' +
-      (b.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtInt(b.salePrice) + ' kr.</strong></span></div>' : '') +
+      (b.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtMoney(b.salePrice) + ' kr.</strong></span></div>' : '') +
       makeStepperQty('mb', i);
     grid.appendChild(card);
   });
@@ -951,10 +957,10 @@ function renderAukahlutir() {
         (a.weight_kg ? '<div class="spec"><span class="spec-lbl">Þyngd:</span> ' + fmtDec(a.weight_kg) + ' kg</div>' : '') +
       '</div>' +
       '<div class="p-pricing">' +
-        '<span>Daggjald: <strong>' + fmtInt(a.dayRate) + ' kr.</strong></span>' +
-        '<span>Vikugjald: <strong>' + fmtInt(a.weekRate) + ' kr.</strong></span>' +
+        '<span>Daggjald: <strong>' + fmtMoney(a.dayRate) + ' kr.</strong></span>' +
+        '<span>Vikugjald: <strong>' + fmtMoney(a.weekRate) + ' kr.</strong></span>' +
       '</div>' +
-      (a.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtInt(a.salePrice) + ' kr.</strong></span></div>' : '') +
+      (a.salePrice ? '<div class="p-sale"><span class="sale-text">Söluverð: <strong>' + fmtMoney(a.salePrice) + ' kr.</strong></span></div>' : '') +
       makeStepperQty('ak', i);
     grid.appendChild(card);
   });
@@ -977,30 +983,30 @@ function showTooltip(idx, type) {
       '<tr><td>kN við hámarkshæð</td><td><strong>' + fmtDec(p.kN_max) + ' kN</strong></td></tr>' +
       (p.weight_kg ? '<tr><td>Þyngd</td><td><strong>' + fmtDec(p.weight_kg) + ' kg</strong></td></tr>' : '') +
       '<tr><td>Flokkur</td><td><span class="cls cls-' + p.classKey + '">' + p.classLabel + '</span></td></tr>' +
-      '<tr><td>Daggjald</td><td><strong>' + fmtInt(p.dayRate) + ' kr.</strong></td></tr>' +
-      '<tr><td>Vikugjald</td><td><strong>' + fmtInt(p.weekRate) + ' kr.</strong></td></tr>' +
-      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtInt(p.salePrice) + ' kr.</strong></td></tr>' : '');
+      '<tr><td>Daggjald</td><td><strong>' + fmtMoney(p.dayRate) + ' kr.</strong></td></tr>' +
+      '<tr><td>Vikugjald</td><td><strong>' + fmtMoney(p.weekRate) + ' kr.</strong></td></tr>' +
+      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtMoney(p.salePrice) + ' kr.</strong></td></tr>' : '');
     noteHtml =
       '<div class="tooltip-note"><strong>Flokkslýsing:</strong><br>' + (CLASS_INFO[p.classKey] || '') + '</div>' +
-      '<div class="tooltip-warn">⚠ Öryggisstuðull 1,7 á móti brotþoli. Stoðin verður alltaf að standa beint undir byrðinni.</div>';
+      '<div class="tooltip-warn">Burður á aðeins við staðfesta gerð og uppgefna hæð; notið burðartöflur framleiðanda og viðeigandi uppsetningu.</div>';
   } else if (type === 'mb') {
     rows =
       '<tr><td>Leigunúmer</td><td><strong>' + p.id + '</strong></td></tr>' +
       '<tr><td>Vörunúmer</td><td><strong>' + p.articleNumber + '</strong></td></tr>' +
       '<tr><td>Lengd</td><td><strong>' + fmtDec(p.length_m) + ' m</strong></td></tr>' +
       '<tr><td>Þyngd</td><td><strong>' + fmtDec(p.weight_kg) + ' kg</strong></td></tr>' +
-      '<tr><td>Daggjald</td><td><strong>' + fmtInt(p.dayRate) + ' kr.</strong></td></tr>' +
-      '<tr><td>Vikugjald</td><td><strong>' + fmtInt(p.weekRate) + ' kr.</strong></td></tr>' +
-      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtInt(p.salePrice) + ' kr.</strong></td></tr>' : '');
+      '<tr><td>Daggjald</td><td><strong>' + fmtMoney(p.dayRate) + ' kr.</strong></td></tr>' +
+      '<tr><td>Vikugjald</td><td><strong>' + fmtMoney(p.weekRate) + ' kr.</strong></td></tr>' +
+      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtMoney(p.salePrice) + ' kr.</strong></td></tr>' : '');
     noteHtml = '<div class="tooltip-note">HT-20 mótabitar eru láréttir stoðbitar sem notaðir eru þvert á loftastoðirnar. Lengd velst eftir bilmáli milli stoða.</div>';
   } else {
     rows =
       '<tr><td>Leigunúmer</td><td><strong>' + p.id + '</strong></td></tr>' +
       '<tr><td>Vörunúmer</td><td><strong>' + p.articleNumber + '</strong></td></tr>' +
       (p.weight_kg ? '<tr><td>Þyngd</td><td><strong>' + fmtDec(p.weight_kg) + ' kg</strong></td></tr>' : '') +
-      '<tr><td>Daggjald</td><td><strong>' + fmtInt(p.dayRate) + ' kr.</strong></td></tr>' +
-      '<tr><td>Vikugjald</td><td><strong>' + fmtInt(p.weekRate) + ' kr.</strong></td></tr>' +
-      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtInt(p.salePrice) + ' kr.</strong></td></tr>' : '');
+      '<tr><td>Daggjald</td><td><strong>' + fmtMoney(p.dayRate) + ' kr.</strong></td></tr>' +
+      '<tr><td>Vikugjald</td><td><strong>' + fmtMoney(p.weekRate) + ' kr.</strong></td></tr>' +
+      (p.salePrice ? '<tr><td>Söluverð</td><td><strong>' + fmtMoney(p.salePrice) + ' kr.</strong></td></tr>' : '');
   }
 
   document.getElementById('tooltip-content').innerHTML =
@@ -1279,7 +1285,7 @@ function exportExcel() {
   ];
 
   // Sheet 2: Efnislisti
-  var itemHeader = ['Leigunr.', 'Lýsing', 'Magn', 'Þyngd (kg)', 'Leiguverð', 'Söluverð'];
+  var itemHeader = ['Leigunr.', 'Sölunr.', 'Lýsing', 'Magn', 'Þyngd (kg)', 'Leiguverð', 'Söluverð'];
   var itemRows = [itemHeader];
 
   function addItems(arr, prefix) {
@@ -1289,7 +1295,7 @@ function exportExcel() {
         var cost = calculateRentalCost(p.dayRate, p.weekRate, days, qty);
         var sale = p.salePrice ? p.salePrice * qty : 0;
         var wt   = p.weight_kg ? p.weight_kg * qty : 0;
-        itemRows.push([p.id, p.name, qty, Math.round(wt * 10) / 10, Math.round(cost), Math.round(sale)]);
+        itemRows.push([p.id, p.articleNumber || '', p.name, qty, Math.round(wt * 100) / 100, Math.round(cost * 100)/100, p.salePrice!=null ? Math.round(sale * 100)/100 : null]);
       }
     });
   }
@@ -1392,27 +1398,27 @@ function calculate(silent) {
       '<td>' + item.articleNumber + '</td>' +
       '<td>' + item.name + '</td>' +
       '<td style="text-align:right">' + fmtInt(item.qty) + ' stk</td>' +
-      '<td style="text-align:right">' + fmtInt(item.cost) + ' kr</td>' +
-      '<td style="text-align:right">' + (item.hasSale ? fmtInt(item.sale) + ' kr' : '—') + '</td>';
+      '<td style="text-align:right">' + fmtMoney(item.cost) + ' kr</td>' +
+      '<td style="text-align:right">' + (item.hasSale ? fmtMoney(item.sale) + ' kr' : '—') + '</td>';
     tbody.appendChild(tr);
   });
 
   // Summary
-  var weeks    = Math.ceil(days / 7);
-  var dayLabel = days < 7 ? days + ' dagar (dagverð)' : days + ' dagar (' + weeks + ' vikur — vikuverð)';
+  var weeks    = Math.floor(days / 7);
+  var dayLabel = days + ' dagar (' + weeks + ' vikur og ' + (days % 7) + ' dagar)';
 
   document.getElementById('summary-days').textContent   = dayLabel;
   document.getElementById('summary-items').textContent  = fmtInt(totalItems) + ' stk';
   document.getElementById('summary-weight').textContent = hasWeight ? fmtDec(totalWeight) + ' kg' : '—';
-  document.getElementById('total-rental').textContent   = fmtInt(totalRental) + ' kr';
-  document.getElementById('total-sale').textContent     = totalSale > 0 ? fmtInt(totalSale) + ' kr' : '—';
+  document.getElementById('total-rental').textContent   = fmtMoney(totalRental) + ' kr';
+  document.getElementById('total-sale').textContent     = totalSale > 0 ? fmtMoney(totalSale) + ' kr' : '—';
 
   // Discount
   var discPct = parseFloat(document.getElementById('discount-input').value) || 0;
   var discountedRow = document.getElementById('discounted-row');
   if (discPct > 0) {
     var discounted = totalRental * (1 - discPct / 100);
-    document.getElementById('total-discounted').textContent = fmtInt(discounted) + ' kr';
+    document.getElementById('total-discounted').textContent = fmtMoney(discounted) + ' kr';
     discountedRow.style.display = '';
   } else {
     discountedRow.style.display = 'none';
