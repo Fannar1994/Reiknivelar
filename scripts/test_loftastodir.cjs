@@ -193,4 +193,70 @@ assert.equal(chosen[0].p.id,data.LOFTASTODIR[0].id);
 assert.equal(data.escapeHTML('<a>&'), '&lt;a&gt;&amp;');
 assert.ok(html.includes('Efnislisti — Loftastoðir'));
 assert.ok(html.includes('id="summary-types"'));
+
+// Minimal DOM/localStorage smoke test for autosave and preserving user-entered information.
+const values=new Map();
+function element(id){
+  if(!values.has(id)){
+    values.set(id,{
+      value: id.startsWith('ls-qty-')||id.startsWith('mb-qty-')||id.startsWith('ak-qty-')?'0':'',
+      textContent:'',innerHTML:'',style:{},
+      classList:{add(){},remove(){},toggle(){}},
+      appendChild(){},
+      setAttribute(){},
+      addEventListener(){}
+    });
+  }
+  return values.get(id);
+}
+const draftStorage=new Map();
+const browserDoc={getElementById:element,createElement(){return {innerHTML:'',style:{},classList:{add(){},remove(){}}};},addEventListener(){}};
+const browser=vm.runInNewContext(scripts[0][1] +
+ '\n({currentDraft,applyDraftData,saveQuote,restoreQuote,parseHeight,makeStepperQty,resetAll})',{
+ document:browserDoc,
+ localStorage:{setItem(k,v){draftStorage.set(k,v);},getItem(k){return draftStorage.get(k)||null;}},
+ console,confirm:()=>true
+});
+element('project-name').value='Prófun á upplýsingavistun';
+element('clientCompany').value='Verkefni ehf.';
+element('ls-qty-0').value='7';
+element('mb-qty-2').value='3';
+element('ak-qty-1').value='2';
+element('rental-days').value='20';
+element('start-date').value='2026-11-09';
+element('end-date').value='2026-11-28';
+assert.equal(browser.saveQuote(true),true,'Autosave should succeed');
+assert.equal(JSON.parse(draftStorage.get('loftastodir-quote-v2')).version,5);
+assert.equal(browser.currentDraft().lsById[products[0].id],7);
+assert.equal(browser.currentDraft().mbById[data.MOTABITAR[2].id],3);
+element('project-name').value='';
+element('clientCompany').value='';
+element('ls-qty-0').value='0';
+element('mb-qty-2').value='0';
+element('ak-qty-1').value='0';
+assert.equal(browser.restoreQuote(),true,'Restoring prior project must work');
+assert.equal(element('project-name').value,'Prófun á upplýsingavistun');
+assert.equal(element('clientCompany').value,'Verkefni ehf.');
+assert.equal(Number(element('ls-qty-0').value),7);
+assert.equal(Number(element('mb-qty-2').value),3);
+assert.equal(Number(element('ak-qty-1').value),2);
+const height=parseFloat(String(browser.parseHeight('350cm')));
+assert.equal(height,3.5);
+assert.equal(browser.parseHeight('3,50 m'),3.5);
+assert.ok(browser.makeStepperQty('ls',0,'Loftastoð').includes("stepQty('ls',0,1)"));
+assert.ok(browser.makeStepperQty('ls',0,'Loftastoð').includes("stepQty('ls',0,-1)"));
+// Simulate 2026 v2 quote where the removed B45 was at index 12.
+const legacy={
+  version:2,days:20,
+  ls:Array.from({length:16},(_,i)=>i===12?99:i===13?4:i===14?5:0),
+  mb:Array.from({length:data.MOTABITAR.length},()=>0),
+  ak:Array.from({length:data.AUKAHLUTIR.length},()=>0)
+};
+browser.applyDraftData(legacy);
+const d45i=data.LOFTASTODIR.findIndex(p=>p.id==='01-MÓT-LM51-080');
+const d55i=data.LOFTASTODIR.findIndex(p=>p.id==='01-MÓT-LM51-079');
+assert.equal(Number(element('ls-qty-'+d45i).value),4,'D45 quantity migrated correctly');
+assert.equal(Number(element('ls-qty-'+d55i).value),5,'D55 quantity migrated correctly');
+assert.equal(browser.currentDraft().lsById['01-MÓT-LM51-048'],undefined,'Removed B45 never stored');
+
 console.log('OK: 34 items, no prices, verified BYKO links, classification, selected quantities and exports.');
