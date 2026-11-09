@@ -10,15 +10,28 @@ A collection of Icelandic construction/rental calculators for **BYKO Leiga**, pu
 |---|---|---|
 | [Girðinga reiknivél](Girdingar_reiknivel.html) | `Girdingar_reiknivel.html` | Industrial fence calculator |
 | [Hjólapalla reiknivél](hjolapallar_reiknivel_sp.html) | `hjolapallar_reiknivel_sp.html` | Pallet racking calculator |
-| [Loftastoðir](loftastodir.html) | `loftastodir.html` | Ceiling post calculator |
+| [Loftastoðir](loftastodir.html) | `loftastodir.html` | Verðlaus efnislisti fyrir loftastoðir, mótabita og fylgihluti, með vörutenglum á BYKO |
 | [Steypumótareiknivél](motareiknivel-byko-v11.html) | `motareiknivel-byko-v11.html` | Concrete form calculator |
 | [Vinnupalla reiknivél](vinnupalla-reiknivel.html) | `vinnupalla-reiknivel.html` | Work platform calculator |
 | [Vinnupalla reiknivél (ný útgáfa)](vinnupalla-reiknivel_new.html) | `vinnupalla-reiknivel_new.html` | Work platform calculator (new version) |
 
+## Loftastoðir og undirsláttur
+
+Reiknivélin `loftastodir.html` er **efnislisti án leigu- og söluverðs**. Hún varðveitir leigunúmer, sölunúmer úr Item Description 2, hæðarbil, framleiðendaflokkun og þær burðartölur sem eru studdar viðeigandi gögnum.
+
+- Leita eftir vörunúmerum eða heiti og sía loftastoðir eftir hæð, EN 1065 flokki og staðfestum burði.
+- Velja magn, sjá samantekt valinna vara og sækja efnislista í PDF eða Excel.
+- Fá tengil á tiltekna vöru á byko.is þar sem hann er staðfestur; annars tengil á viðeigandi vöruflokk.
+- Vista breytingar sjálfkrafa í vafra viðkomandi tækis (localStorage). Þetta er **ekki miðlæg vistun eða samstilling milli tækja**.
+- Sækja JSON-öryggisafrit með verkefnisupplýsingum og magntölum og hlaða því inn síðar, einnig í öðrum vafra.
+- Eldri útgáfur vistunar (v2–v4) eru endurheimtar með tilheyrandi vörunúmeravörpun, þ.m.t. leiðréttingu eftir brottnám B45.
+
+**Öryggi:** Hæðarsía og burðartölur eru upplýsingar til vöruleitar. Þær koma ekki í stað uppsetningar- eða burðarhönnunar. Óstaðfestar tölur eru merktar. Ekki er sýnt verð í efnislista.
+
 ## Tech Stack
 
 - **Vanilla HTML5, CSS3, JavaScript** – no frameworks, no build tools
-- **html2pdf.js** (v0.10.2) – PDF quote generation
+- **html2pdf.js** (v0.10.2) – PDF material-list generation
 - **XLSX** (v0.18.5) – Excel export
 - **GitHub Pages** – static site deployment
 
