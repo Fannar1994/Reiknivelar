@@ -847,7 +847,10 @@ function clearLsFilter(){document.getElementById('ls-kn-filter').value='';docume
 // =====================================================================
 // RENTAL COST
 // =====================================================================
-function calculateRentalCost(dayRate, weekRate, days, qty) { return (Math.floor(days/7)*weekRate+(days%7)*dayRate)*qty; }
+function calculateRentalCost(dayRate, weekRate, days, qty) {
+  if(days < 7) return dayRate*days*qty;
+  return weekRate*Math.ceil(days/7)*qty;
+}
 
 // =====================================================================
 // RENDER CARDS
@@ -1276,8 +1279,8 @@ function calculate(silent) {
   });
 
   // Summary
-  var weeks    = Math.floor(days / 7);
-  var dayLabel = days + ' dagar (' + weeks + ' vikur og ' + (days % 7) + ' dagar)';
+  var weeks    = Math.ceil(days / 7);
+  var dayLabel = days < 7 ? days + ' dagar (dagverð)' : days + ' dagar (' + weeks + ' vikur — vikuverð)';
 
   document.getElementById('summary-days').textContent   = dayLabel;
   document.getElementById('summary-items').textContent  = fmtInt(totalItems) + ' stk';
