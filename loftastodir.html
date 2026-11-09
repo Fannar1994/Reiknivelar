@@ -1214,6 +1214,12 @@ function resetAll() {
   AUKAHLUTIR.forEach(function(_, i)   { document.getElementById('ak-qty-' + i).value = 0; });
   document.getElementById('results').classList.remove('show');
   _resultsVisible = false;
+  document.getElementById('summary-days').textContent = getRentalDays() + ' dagar';
+  document.getElementById('summary-items').textContent = '0 stk';
+  document.getElementById('summary-weight').textContent = '—';
+  document.getElementById('total-rental').textContent = '0 kr';
+  document.getElementById('total-sale').textContent = '—';
+  document.getElementById('discounted-row').style.display = 'none';
 }
 
 // =====================================================================
@@ -1221,7 +1227,7 @@ function resetAll() {
 // =====================================================================
 function calculate(silent) {
   var days = getRentalDays();
-  var items = [], totalRental = 0, totalSale = 0, totalItems = 0, totalWeight = 0, hasWeight = false;
+  var items = [], totalRental = 0, totalSale = 0, totalItems = 0, totalWeight = 0, hasWeight = false, missingWeight = false;
 
   LOFTASTODIR.forEach(function(p, i) {
     var qty = parseInt(document.getElementById('ls-qty-' + i).value) || 0;
@@ -1230,7 +1236,7 @@ function calculate(silent) {
       var sale = p.salePrice ? p.salePrice * qty : 0;
       items.push({ id:p.id, articleNumber:p.articleNumber, name:p.name, qty:qty, cost:cost, sale:sale, hasSale:!!p.salePrice });
       totalRental += cost; totalSale += sale; totalItems += qty;
-      if (p.weight_kg) { totalWeight += p.weight_kg * qty; hasWeight = true; }
+      if (p.weight_kg != null) { totalWeight += p.weight_kg * qty; hasWeight = true; } else missingWeight = true;
     }
   });
 
@@ -1241,7 +1247,7 @@ function calculate(silent) {
       var sale = b.salePrice ? b.salePrice * qty : 0;
       items.push({ id:b.id, articleNumber:b.articleNumber, name:b.name, qty:qty, cost:cost, sale:sale, hasSale:!!b.salePrice });
       totalRental += cost; totalSale += sale; totalItems += qty;
-      totalWeight += b.weight_kg * qty; hasWeight = true;
+      if (b.weight_kg != null) { totalWeight += b.weight_kg * qty; hasWeight = true; } else missingWeight = true;
     }
   });
 
@@ -1252,13 +1258,19 @@ function calculate(silent) {
       var sale = a.salePrice ? a.salePrice * qty : 0;
       items.push({ id:a.id, articleNumber:a.articleNumber, name:a.name, qty:qty, cost:cost, sale:sale, hasSale:!!a.salePrice });
       totalRental += cost; totalSale += sale; totalItems += qty;
-      if (a.weight_kg) { totalWeight += a.weight_kg * qty; hasWeight = true; }
+      if (a.weight_kg != null) { totalWeight += a.weight_kg * qty; hasWeight = true; } else missingWeight = true;
     }
   });
 
   if (items.length === 0) {
     document.getElementById('results').classList.remove('show');
     _resultsVisible = false;
+    document.getElementById('summary-days').textContent = days + ' dagar';
+    document.getElementById('summary-items').textContent = '0 stk';
+    document.getElementById('summary-weight').textContent = '—';
+    document.getElementById('total-rental').textContent = '0 kr';
+    document.getElementById('total-sale').textContent = '—';
+    document.getElementById('discounted-row').style.display = 'none';
     return;
   }
 
@@ -1283,7 +1295,7 @@ function calculate(silent) {
 
   document.getElementById('summary-days').textContent   = dayLabel;
   document.getElementById('summary-items').textContent  = fmtInt(totalItems) + ' stk';
-  document.getElementById('summary-weight').textContent = hasWeight ? fmtDec(totalWeight) + ' kg' : '—';
+  document.getElementById('summary-weight').textContent = hasWeight ? fmtDec(totalWeight) + ' kg' + (missingWeight ? ' (ófullkomið)' : '') : 'Óstaðfest';
   document.getElementById('total-rental').textContent   = fmtMoney(totalRental) + ' kr';
   document.getElementById('total-sale').textContent     = totalSale > 0 ? fmtMoney(totalSale) + ' kr' : '—';
 
@@ -1342,6 +1354,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderMotabitar();
   renderAukahlutir();
   switchCatalogue('ls');
+  calculate(true);
 
   // Date / days listeners
   document.getElementById('start-date').addEventListener('change', updateRentalDays);
@@ -1394,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="lb-note">
         Spönn-tafla (Span Table) sem nota má sem viðmiðun við frumreikning kemur ekki endilega frá Hünnebeck. HT20 sýnir hvað leyfilegt er milli main beams og milli supports, en tekur líka sérstaklega fram að staðfesta þarf burð áður en endanlegir reikningar fara til verkfræðings.
       </div>
-      <div class="lb-tip">HT20plus er 200 mm hár mótabiti, ~4,6 kg/m. Kemur í stöðluðum lengdum og má styðja í hvaða lengdum sem er.</div>
+      <div class="lb-tip">Kaufmann HT20plus er 200 mm hár mótabiti og vegur um 4,6 kg/m samkvæmt framleiðanda. Lengdir í leigulistanum eru ekki endilega allar staðlaðar lengdir framleiðanda.</div>
 
       <h3>Skref 1: Reikna „leyfileg bil" með Spönn-töflunni (Span Table)</h3>
       <p>Spönn-töflan vinnur svona:</p>
@@ -1418,8 +1431,8 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3>Skref 3: Velja lengdir HT20</h3>
       <p>HT20plus kemur í stöðluðum lengdum:</p>
       <table>
-        <thead><tr><th>Lengd</th><th>2,45 m</th><th>2,90 m</th><th>3,30 m</th><th>3,60 m</th><th>3,90 m</th><th>4,90 m</th><th>5,90 m</th></tr></thead>
-        <tbody><tr><td>Til ráðs</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr></tbody>
+        <thead><tr><th>Lengd samkvæmt leiguvörulista</th><th>2,45 m</th><th>2,65 m</th><th>2,90 m</th><th>3,00 m</th><th>3,30 m</th><th>3,60 m</th><th>3,90 m</th><th>4,90 m</th></tr></thead>
+        <tbody><tr><td>Leiguvörunúmer til staðar</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr></tbody>
       </table>
       <div class="lb-tip">Bita má skera og styðja í hvaða lengdum sem er vegna 3-laga vefsins.</div>
 
@@ -1464,18 +1477,18 @@ document.addEventListener('DOMContentLoaded', function() {
       <ul>
         <li>Innri rör eru götuð á <strong>100 mm fresti</strong> fyrir grófa hæðarstillingu.</li>
         <li>Síðan kemur millímetrastilling með skrúfu/manicotto.</li>
-        <li><strong>Quick release</strong> losar stoð niður um ~5 mm með einu hamarslætti.</li>
+        <li><strong>Hraðlosun</strong> getur losað stoð niður um um 5 mm, ef þessi aukabúnaður er til staðar.</li>
       </ul>
 
       <h3>Skref 3: Staðfesta burðarþol úr burðartöflu</h3>
       <table>
-        <thead><tr><th>Hæð</th><th>160/290</th><th>180/320</th><th>200/360</th><th>220/400</th><th>250/440</th></tr></thead>
+        <thead><tr><th>Hæð</th><th>160/290</th><th>180/320</th><th>200/360</th><th>220/400</th><th>250/440</th><th>260/480</th></tr></thead>
         <tbody>
-          <tr><td>200 cm</td><td>≈1.620 kg</td><td>≈1.785 kg</td><td>≈1.800 kg</td><td>—</td><td>—</td></tr>
-          <tr><td>300 cm</td><td>≈1.071 kg</td><td>≈1.280 kg</td><td>≈1.300 kg</td><td>≈1.420 kg</td><td>≈1.480 kg</td></tr>
+          <tr><td>200 cm</td><td>1.620 kg</td><td>1.785 kg</td><td>1.800 kg</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>300 cm</td><td>—</td><td>1.071 kg</td><td>1.280 kg</td><td>1.300 kg</td><td>1.420 kg</td><td>1.480 kg</td></tr>
         </tbody>
       </table>
-      <div class="lb-tip">Burðartaflan miðast við fullkomið lóðrétt (axial) álag — ef það er skakkt/óaxial fellur öryggið.</div>
+      <div class="lb-tip">Tölurnar eru úr töflu Villalta fyrir almennar ítalskar loftastoðir og eru í kg. Þær eiga við um staðfestar gerðir við nákvæmlega uppgefna hæð og áslæga hleðslu. Þessar stoðir eru ekki merktar EN 1065 Class A.</div>
 
       <h3>Skref 4: Verkfræðingur / Magn — ábyrgðarmót</h3>
       <div class="lb-note">
