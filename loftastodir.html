@@ -657,7 +657,6 @@ const LOFTASTODIR = [
   { id:'01-MÓT-LM51-091', articleNumber:'97100091', name:'Loftastoðir CD35 201/350 Galv.',        minHeight:'201cm', maxHeight:'350cm', kN_min:null, kN_max:20,  weight_kg:null,  classLabel:'C/D', classKey:'CD', dayRate:38.71, weekRate:270.97, salePrice:null },
   { id:'01-MÓT-LM51-235', articleNumber:'97100235', name:'Loftastoðir E35 (201/350)',             minHeight:'201cm', maxHeight:'350cm', kN_min:null, kN_max:30, weight_kg:null,  classLabel:'E',   classKey:'E',  dayRate:38.71, weekRate:270.97, salePrice:null },
   { id:'01-MÓT-LM51-935', articleNumber:'FA8169012C',name:"Faresin E35 loftastoð 2,00–3,50 m (galv.)",minHeight:'200cm',maxHeight:'350cm',kN_min:46.73, kN_max:32.12, weight_kg:23,  classLabel:'E',   classKey:'E',  dayRate:38.71, weekRate:270.97, salePrice:19621 },
-  { id:'01-MÓT-LM51-048', articleNumber:'97100048', name:'Loftastoðir B45 260/480 Galv.',         minHeight:'260cm', maxHeight:'480cm', kN_min:26.63,  kN_max:null,  weight_kg:null, classLabel:'B',   classKey:'B',  dayRate:27.1, weekRate:189.67, salePrice:39669 },
   { id:'01-MÓT-LM51-080', articleNumber:'97100209', name:'Loftastoðir D45',                       minHeight:'260cm', maxHeight:'450cm', kN_min:20, kN_max:20, weight_kg:null,  classLabel:'D',   classKey:'D',  dayRate:58.07, weekRate:406.45, salePrice:null },
   { id:'01-MÓT-LM51-079', articleNumber:'97100079', name:'Loftastoðir D55 301/550 Galv.',         minHeight:'301cm', maxHeight:'550cm', kN_min:20, kN_max:20, weight_kg:null,  classLabel:'D',   classKey:'D',  dayRate:67.74, weekRate:474.19, salePrice:null },
   {"id":"01-MÓT-LM51-033","articleNumber":"HA601400","name":"Loftastoð 3,0–5,4 m (galv.)","minHeight":"3,0 m","maxHeight":"5,4 m","kN_min":null,"kN_max":null,"weight_kg":null,"classLabel":null,"classKey":null,"dayRate":9.95,"weekRate":69.6,"salePrice":null},
@@ -703,7 +702,7 @@ const DATA_NOTES = {
   '01-MÓT-LM51-028': 'Leiguvörulistinn segir 200/350 cm, en Villalta-bæklingurinn og BYKO-síðan nefna 200/360 cm. Staðfesta þarf að um sömu útfærslu sé að ræða.',
   '01-MÓT-LM51-033': 'Leiguvörulistinn segir 300/540 cm og Item Description 2 er HA601400. Ekki hefur verið staðfest hvort þetta sé Villalta-loftastoð; hvorki burðargeta né þyngd eru staðfest.',
   '01-MÓT-LM51-935': 'Faresin E35: burður 46,73 kN við 200 cm og 32,12 kN við 350 cm, þyngd 23 kg og flokkur E samkvæmt byko.is. Ekki nota 30 kN Villalta E35-töfluna fyrir þessa vöru.',
-  '01-MÓT-LM51-048': 'Vörulistinn segir B45 260/480 cm en DIN EN 1065 tafla Villalta B45 nær aðeins upp í 450 cm. Burður við 480 cm er ekki staðfestur.',
+
   '01-MÓT-LM51-079': 'Staðfest D55-merking á loftastoðum í leiguflotanum (ljósmyndir 9.11.2026): 20,00 kN við skráðar hæðir 300, 310, 320, 330, 350, 400, 450, 500 og 550 cm. Nýrri Villalta-bæklingur (12/2020) styður sömu burðargetu. Eldri Villalta-bæklingur (2009), bls. 6, sýnir D50 en ekki D55. Fyrir notkun þarf enn að yfirfara hverja stoð vegna beyglu, ryðs og skemmda á festingum; burðartalan ein staðfestir ekki ástand búnaðar. <a href="https://srb-ct.com/wp-content/uploads/TTESKI-PODUPIRACI-VILLALTA-SRL-Puntelli-Telescopici-Omo.-DIN-EN-1065-12-2020.pdf" target="_blank" rel="noopener">Villalta burðartafla 2020</a>.',
   '01-MÓT-LM71-935': '3,00 m HT20-biti er skráður í leiguvörulista en vantar í lengdarval Kaufmann-bæklings. Þyngd og nákvæm framleiðandagerð þurfa staðfestingu.',
   '01-MÓT-LM71-011': 'Item Description 2 segir Notað efni; þetta er ekki staðfest sölunúmer.',
@@ -920,7 +919,7 @@ var STORAGE_KEY = 'loftastodir-quote-v2';
 
 function saveQuote() {
   var data = {
-    version: 2,
+    version: 3,
     savedAt: new Date().toISOString(),
     startDate:       document.getElementById('start-date').value,
     endDate:         document.getElementById('end-date').value,
@@ -935,7 +934,7 @@ function saveQuote() {
     clientUttektar:  document.getElementById('clientUttektar').value,
     clientDate:      document.getElementById('clientDate').value,
     discount:        document.getElementById('discount-input').value,
-    ls: LOFTASTODIR.map(function(_, i)  { return parseInt(document.getElementById('ls-qty-' + i).value) || 0; }),
+    lsById: Object.fromEntries(LOFTASTODIR.map(function(p, i) { return [p.id, parseInt(document.getElementById('ls-qty-' + i).value, 10) || 0]; })),
     mb: MOTABITAR.map(function(_, i)    { return parseInt(document.getElementById('mb-qty-' + i).value) || 0; }),
     ak: AUKAHLUTIR.map(function(_, i)   { return parseInt(document.getElementById('ak-qty-' + i).value) || 0; })
   };
@@ -961,7 +960,21 @@ function restoreQuote() {
     if (d.clientUttektar)  document.getElementById('clientUttektar').value   = d.clientUttektar;
     if (d.clientDate)      document.getElementById('clientDate').value       = d.clientDate;
     if (d.discount)        document.getElementById('discount-input').value   = d.discount;
-    (d.ls || []).forEach(function(qty, i) { var el = document.getElementById('ls-qty-' + i); if (el) el.value = qty; });
+    if (d.version >= 3 && d.lsById) {
+      LOFTASTODIR.forEach(function(p, i) {
+        const el = document.getElementById('ls-qty-' + i);
+        if (el) el.value = Math.max(0, Number(d.lsById[p.id]) || 0);
+      });
+    } else {
+      // Version 2 stored positions, with B45 at index 12. Remove this entry before restoring,
+      // otherwise former D45 and D55 quantities would be assigned to the wrong products.
+      const oldQty = (d.ls || []).slice();
+      oldQty.splice(12, 1);
+      LOFTASTODIR.forEach(function(_, i) {
+        const el = document.getElementById('ls-qty-' + i);
+        if (el) el.value = Math.max(0, Number(oldQty[i]) || 0);
+      });
+    }
     (d.mb || []).forEach(function(qty, i) { var el = document.getElementById('mb-qty-' + i); if (el) el.value = qty; });
     (d.ak || []).forEach(function(qty, i) { var el = document.getElementById('ak-qty-' + i); if (el) el.value = qty; });
     updateBadge(d.days || getRentalDays());
