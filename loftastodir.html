@@ -452,7 +452,7 @@ body.pdf-hide-sig .print-signature { display: none !important; }
         <div class="filter-group" id="kn-filter-wrap"><label class="label" for="ls-kn-filter">Lágmarksburður við mestu hæð (kN)</label><input class="filter-input" type="number" id="ls-kn-filter" min="0" placeholder="t.d. 20" style="max-width:125px" oninput="filterCatalogue()"></div>
         <button class="btn-filter-clear" onclick="clearLsFilter()">Hreinsa síur</button>
       </div>
-      <p class="catalog-note">Sölunúmer eru sótt úr <strong>Item Description 2</strong>. Burðargeta er ekki sýnd ef hún hefur ekki verið staðfest fyrir tilgreinda hæð. Upplýsingar um verð og burð þurfa að vera yfirfarnar áður en tilboð er staðfest.</p>
+      <p class="catalog-note">Sölunúmer miðast við <strong>Item Description 2</strong>. <strong>Almennar ítalskar loftastoðir eru án Class-merkingar</strong> og burður þeirra er sýndur í kg þar sem viðeigandi Villalta-tafla er til. EN 1065-gerðir eru merktar sínum flokki og burður sýndur í kN. Óstaðfest burðargeta og þyngd eru ekki reiknuð sem staðfestar tölur. <a href="https://byko.is/thjonusta/leiga/steypumot-og-girdingar/steypumot/undirslattarefni" target="_blank" rel="noopener">Tæknigögn BYKO</a>.</p>
       <section class="catalog-pane" id="pane-ls" role="tabpanel" aria-labelledby="tab-ls">
         <div class="section-title">Loftastoðir <span class="count" id="ls-count"></span></div><div class="product-grid" id="loftastodir-grid"></div>
       </section>
@@ -853,7 +853,11 @@ function renderCatalogue(items,prefix,containerId){
   items.forEach(function(p,i){
     const card=document.createElement('div');card.className='p-card';card.id=prefix+'-card-'+i;
     let details='';
-    if(prefix==='ls')details='<div>Hæð: <strong>'+p.minHeight+' – '+p.maxHeight+'</strong></div><div>Burður: <strong>'+(p.kN_max!=null?fmtDec(p.kN_max)+' kN við hámarkshæð':'Óstaðfestur')+'</strong></div><div>Flokkur: '+p.classLabel+'</div>';
+    if(prefix==='ls'){
+      const burdur=p.kg_max != null ? fmtInt(p.kg_max)+' kg (við mestu hæð)' : p.kN_max != null ? fmtDec(p.kN_max)+' kN (við mestu hæð)' : 'Óstaðfestur';
+      details='<div>Hæð: <strong>'+p.minHeight+' – '+p.maxHeight+'</strong></div><div>Burður: <strong>'+burdur+'</strong></div>';
+      if(p.classLabel)details+='<div>EN 1065 flokkur: <strong>'+p.classLabel+'</strong></div>';
+    }
     else if(prefix==='mb')details='<div>Lengd: <strong>'+fmtDec(p.length_m)+' m</strong></div><div>Þyngd: '+(p.weight_kg!=null?fmtDec(p.weight_kg)+' kg':'Óstaðfest')+'</div>';
     else details='<div>Þyngd: '+(p.weight_kg!=null?fmtDec(p.weight_kg)+' kg':'Óstaðfest')+'</div>';
     card.innerHTML='<div class="catalog-main"><div class="p-name">'+p.name+'</div><div class="p-id">'+p.id+' · Sölunr. '+(p.articleNumber||'óstaðfest')+'</div></div>'+
@@ -874,7 +878,7 @@ function renderAukahlutir(){renderCatalogue(AUKAHLUTIR,'ak','aukahlutir-grid');}
 function showTooltip(idx,type){
  const p=type==='ls'?LOFTASTODIR[idx]:type==='mb'?MOTABITAR[idx]:AUKAHLUTIR[idx];
  const rows=[['Leigunúmer',p.id],['Sölunúmer (Item Description 2)',p.articleNumber||'Óstaðfest'],
- ...(type==='ls'?[['Hæðarbil',p.minHeight+' – '+p.maxHeight],['kN við lágmarkshæð',p.kN_min!=null?fmtDec(p.kN_min)+' kN':'Óstaðfest'],['kN við hámarkshæð',p.kN_max!=null?fmtDec(p.kN_max)+' kN':'Óstaðfest'],['Flokkur',p.classLabel]]:[]),
+ ...(type==='ls'?[['Hæðarbil',p.minHeight+' – '+p.maxHeight],['Burður við minnstu hæð',p.kg_min!=null?fmtInt(p.kg_min)+' kg':p.kN_min!=null?fmtDec(p.kN_min)+' kN':'Óstaðfest'],['Burður við mestu hæð',p.kg_max!=null?fmtInt(p.kg_max)+' kg':p.kN_max!=null?fmtDec(p.kN_max)+' kN':'Óstaðfest'],...(p.classLabel?[['EN 1065 flokkur',p.classLabel]]:[])]:[]),
  ...(type==='mb'?[['Lengd',fmtDec(p.length_m)+' m']]:[]),
  ['Þyngd',p.weight_kg!=null?fmtDec(p.weight_kg)+' kg':'Óstaðfest'],
  ['Daggjald',fmtMoney(p.dayRate)+' kr.'],['Vikugjald',fmtMoney(p.weekRate)+' kr.'],
