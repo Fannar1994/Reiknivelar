@@ -421,14 +421,15 @@ body.pdf-hide-sig .print-signature { display: none !important; }
 
   <!-- Leigutímabil -->
   <div class="card setup-panel">
-    <div class="card-header">Leigutímabil <span class="badge" id="rental-days-badge">10 dagar</span></div>
+    <div class="card-header">Leigutímabil <span class="badge" id="rental-days-badge">20 dagar</span></div>
     <div class="card-body">
       <div class="setup-grid">
         <div class="input-block"><label class="label" for="project-name">Verkefni</label><input type="text" id="project-name" placeholder="Heiti verkefnis"></div>
         <div class="input-block"><label class="label" for="start-date">Frá</label><input type="date" id="start-date"></div>
         <div class="input-block"><label class="label" for="end-date">Til</label><input type="date" id="end-date"></div>
-        <div class="input-block"><label class="label" for="rental-days">Dagar</label><input type="number" id="rental-days" min="1" value="10"></div>
+        <div class="input-block"><label class="label" for="rental-days">Dagar</label><input type="number" id="rental-days" min="20" value="20" title="Lágmarksleigutími á grófvöru er 20 dagar"></div>
       </div>
+      <p class="field-hint" style="margin-top:9px">Lágmarksleigutími grófvöru samkvæmt byko.is er 20 dagar. Dagsetningar eru áætlaðar verkefnisupplýsingar, ekki verðtilboð.</p>
     </div>
   </div>
   <div class="work-grid">
@@ -1003,7 +1004,7 @@ function toISO(d)  { return d.toISOString().split('T')[0]; }
 // =====================================================================
 // DUAL DATE ↔ DAYS + 10-DAY MINIMUM
 // =====================================================================
-const MIN_DAYS = 1;
+const MIN_DAYS = 20;
 
 function calculateDaysBetween(s, e) {
   const start = new Date(s + 'T12:00:00');
@@ -1011,7 +1012,7 @@ function calculateDaysBetween(s, e) {
   return Math.max(1, Math.round((end - start) / 86400000) + 1);
 }
 
-const DEFAULT_DAYS = 10;
+const DEFAULT_DAYS = 20;
 
 function initializeDates() {
   const today = new Date();
@@ -1227,7 +1228,7 @@ function restoreQuote() {
     var d = JSON.parse(raw);
     if (d.startDate)       document.getElementById('start-date').value       = d.startDate;
     if (d.endDate)         document.getElementById('end-date').value         = d.endDate;
-    if (d.days)            document.getElementById('rental-days').value      = d.days;
+    if (d.days)            document.getElementById('rental-days').value      = Math.max(MIN_DAYS, Number(d.days) || MIN_DAYS);
     if (d.projectName)     document.getElementById('project-name').value     = d.projectName;
     if (d.clientName)      document.getElementById('clientName').value       = d.clientName;
     if (d.clientCompany)   document.getElementById('clientCompany').value    = d.clientCompany;
@@ -1255,7 +1256,8 @@ function restoreQuote() {
     }
     (d.mb || []).forEach(function(qty, i) { var el = document.getElementById('mb-qty-' + i); if (el) el.value = qty; });
     (d.ak || []).forEach(function(qty, i) { var el = document.getElementById('ak-qty-' + i); if (el) el.value = qty; });
-    updateBadge(d.days || getRentalDays());
+    updateEndDateFromDays();
+    updateBadge(getRentalDays());
     dismissRestore();
     scheduleCalculate();
     showToast('Efnislisti endurheimtur');
