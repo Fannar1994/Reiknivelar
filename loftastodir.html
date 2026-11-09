@@ -1282,84 +1282,148 @@ function closeTooltip(e) {
 // =====================================================================
 // SAVE / RESTORE
 // =====================================================================
-var STORAGE_KEY = 'loftastodir-quote-v2'; // retained for backwards compatibility
-
-function saveQuote() {
-  var data = {
-    version: 4,
-    savedAt: new Date().toISOString(),
-    startDate:       document.getElementById('start-date').value,
-    endDate:         document.getElementById('end-date').value,
-    days:            getRentalDays(),
-    projectName:     document.getElementById('project-name').value,
-    clientName:      document.getElementById('clientName').value,
-    clientCompany:   document.getElementById('clientCompany').value,
-    clientKennitala: document.getElementById('clientKennitala').value,
-    clientPhone:     document.getElementById('clientPhone').value,
-    clientEmail:     document.getElementById('clientEmail').value,
-    clientAddress:   document.getElementById('clientAddress').value,
-    clientUttektar:  document.getElementById('clientUttektar').value,
-    clientDate:      document.getElementById('clientDate').value,
-
-    lsById: Object.fromEntries(LOFTASTODIR.map(function(p, i) { return [p.id, parseInt(document.getElementById('ls-qty-' + i).value, 10) || 0]; })),
-    mb: MOTABITAR.map(function(_, i)    { return parseInt(document.getElementById('mb-qty-' + i).value) || 0; }),
-    ak: AUKAHLUTIR.map(function(_, i)   { return parseInt(document.getElementById('ak-qty-' + i).value) || 0; })
+var STORAGE_KEY='loftastodir-quote-v2'; // varðveita eldri verkefni
+function currentDraft(){
+  const value=id=>document.getElementById(id).value;
+  const byId=(prefix,arr)=>Object.fromEntries(arr.map((p,i)=>[p.id,Math.max(0,Math.floor(Number(value(prefix+'-qty-'+i))||0))]));
+  return {
+    kind:'BYKO_LOFTASTODIR_EFNISLISTI',
+    version:5,
+    savedAt:new Date().toISOString(),
+    startDate:value('start-date'),
+    endDate:value('end-date'),
+    days:getRentalDays(),
+    projectName:value('project-name'),
+    clientName:value('clientName'),
+    clientCompany:value('clientCompany'),
+    clientKennitala:value('clientKennitala'),
+    clientPhone:value('clientPhone'),
+    clientEmail:value('clientEmail'),
+    clientAddress:value('clientAddress'),
+    clientUttektar:value('clientUttektar'),
+    clientDate:value('clientDate'),
+    lsById:byId('ls',LOFTASTODIR),
+    mbById:byId('mb',MOTABITAR),
+    akById:byId('ak',AUKAHLUTIR)
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  showToast('Efnislisti vistaður');
 }
-
-function restoreQuote() {
-  var raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
+function updateSaveStatus(value){
+  const status=document.getElementById('save-status');
+  if(status)status.textContent=value;
+}
+function saveQuote(silent=false){
   try {
-    var d = JSON.parse(raw);
-    if (d.startDate)       document.getElementById('start-date').value       = d.startDate;
-    if (d.endDate)         document.getElementById('end-date').value         = d.endDate;
-    if (d.days)            document.getElementById('rental-days').value      = Math.max(MIN_DAYS, Number(d.days) || MIN_DAYS);
-    if (d.projectName)     document.getElementById('project-name').value     = d.projectName;
-    if (d.clientName)      document.getElementById('clientName').value       = d.clientName;
-    if (d.clientCompany)   document.getElementById('clientCompany').value    = d.clientCompany;
-    if (d.clientKennitala) document.getElementById('clientKennitala').value  = d.clientKennitala;
-    if (d.clientPhone)     document.getElementById('clientPhone').value      = d.clientPhone;
-    if (d.clientEmail)     document.getElementById('clientEmail').value      = d.clientEmail;
-    if (d.clientAddress)   document.getElementById('clientAddress').value    = d.clientAddress;
-    if (d.clientUttektar)  document.getElementById('clientUttektar').value   = d.clientUttektar;
-    if (d.clientDate)      document.getElementById('clientDate').value       = d.clientDate;
-
-    if (d.version >= 3 && d.lsById) {
-      LOFTASTODIR.forEach(function(p, i) {
-        const el = document.getElementById('ls-qty-' + i);
-        if (el) el.value = Math.max(0, Number(d.lsById[p.id]) || 0);
-      });
-    } else {
-      // Version 2 stored positions, with B45 at index 12. Remove this entry before restoring,
-      // otherwise former D45 and D55 quantities would be assigned to the wrong products.
-      const oldQty = (d.ls || []).slice();
-      oldQty.splice(12, 1);
-      LOFTASTODIR.forEach(function(_, i) {
-        const el = document.getElementById('ls-qty-' + i);
-        if (el) el.value = Math.max(0, Number(oldQty[i]) || 0);
-      });
-    }
-    (d.mb || []).forEach(function(qty, i) { var el = document.getElementById('mb-qty-' + i); if (el) el.value = qty; });
-    (d.ak || []).forEach(function(qty, i) { var el = document.getElementById('ak-qty-' + i); if (el) el.value = qty; });
-    updateEndDateFromDays();
-    updateBadge(getRentalDays());
-    dismissRestore();
-    scheduleCalculate();
-    showToast('Efnislisti endurheimtur');
-  } catch(e) { console.error('Restore failed', e); }
-}
-
-function dismissRestore() {
-  document.getElementById('restore-banner').style.display = 'none';
-}
-
-function checkForSavedQuote() {
-  if (localStorage.getItem(STORAGE_KEY)) {
-    document.getElementById('restore-banner').style.display = 'flex';
+    const draft=currentDraft();
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(draft));
+    const time=new Date().toLocaleTimeString('is-IS',{hour:'2-digit',minute:'2-digit'});
+    updateSaveStatus('Vistað í þessum vafra kl. '+time);
+    if(!silent)showToast('Efnislisti vistaður í þessum vafra');
+    return true;
+  } catch(err){
+    updateSaveStatus('Ekki tókst að vista í vafranum. Sæktu afrit til öryggis.');
+    if(!silent)showToast('Vistun mistókst. Sæktu afrit.');
+    return false;
   }
+}
+function isValidDraft(data){
+  return !!data && typeof data==='object' && !Array.isArray(data) &&
+    Number.isInteger(data.version) && data.version>=2 && data.version<=5 &&
+    (data.lsById||Array.isArray(data.ls)||data.mbById||Array.isArray(data.mb)||data.akById||Array.isArray(data.ak));
+}
+function applyDraftData(data){
+  if(!isValidDraft(data))throw Error('Óþekkt snið. Þetta er ekki efnislisti fyrir loftastoðir.');
+  const textFields={
+    'start-date':'startDate','end-date':'endDate','project-name':'projectName',
+    'clientName':'clientName','clientCompany':'clientCompany',
+    'clientKennitala':'clientKennitala','clientPhone':'clientPhone',
+    'clientEmail':'clientEmail','clientAddress':'clientAddress',
+    'clientUttektar':'clientUttektar','clientDate':'clientDate'
+  };
+  for(const [id,key]of Object.entries(textFields)){
+    document.getElementById(id).value=typeof data[key]==='string'?data[key]:'';
+  }
+  document.getElementById('rental-days').value=
+    Math.max(MIN_DAYS,Math.floor(Number(data.days)||MIN_DAYS));
+  function restoreGroup(prefix,arr,map,legacy){
+    arr.forEach((p,i)=>{
+      const value=map && Object.prototype.hasOwnProperty.call(map,p.id)?map[p.id]:legacy?.[i];
+      const qty=Number(value);
+      document.getElementById(prefix+'-qty-'+i).value=
+        Number.isFinite(qty)?Math.min(100000,Math.max(0,Math.floor(qty))):0;
+    });
+  }
+  const oldLs=Array.isArray(data.ls)?data.ls.slice():[];
+  // Eldra snið: B45 var staðsett á sæti 12. Fjarlægjum aðeins ef gamli listinn
+  // inniheldur fleiri loftastoðir en gildandi vörulisti.
+  if(data.version<=2 && oldLs.length>LOFTASTODIR.length)oldLs.splice(12,1);
+  restoreGroup('ls',LOFTASTODIR,data.lsById,oldLs);
+  restoreGroup('mb',MOTABITAR,data.mbById,Array.isArray(data.mb)?data.mb:[]);
+  restoreGroup('ak',AUKAHLUTIR,data.akById,Array.isArray(data.ak)?data.ak:[]);
+  if(!document.getElementById('start-date').value)initializeDates();
+  if(!document.getElementById('end-date').value)updateEndDateFromDays();
+  updateBadge(getRentalDays());
+  calculate(true);
+  dismissRestore();
+}
+function restoreQuote(){
+  let raw;
+  try {raw=localStorage.getItem(STORAGE_KEY);} catch(err){updateSaveStatus('Ekki er hægt að lesa vistun í þessum vafra.');return false;}
+  if(!raw)return false;
+  try {
+    applyDraftData(JSON.parse(raw));
+    updateSaveStatus('Vistuð gögn endurheimt í þessum vafra');
+    return true;
+  } catch(err){
+    console.warn('Ekki tókst að endurheimta efnislista:',err);
+    updateSaveStatus('Gat ekki lesið eldri vistun. Prófaðu að opna afrit.');
+    return false;
+  }
+}
+function dismissRestore(){
+  const banner=document.getElementById('restore-banner');
+  if(banner)banner.style.display='none';
+}
+function checkForSavedQuote(){
+  dismissRestore();
+  restoreQuote(); // Auto-endurheimt áður en fyrsta breyting er vistuð
+}
+function downloadDraft(){
+  const data=currentDraft();
+  try{
+    const json=JSON.stringify(data,null,2);
+    const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const project=(data.projectName||'verkefni').replace(/[\\/:*?"<>|]/g,'').slice(0,60);
+    a.href=url;
+    a.download='Loftastodir-efnislisti-'+project+'.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    saveQuote(true);
+    showToast('Afrit af efnislista sótt');
+  }catch(err){showToast('Ekki tókst að sækja afrit.');console.error(err);}
+}
+function importDraft(event){
+  const input=event.target;
+  const file=input.files?.[0];
+  if(!file)return;
+  if(file.size>1024*1024){alert('Afritið er of stórt (hámark 1 MB).');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=function(){
+    try{
+      const draft=JSON.parse(String(reader.result));
+      if(!isValidDraft(draft))throw Error('Ógilt afrit fyrir þessa reiknivél.');
+      applyDraftData(draft);
+      saveQuote(true);
+      showToast('Efnislisti opnaður og vistaður');
+    } catch(err){
+      alert('Ekki tókst að opna efnislistann: '+err.message);
+    } finally{input.value='';}
+  };
+  reader.onerror=function(){alert('Ekki tókst að lesa skrána.');input.value='';};
+  reader.readAsText(file,'utf-8');
 }
 
 // =====================================================================
@@ -1575,12 +1639,12 @@ function calculate(silent) {
 // =====================================================================
 document.addEventListener('DOMContentLoaded', function() {
   initializeDates();
-  checkForSavedQuote();
   renderLoftastodir();
   renderMotabitar();
   renderAukahlutir();
   switchCatalogue('ls');
   calculate(true);
+  checkForSavedQuote();
 
   // Input í efnislista er sjálfvirkt vistað í vafranum
   for(const id of ['project-name','clientName','clientCompany','clientKennitala','clientPhone','clientEmail','clientAddress','clientUttektar','clientDate']) {
