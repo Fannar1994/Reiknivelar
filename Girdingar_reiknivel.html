@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
-<title>Girðingareiknivél v19 – Byko Leiga</title>
+<title>Girðingareiknivél v23 – Byko Leiga</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap');
 :root{--color-border:#ddd;--color-surface:#fafafa;--color-bg:#f2f4f7;--color-muted:#666;--color-dark:#404042;--color-accent:#f5c800;--radius-sm:5px;--radius-md:8px;--radius-lg:10px}
@@ -143,6 +143,26 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
 .print-only-label{display:none}
 .print-btn{display:inline-flex;align-items:center;gap:8px;margin:16px 0 4px;padding:10px 22px;background:var(--color-dark);border:none;border-radius:var(--radius-md);font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;letter-spacing:.5px;text-transform:uppercase}
 .print-btn:hover{background:#2a2a2c}
+/* Hidden admin editor */
+.admin-modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(15,23,42,.68);padding:24px;align-items:center;justify-content:center}
+.admin-modal.open{display:flex}
+.admin-panel{width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,.35);padding:22px}
+.admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.admin-head h3{font-family:'Barlow Condensed',sans-serif;font-size:25px;color:var(--color-dark)}
+.admin-head p{font-size:12px;color:var(--color-muted);margin-top:3px}
+.admin-close{border:none;background:none;font-size:26px;line-height:1;color:#777;cursor:pointer}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{text-align:left;padding:7px 8px;border-bottom:2px solid var(--color-dark);font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--color-muted)}
+.admin-table td{padding:6px 8px;border-bottom:1px solid #eee}
+.admin-table input{width:100%;border:1px solid #ccc;border-radius:5px;padding:7px 8px;font:inherit}
+.admin-table .admin-price{width:120px;text-align:right}
+.admin-setting{margin:0 0 16px;padding:12px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md)}
+.admin-setting label{display:block;margin-bottom:6px;font-size:12px;font-weight:600;color:var(--color-dark)}
+.admin-setting input{width:100%;border:1px solid #ccc;border-radius:5px;padding:8px;font:inherit}
+.admin-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}
+.admin-actions button{padding:9px 15px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:#fff;font-family:'Barlow',sans-serif;font-weight:600;cursor:pointer}
+.admin-actions .admin-save{border-color:var(--color-dark);background:var(--color-dark);color:#fff}
+.admin-actions .admin-reset{margin-right:auto;color:#a33;border-color:#e5b8b8}
 /* Print */
 @page{size:A4 portrait;margin:10mm 12mm}
 @media print{
@@ -182,7 +202,7 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       <div class="calc-header-eyebrow">Byko Leiga</div>
       <h2>Girðingareiknivél</h2>
       <span class="print-header-title">Tilboð - leiga á girðingum</span>
-      <div class="calc-header-sub">Iðnaðargirðingar — verðútreikningur · v19</div>
+      <div class="calc-header-sub">Iðnaðargirðingar — verðútreikningur · v23</div>
     </div>
   </div>
   <div class="calc-body">
@@ -275,6 +295,14 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
           </div>
           <div class="field-hint">Lágmark: <span id="minimumDaysHint">20</span> dagar · Reiknivél sýnir allt að 3 ár</div>
         </div>
+        <div class="field">
+          <label>Afsláttur af leigu (%)</label>
+          <div class="num-wrap">
+            <input type="text" inputmode="decimal" id="rentalDiscount" value="0" oninput="calculate()" onblur="normalizeRentalDiscount()">
+            <div class="num-arrows"><button onclick="stepField('rentalDiscount',1,1)">&#9650;</button><button onclick="stepField('rentalDiscount',-1,1)">&#9660;</button></div>
+          </div>
+          <div class="field-hint">Gildir af heildarleigu · 0–100%</div>
+        </div>
       </div>
 
       <div class="note-box no-print rental-only">Leiguverð lækkar sjálfkrafa eftir leigutíma. Sjá nánar í <em>sundurliðun eftir tímabilum</em>.</div>
@@ -293,6 +321,22 @@ body{font-family:'Barlow',system-ui,Arial,sans-serif;background:var(--color-bg);
       <div id="resultBox"><div class="result-empty">Fylltu inn upplýsingar til að sjá verðtilboð.</div></div>
     </div>
 
+  </div>
+</div>
+
+<div class="admin-modal" id="adminModal" aria-hidden="true">
+  <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <div class="admin-head">
+      <div><h3 id="adminTitle">Stjórnun vöruverðs</h3><p>Breyttu heiti verðflokks, vöruheiti og verði. Breytingar vistast aðeins í þessum vafra.</p></div>
+      <button class="admin-close" type="button" onclick="closeAdminPanel()" aria-label="Loka">&times;</button>
+    </div>
+    <div class="admin-setting"><label for="adminSpariLabel">Heiti verðflokks (sjálfgefið: Spariverð)</label><input id="adminSpariLabel" type="text" value="Spariverð"></div>
+    <div id="adminTableWrap"></div>
+    <div class="admin-actions">
+      <button type="button" class="admin-reset" onclick="resetAdminValues()">Endurstilla sjálfgefin gildi</button>
+      <button type="button" onclick="closeAdminPanel()">Hætta við</button>
+      <button type="button" class="admin-save" onclick="saveAdminValues()">Vista breytingar</button>
+    </div>
   </div>
 </div>
 
@@ -320,6 +364,64 @@ var PRODUCTS={
   "warning-sign":{rentalNo:"01-BAT-GI01-045",saleNo:"0295245",desc:"Gátaskjöldur 1,3x0,31m",rates:[40,32,24,16,8,8,8,8,8,8,8,8],salePrice:9995,spariPrice:6900}
 };
 
+var ADMIN_STORAGE_KEY="girdingar-admin-overrides-v1";
+var DEFAULT_SPARI_LABEL="Spariverð",spariLabel=DEFAULT_SPARI_LABEL;
+var DEFAULT_ADMIN_VALUES={};
+Object.keys(PRODUCTS).forEach(function(key){DEFAULT_ADMIN_VALUES[key]={desc:PRODUCTS[key].desc,spariPrice:PRODUCTS[key].spariPrice}});
+
+function loadAdminValues(){
+  try{
+    var saved=JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY)||"{}");
+    if(saved.__settings&&typeof saved.__settings.spariLabel==="string"&&saved.__settings.spariLabel.trim())spariLabel=saved.__settings.spariLabel;
+    Object.keys(saved).forEach(function(key){
+      if(!PRODUCTS[key])return;
+      if(typeof saved[key].desc==="string"&&saved[key].desc.trim())PRODUCTS[key].desc=saved[key].desc;
+      if(Number.isFinite(saved[key].spariPrice)&&saved[key].spariPrice>=0)PRODUCTS[key].spariPrice=saved[key].spariPrice;
+    });
+  }catch(e){}
+}
+function escapeAdminText(value){return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function requestAdminAccess(){
+  var pin=prompt("PIN:");
+  if(pin===null)return;
+  if(pin!=="1962"){alert("Rangt PIN-númer.");return}
+  openAdminPanel();
+}
+function openAdminPanel(){
+  document.getElementById("adminSpariLabel").value=spariLabel;
+  var html='<table class="admin-table"><thead><tr><th>Vara</th><th>'+escapeAdminText(spariLabel)+' (kr)</th></tr></thead><tbody>';
+  Object.keys(PRODUCTS).forEach(function(key){
+    var p=PRODUCTS[key];
+    html+='<tr data-key="'+escapeAdminText(key)+'"><td><input class="admin-name" type="text" value="'+escapeAdminText(p.desc)+'"></td><td><input class="admin-price" type="number" min="0" step="1" value="'+p.spariPrice+'"></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById("adminTableWrap").innerHTML=html;
+  var modal=document.getElementById("adminModal");modal.classList.add("open");modal.setAttribute("aria-hidden","false");
+  var first=modal.querySelector("input");if(first)first.focus();
+}
+function closeAdminPanel(){var modal=document.getElementById("adminModal");modal.classList.remove("open");modal.setAttribute("aria-hidden","true")}
+function saveAdminValues(){
+  var newLabel=document.getElementById("adminSpariLabel").value.trim().replace(/[<>]/g,"");
+  if(!newLabel){alert("Heiti verðflokks má ekki vera autt.");return}
+  var saved={__settings:{spariLabel:newLabel}};var rows=document.querySelectorAll("#adminTableWrap tr[data-key]");
+  for(var i=0;i<rows.length;i++){
+    var key=rows[i].getAttribute("data-key"),name=rows[i].querySelector(".admin-name").value.trim().replace(/[<>]/g,""),price=parseVal(rows[i].querySelector(".admin-price").value);
+    if(!name){alert("Vöruheiti má ekki vera autt.");return}
+    if(price<0){alert("Verð má ekki vera neikvætt.");return}
+    PRODUCTS[key].desc=name;PRODUCTS[key].spariPrice=price;saved[key]={desc:name,spariPrice:price};
+  }
+  spariLabel=newLabel;
+  try{localStorage.setItem(ADMIN_STORAGE_KEY,JSON.stringify(saved))}catch(e){alert("Ekki tókst að vista breytingar í vafranum.");return}
+  closeAdminPanel();renderLines();calculate();alert("Breytingar vistaðar.");
+}
+function resetAdminValues(){
+  if(!confirm("Viltu endurstilla heiti verðflokks, öll vöruheiti og verð?"))return;
+  spariLabel=DEFAULT_SPARI_LABEL;
+  Object.keys(DEFAULT_ADMIN_VALUES).forEach(function(key){PRODUCTS[key].desc=DEFAULT_ADMIN_VALUES[key].desc;PRODUCTS[key].spariPrice=DEFAULT_ADMIN_VALUES[key].spariPrice});
+  try{localStorage.removeItem(ADMIN_STORAGE_KEY)}catch(e){}
+  openAdminPanel();renderLines();calculate();
+}
+
 var FENCE_TYPES={
   standard:{name:"Vinnustaðagirðingar",unitLength:3.5},
   queue:{name:"Biðraðagirðingar",unitLength:2.5},
@@ -330,6 +432,8 @@ var FENCE_TYPES={
 function fmtNum(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,".")}
 function fmtDec(n,d){return n.toFixed(d).replace(".",",")}
 function parseVal(s){if(!s)return 0;return parseFloat(String(s).replace(/,/g,"."))||0}
+function getRentalDiscount(){var el=document.getElementById("rentalDiscount");return el?Math.max(0,Math.min(100,parseVal(el.value))):0}
+function normalizeRentalDiscount(){var el=document.getElementById("rentalDiscount");if(!el)return;var value=getRentalDiscount();el.value=value%1===0?String(value):fmtDec(value,2);calculate()}
 function getPeriodRate(rates,periodIndex){return rates[Math.min(periodIndex,rates.length-1)]}
 function calcRentalCost(days,rates,qty){var t=0,r=Math.min(days,MAX_RENTAL_DAYS);for(var i=0;i<MAX_RENTAL_PERIODS;i++){if(r<=0)break;var pd=Math.min(r,30);t+=pd*getPeriodRate(rates,i)*qty;r-=pd}return t}
 function parseLocalDate(v){if(!v)return null;var parts=v.split("-");if(parts.length!==3)return null;return new Date(parseInt(parts[0],10),parseInt(parts[1],10)-1,parseInt(parts[2],10))}
@@ -404,10 +508,12 @@ function buildQuoteText(){
     for(var a=0;a<acc.length;a++)lines.push("  "+PRODUCTS[acc[a].key].desc+": "+acc[a].qty+" stk");
   }
   var dailyEl=document.querySelector(".daily-price");
+  var discountEl=document.querySelector(".rental-discount-value"),subtotalEl=document.querySelector(".rental-subtotal");
+  if(discountEl&&subtotalEl){lines.push("");lines.push("Samtals fyrir afslátt: "+subtotalEl.textContent);lines.push("Afsláttur: "+discountEl.textContent)}
   if(dailyEl)lines.push("Meðalverð á dag: "+dailyEl.textContent);
   if(calcMode==="sale"){
     var fullTotal=document.querySelector(".sale-total-full"),spariTotal=document.querySelector(".sale-total-spari");
-    if(fullTotal&&spariTotal){lines.push("");lines.push("Almennt verð: "+fullTotal.textContent);lines.push("Spariverð: "+spariTotal.textContent)}
+    if(fullTotal&&spariTotal){lines.push("");lines.push("Almennt verð: "+fullTotal.textContent);lines.push(spariLabel+": "+spariTotal.textContent)}
   }else{
     var totalEl=document.querySelector(".rt-value");
     if(totalEl){lines.push("");lines.push("Samtals: "+totalEl.textContent)}
@@ -441,7 +547,7 @@ function clearCalculator(){
   MIN_DAYS=20;
   setActiveIn(document.getElementById("minimumDaysTabs"),0);
   document.getElementById("minimumDaysHint").textContent=MIN_DAYS;
-  ["lengthInput","gateQty","wheelsQty","lockQty","signQty"].forEach(function(id){var el=document.getElementById(id);if(el)el.value=id==="lengthInput"?"":"0"});
+  ["lengthInput","gateQty","wheelsQty","lockQty","signQty","rentalDiscount"].forEach(function(id){var el=document.getElementById(id);if(el)el.value=id==="lengthInput"?"":"0"});
   document.getElementById("rentalDays").value=MIN_DAYS;
   document.getElementById("rentalStartDate").value="";
   document.getElementById("rentalEndDate").value="";
@@ -476,7 +582,7 @@ function selectTubeType(t,btn){currentTubeType=t;btn.closest(".option-tabs").que
 function selectStoneType(s,btn){currentStoneType=s;btn.closest(".option-tabs").querySelectorAll(".option-tab").forEach(function(b){b.classList.remove("active")});btn.classList.add("active")}
 function setInputMode(mode,btn){inputMode=mode;document.getElementById("lengthInput").value="";btn.closest(".input-mode-toggle").querySelectorAll("button").forEach(function(b){b.classList.remove("active")});btn.classList.add("active");updateConfig()}
 function getStep(){return inputMode==="panels"?1:0.5}
-function stepField(id,dir,step){var el=document.getElementById(id);var v=parseVal(el.value);var nv=Math.max(0,Math.round((v+dir*step)*10)/10);el.value=step>=1?Math.round(nv):fmtDec(nv,1);if(id==="rentalDays")syncRentalEndDate();if(id==="rentalDays"||id==="gateQty"||id==="wheelsQty"||id==="lockQty"||id==="signQty")calculate()}
+function stepField(id,dir,step){var el=document.getElementById(id);var v=parseVal(el.value);var max=id==="rentalDiscount"?100:Infinity;var nv=Math.min(max,Math.max(0,Math.round((v+dir*step)*10)/10));el.value=step>=1?Math.round(nv):fmtDec(nv,1);if(id==="rentalDays")syncRentalEndDate();if(id==="rentalDays"||id==="rentalDiscount"||id==="gateQty"||id==="wheelsQty"||id==="lockQty"||id==="signQty")calculate()}
 
 function updateConfig(){
   var ft=currentFenceType;
@@ -673,7 +779,7 @@ function renderSale(box){
   html+='<div class="result-row"><span class="r-label">Reikningsmáti</span><span class="r-val">Sala</span></div>';
   html+='<div class="result-row"><span class="r-label">Tilboðslínur</span><span class="r-val">'+quoteLines.length+'</span></div>';
   html+='<div class="result-subsection-label">Efnislisti</div>';
-  html+='<table class="mat-table sale-table"><thead><tr><th>Vara</th><th>Magn</th><th>Almennt verð</th><th>Spariverð</th></tr></thead><tbody>';
+  html+='<table class="mat-table sale-table"><thead><tr><th>Vara</th><th>Magn</th><th>Almennt verð</th><th>'+escapeAdminText(spariLabel)+'</th></tr></thead><tbody>';
   for(var g=0;g<lineGroups.length;g++){
     var grp=lineGroups[g];
     html+='<tr class="mat-group-header"><td colspan="4">'+grp.line.desc+' — '+grp.line.detail+'</td></tr>';
@@ -690,7 +796,7 @@ function renderSale(box){
     }
   }
   html+='</tbody></table>';
-  html+='<div class="dual-sale-totals"><div class="sale-total-card"><span class="sale-total-label">Almennt verð (með VSK)</span><span class="sale-total-value sale-total-full">'+fmtNum(fullTotal)+' kr</span></div><div class="sale-total-card spari"><span class="sale-total-label">Spariverð (með VSK)</span><span class="sale-total-value sale-total-spari">'+fmtNum(spariTotal)+' kr</span></div></div>';
+  html+='<div class="dual-sale-totals"><div class="sale-total-card"><span class="sale-total-label">Almennt verð (með VSK)</span><span class="sale-total-value sale-total-full">'+fmtNum(fullTotal)+' kr</span></div><div class="sale-total-card spari"><span class="sale-total-label">'+escapeAdminText(spariLabel)+' (með VSK)</span><span class="sale-total-value sale-total-spari">'+fmtNum(spariTotal)+' kr</span></div></div>';
   html+='<button class="print-btn no-print" onclick="copyQuoteText()">Afrita tilboð</button> ';
   html+='<button class="print-btn no-print" onclick="printPDF()">&#9660; Prenta / Vista PDF</button>';
   html+='</div>';
@@ -732,6 +838,12 @@ function calculate(){
   }
   addAcc("walking-gate",gateQty);addAcc("wheels",wheelsQty);addAcc("lock",lockQty);addAcc("warning-sign",signQty);
 
+  var rentalSubtotal=totalRental;
+  var discountPct=getRentalDiscount();
+  var discountAmount=rentalSubtotal*discountPct/100;
+  var finalRental=rentalSubtotal-discountAmount;
+  var discountFactor=1-discountPct/100;
+
   var TIP='<span class="tooltip-wrap"><span class="tooltip-icon">i</span><span class="tooltip-bubble">Verð er áætlað og byggt á gildandi verðskrá (janúar 2026). Endanlegt verð kann að breytast.</span></span>';
   var html='<div class="result-box">';
   if(minWarning)html+='<div class="result-warning">&#9888; Lágmarksleigutími miðar við '+MIN_DAYS+' daga.</div>';
@@ -760,20 +872,26 @@ function calculate(){
     }
   }
   html+='</tbody></table>';
-  html+='<div class="result-row"><span class="r-label">Meðalverð á dag</span><span class="r-val daily-price">'+fmtNum(totalRental/days)+' kr/dag</span></div>';
-  html+='<div class="result-total"><span class="rt-label">Heildarleiga (með VSK) '+TIP+'</span><span class="rt-value">'+fmtNum(totalRental)+' kr</span></div>';
+  if(discountPct>0){
+    html+='<div class="result-separator"></div>';
+    html+='<div class="result-row"><span class="r-label">Samtals fyrir afslátt</span><span class="r-val rental-subtotal">'+fmtNum(rentalSubtotal)+' kr</span></div>';
+    html+='<div class="result-row"><span class="r-label">Afsláttur ('+fmtDec(discountPct,discountPct%1===0?0:2)+'%)</span><span class="r-val rental-discount-value">-'+fmtNum(discountAmount)+' kr</span></div>';
+    html+='<div class="result-note">Sundurliðun eftir tímabilum tekur mið af afslætti.</div>';
+  }
+  html+='<div class="result-row"><span class="r-label">Meðalverð á dag</span><span class="r-val daily-price">'+fmtNum(finalRental/days)+' kr/dag</span></div>';
+  html+='<div class="result-total"><span class="rt-label">Heildarleiga (með VSK) '+TIP+'</span><span class="rt-value">'+fmtNum(finalRental)+' kr</span></div>';
   html+='<button class="print-btn no-print" onclick="copyQuoteText()">Afrita tilboð</button> ';
   html+='<button class="print-btn no-print" onclick="printPDF()">&#9660; Prenta / Vista PDF</button>';
 
   var numPeriods=Math.ceil(days/30);if(numPeriods>MAX_RENTAL_PERIODS)numPeriods=MAX_RENTAL_PERIODS;
-  html+='<div class="result-subsection-label no-print" style="margin-top:14px;cursor:pointer" onclick="toggleBreakdown()">Sjá sundurliðun eftir tímabilum <span class="arrow" id="bdArrow" style="font-size:10px">&#9660;</span></div>';
-  html+='<div class="result-subsection-label print-only-label" style="margin-top:14px">Hér má sjá sundurliðun eftir tímabilum:</div>';
+  html+='<div class="result-subsection-label no-print" style="margin-top:14px;cursor:pointer" onclick="toggleBreakdown()">Sjá sundurliðun eftir tímabilum'+(discountPct>0?' (með afslætti)':'')+' <span class="arrow" id="bdArrow" style="font-size:10px">&#9660;</span></div>';
+  html+='<div class="result-subsection-label print-only-label" style="margin-top:14px">Hér má sjá sundurliðun eftir tímabilum'+(discountPct>0?' með afslætti':'')+':</div>';
   html+='<div class="breakdown-panel" id="bdPanel">';
   var CHUNK=6;var numChunks=Math.ceil(numPeriods/CHUNK);
   var dailyTotals=[];var periodCosts=[];
   for(var p=0;p<numPeriods;p++){
     dailyTotals[p]=0;
-    for(var i=0;i<allItems.length;i++){dailyTotals[p]+=getPeriodRate(allItems[i].rates,p)*allItems[i].qty}
+    for(var i=0;i<allItems.length;i++){dailyTotals[p]+=getPeriodRate(allItems[i].rates,p)*allItems[i].qty*discountFactor}
     var remaining=days-p*30;var pDays=remaining>0?Math.min(remaining,30):0;
     periodCosts[p]=dailyTotals[p]*pDays;
   }
@@ -784,7 +902,7 @@ function calculate(){
     html+='</tr></thead><tbody>';
     for(var i=0;i<allItems.length;i++){
       var it=allItems[i];html+='<tr><td>'+it.desc+'</td><td>'+it.qty+'</td>';
-      for(var p=pFrom;p<pTo;p++){var rate=getPeriodRate(it.rates,p);var dc=rate*it.qty;html+='<td>'+fmtNum(dc)+' <span class="bd-rate">('+rate+' kr/d)</span></td>'}
+      for(var p=pFrom;p<pTo;p++){var rate=getPeriodRate(it.rates,p);var effectiveRate=rate*discountFactor;var dc=effectiveRate*it.qty;html+='<td>'+fmtNum(dc)+' <span class="bd-rate">('+(discountPct>0?fmtDec(effectiveRate,2):rate)+' kr/d)</span></td>'}
       html+='</tr>';
     }
     html+='<tr class="bd-total"><td colspan="2">Samtals dagleiga</td>';
@@ -804,7 +922,12 @@ function calculate(){
 function toggleBreakdown(){var arrow=document.getElementById("bdArrow");var panel=document.getElementById("bdPanel");if(panel.classList.contains("open")){panel.classList.remove("open");arrow.innerHTML="&#9660;"}else{panel.classList.add("open");arrow.innerHTML="&#9650;"}}
 function printPDF(){var panel=document.getElementById("bdPanel");if(panel&&!panel.classList.contains("open")){panel.classList.add("open");var arrow=document.getElementById("bdArrow");if(arrow)arrow.innerHTML="&#9650;"}setTimeout(function(){window.print()},200)}
 
-window.onload=function(){updateConfig();initRentalDates();renderLines()};
+document.addEventListener("keydown",function(e){
+  if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==="e"){e.preventDefault();requestAdminAccess()}
+  if(e.key==="Escape"&&document.getElementById("adminModal").classList.contains("open"))closeAdminPanel();
+});
+document.getElementById("adminModal").addEventListener("click",function(e){if(e.target===this)closeAdminPanel()});
+window.onload=function(){loadAdminValues();updateConfig();initRentalDates();renderLines()};
 </script>
 </body>
 </html>
